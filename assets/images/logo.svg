@@ -1,0 +1,87 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Arrière-plan circulaire -->
+  <circle cx="100" cy="100" r="95" fill="#2c5530" stroke="#4a7c59" stroke-width="4"/>
+  
+  <!-- Montagne/colline arrière -->
+  <path d="M20 140 Q60 110 100 120 Q140 110 180 140 L180 180 L20 180 Z" fill="#4a7c59" opacity="0.7"/>
+  
+  <!-- Montagne/colline avant -->
+  <path d="M30 150 Q70 125 100 135 Q130 125 170 150 L170 180 L30 180 Z" fill="#6b8e23"/>
+  
+  <!-- Maison traditionnelle 1 -->
+  <g transform="translate(60, 120)">
+    <!-- Toit -->
+    <polygon points="0,15 20,0 40,15" fill="#8B4513"/>
+    <!-- Murs -->
+    <rect x="5" y="15" width="30" height="25" fill="#D2B48C"/>
+    <!-- Porte -->
+    <rect x="15" y="25" width="10" height="15" fill="#654321"/>
+    <!-- Fenêtre -->
+    <rect x="8" y="20" width="6" height="6" fill="#87CEEB"/>
+  </g>
+  
+  <!-- Maison traditionnelle 2 -->
+  <g transform="translate(110, 115)">
+    <!-- Toit -->
+    <polygon points="0,15 20,0 40,15" fill="#8B4513"/>
+    <!-- Murs -->
+    <rect x="5" y="15" width="30" height="25" fill="#DEB887"/>
+    <!-- Porte -->
+    <rect x="15" y="25" width="10" height="15" fill="#654321"/>
+    <!-- Fenêtre -->
+    <rect x="26" y="20" width="6" height="6" fill="#87CEEB"/>
+  </g>
+  
+  <!-- Arbre à gauche -->
+  <g transform="translate(40, 100)">
+    <!-- Tronc -->
+    <rect x="8" y="30" width="4" height="20" fill="#8B4513"/>
+    <!-- Feuillage -->
+    <circle cx="10" cy="25" r="12" fill="#228B22"/>
+    <circle cx="15" cy="20" r="8" fill="#32CD32"/>
+    <circle cx="5" cy="20" r="8" fill="#32CD32"/>
+  </g>
+  
+  <!-- Arbre à droite -->
+  <g transform="translate(150, 105)">
+    <!-- Tronc -->
+    <rect x="8" y="25" width="4" height="15" fill="#8B4513"/>
+    <!-- Feuillage -->
+    <circle cx="10" cy="20" r="10" fill="#228B22"/>
+    <circle cx="14" cy="16" r="6" fill="#32CD32"/>
+    <circle cx="6" cy="16" r="6" fill="#32CD32"/>
+  </g>
+  
+  <!-- Rivière/chemin -->
+  <path d="M15 160 Q50 155 85 165 Q120 175 155 160 Q175 155 185 165" 
+        stroke="#4169E1" stroke-width="3" fill="none" opacity="0.6"/>
+  
+  <!-- Soleil -->
+  <g transform="translate(150, 50)">
+    <circle cx="0" cy="0" r="15" fill="#FFD700"/>
+    <!-- Rayons -->
+    <g stroke="#FFD700" stroke-width="2">
+      <line x1="0" y1="-22" x2="0" y2="-18"/>
+      <line x1="16" y1="-16" x2="13" y2="-13"/>
+      <line x1="22" y1="0" x2="18" y2="0"/>
+      <line x1="16" y1="16" x2="13" y2="13"/>
+      <line x1="0" y1="22" x2="0" y2="18"/>
+      <line x1="-16" y1="16" x2="-13" y2="13"/>
+      <line x1="-22" y1="0" x2="-18" y2="0"/>
+      <line x1="-16" y1="-16" x2="-13" y2="-13"/>
+    </g>
+  </g>
+  
+  <!-- Texte MonVillage -->
+  <text x="100" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white">MonVillage</text>
+  
+  <!-- Étoiles décoratives -->
+  <g fill="#FFD700" opacity="0.8">
+    <polygon points="40,40 42,46 48,46 43,50 45,56 40,52 35,56 37,50 32,46 38,46" transform="scale(0.3)"/>
+    <polygon points="160,70 162,76 168,76 163,80 165,86 160,82 155,86 157,80 152,76 158,76" transform="scale(0.3)"/>
+    <polygon points="50,180 52,186 58,186 53,190 55,196 50,192 45,196 47,190 42,186 48,186" transform="scale(0.3)"/>
+  </g>
+  
+  <!-- Bordure décorative -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="white" stroke-width="2" opacity="0.3"/>
+</svg>
