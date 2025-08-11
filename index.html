@@ -1254,6 +1254,21 @@
 
         // Fonction pour calculer la distance
 
+        // Fonction pour afficher les popups des arrondissements
+        function showArrondissementPopup(feature, layer) {
+            if (measurementActive) return; // Ne pas afficher si un outil de mesure est actif
+            
+            const props = feature.properties;
+            const popupContent = `
+                <div class="popup-content">
+                    <h3>${props.nom_arrondissement || 'Arrondissement'}</h3>
+                    <p><strong>Département:</strong> ${props.nom_departement || 'N/A'}</p>
+                    <p><strong>Région:</strong> ${props.nom_region || 'N/A'}</p>
+                </div>
+            `;
+            layer.bindPopup(popupContent);
+        }
+
         // Initialisation de l'application
         document.addEventListener('DOMContentLoaded', function() {
             initializeSupabase();
