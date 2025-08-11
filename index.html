@@ -1139,6 +1139,121 @@
             dblclick: null
         };
 
+        // Gestion des outils de mesure
+        let measurementMode = null;
+        let measurementLayer = null;
+        let measurementActive = false;
+
+        function initMeasurementTools() {
+            const distanceBtn = document.getElementById('distance-tool');
+            const areaBtn = document.getElementById('area-tool');
+
+            distanceBtn.addEventListener('click', () => {
+                if (measurementMode === 'distance') {
+                    stopMeasurement();
+                    measurementActive = false;
+                } else {
+                    startDistanceMeasurement();
+                    measurementActive = true;
+                }
+            });
+
+            areaBtn.addEventListener('click', () => {
+                if (measurementMode === 'area') {
+                    stopMeasurement();
+                    measurementActive = false;
+                } else {
+                    startAreaMeasurement();
+                    measurementActive = true;
+                }
+            });
+        }
+
+        function startDistanceMeasurement() {
+            stopMeasurement();
+            measurementMode = 'distance';
+            measurementActive = true;
+            
+            // Changer le curseur
+            map.getContainer().style.cursor = 'crosshair';
+            
+            // Activer le bouton
+            document.getElementById('distance-tool').classList.add('active');
+            
+            // Désactiver temporairement les événements des couches
+            disableLayerEvents();
+        }
+
+        function startAreaMeasurement() {
+            stopMeasurement();
+            measurementMode = 'area';
+            measurementActive = true;
+            
+            // Changer le curseur
+            map.getContainer().style.cursor = 'crosshair';
+            
+            // Activer le bouton
+            document.getElementById('area-tool').classList.add('active');
+            
+            // Désactiver temporairement les événements des couches
+            disableLayerEvents();
+        }
+
+        function stopMeasurement() {
+            measurementMode = null;
+            measurementActive = false;
+            
+            // Restaurer le curseur
+            map.getContainer().style.cursor = '';
+            
+            // Désactiver les boutons
+            document.getElementById('distance-tool').classList.remove('active');
+            document.getElementById('area-tool').classList.remove('active');
+            
+            // Réactiver les événements des couches
+            enableLayerEvents();
+        }
+        
+        function disableLayerEvents() {
+            // Désactiver les événements de clic sur les couches d'arrondissements
+            if (arrondissementsLayer) {
+                arrondissementsLayer.off('click');
+            }
+            if (departementsLayer) {
+                departementsLayer.off('click');
+            }
+            if (regionsLayer) {
+                regionsLayer.off('click');
+            }
+        }
+        
+        function enableLayerEvents() {
+            // Réactiver les événements de clic sur les couches d'arrondissements
+            if (arrondissementsLayer) {
+                arrondissementsLayer.on('click', function(e) {
+                    if (!measurementActive) {
+                        showArrondissementPopup(e);
+                    }
+                });
+            }
+            if (departementsLayer) {
+                departementsLayer.on('click', function(e) {
+                    if (!measurementActive) {
+                        showDepartementPopup(e);
+                    }
+                });
+            }
+            if (regionsLayer) {
+                regionsLayer.on('click', function(e) {
+                    if (!measurementActive) {
+                        showRegionPopup(e);
+                    }
+                });
+            }
+        }
+
+        // Fonction pour calculer la distance
+
         // Initialisation de l'application
         document.addEventListener('DOMContentLoaded', function() {
             initializeSupabase();
@@ -1495,6 +1610,13 @@
                                     weight: 3,
                                     opacity: 1,                   // Bordure bien visible
                                     fillOpacity: 0                // NOUVEAU: Aucun remplissage
+                                },
+                                onEachFeature: function(feature, layer) {
+                                    layer.on('click', function(e) {
+                                        if (!measurementActive) {
+                                            showRegionPopup(e);
+                                        }
+                                    });
                                 }
                             }).addTo(mapLayers.regions);
 
@@ -1582,6 +1704,13 @@
                                     weight: 2,
                                     opacity: 1,                   // Bordure bien visible
                                     fillOpacity: 0                // NOUVEAU: Aucun remplissage
+                                },
+                                onEachFeature: function(feature, layer) {
+                                    layer.on('click', function(e) {
+                                        if (!measurementActive) {
+                                            showDepartementPopup(e);
+                                        }
+                                    });
                                 }
                             }).addTo(mapLayers.departements);
 
@@ -1668,6 +1797,13 @@
                                     opacity: 1,                   // Bordure bien visible
                                     fillOpacity: 0,               // NOUVEAU: Aucun remplissage
                                     dashArray: '5, 5'             // NOUVEAU: Ligne pointillée/interrompue
+                                },
+                                onEachFeature: function(feature, layer) {
+                                    layer.on('click', function(e) {
+                                        if (!measurementActive) {
+                                            showArrondissementPopup(e);
+                                        }
+                                    });
                                 }
                             }).addTo(mapLayers.arrondissements);
 
