@@ -1143,30 +1143,66 @@
         let measurementMode = null;
         let measurementLayer = null;
         let measurementActive = false;
+        let distanceMeasurement = null;
 
+        // Initialiser les outils de mesure
         function initMeasurementTools() {
-            const distanceBtn = document.getElementById('distance-tool');
-            const areaBtn = document.getElementById('area-tool');
-
-            distanceBtn.addEventListener('click', () => {
-                if (measurementMode === 'distance') {
-                    stopMeasurement();
-                    measurementActive = false;
-                } else {
-                    startDistanceMeasurement();
-                    measurementActive = true;
+          distanceMeasurement = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'kilometers',
+            secondaryLengthUnit: 'meters',
+            primaryAreaUnit: 'hectares',
+            secondaryAreaUnit: 'sqmeters',
+            drawOptions: {
+              polyline: {
+                shapeOptions: {
+                  color: '#ff0000',
+                  weight: 3,
+                  opacity: 0.8
                 }
-            });
-
-            areaBtn.addEventListener('click', () => {
-                if (measurementMode === 'area') {
-                    stopMeasurement();
-                    measurementActive = false;
-                } else {
-                    startAreaMeasurement();
-                    measurementActive = true;
+              },
+              polygon: {
+                shapeOptions: {
+                  color: '#ff0000',
+                  weight: 3,
+                  opacity: 0.8,
+                  fillOpacity: 0.2
                 }
-            });
+              }
+            },
+            localization: 'fr'
+          });
+          
+          map.addControl(distanceMeasurement);
+          
+          // Augmenter le z-index des outils de mesure
+          distanceMeasurement.on('measurestart', function() {
+            measurementActive = true;
+            // Trouver et modifier le z-index des éléments de mesure
+            setTimeout(() => {
+              const measureElements = document.querySelectorAll('.leaflet-measure-path-container, .leaflet-interactive[stroke="#ff0000"]');
+              measureElements.forEach(element => {
+                element.style.zIndex = '1000';
+              });
+              
+              // Modifier le z-index du pane de mesure
+              const measurePane = map.getPane('overlayPane');
+              if (measurePane) {
+                measurePane.style.zIndex = '1000';
+              }
+            }, 100);
+          });
+          
+          distanceMeasurement.on('measurefinish', function() {
+            measurementActive = false;
+            // Maintenir le z-index élevé pour les mesures terminées
+            setTimeout(() => {
+              const measureElements = document.querySelectorAll('.leaflet-measure-path-container, .leaflet-interactive[stroke="#ff0000"]');
+              measureElements.forEach(element => {
+                element.style.zIndex = '1000';
+              });
+            }, 100);
+          });
         }
 
         function startDistanceMeasurement() {
