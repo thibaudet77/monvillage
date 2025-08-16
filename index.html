@@ -1086,6 +1086,19 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Flutterwave -->
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
+    <script>
+        // Vérifier que Flutterwave est chargé
+        window.addEventListener('load', function() {
+            if (typeof FlutterwaveCheckout === 'undefined') {
+                console.error('Flutterwave SDK failed to load');
+            } else {
+                console.log('Flutterwave SDK loaded successfully');
+            }
+        });
+    </script>
+    
     <script>
         // Configuration globale
         const CONFIG = {
@@ -1102,7 +1115,9 @@
                 zoom: 7
             },
             flutterwave: {
-                publicKey: 'FLWPUBK_TEST-your-key-here'
+                publicKey: 'FLWPUBK_TEST-SANDBOXDEMOKEY-X',
+                currency: 'XAF',
+                country: 'CM'
             }
         };
 
@@ -2776,8 +2791,149 @@
             const format = document.querySelector('.format-option.selected').dataset.format;
             const exportType = document.getElementById('exportType').value;
             
-            showNotification(`Impression ${format} (${exportType}) - Fonction à implémenter`, 'info');
-            closePrintModal();
+            console.log('Print requested:', { format, title });
+            
+            // Obtenir les limites actuelles de la carte
+            const bounds = map.getBounds();
+            
+            // Prix fixe pour l'impression
+            const amount = 2000; // 2000 XAF
+            
+            console.log('Initializing payment for amount:', amount);
+            initializePayment(amount, title, format, bounds);
+        }
+
+        function initializePayment(amount, title, format, bounds) {
+            if (!window.FlutterwaveCheckout) {
+                console.error('Flutterwave SDK not loaded');
+                alert('Erreur: Service de paiement non disponible');
+                return;
+            }
+
+            const transactionId = 'TXN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            FlutterwaveCheckout({
+                public_key: CONFIG.flutterwave.publicKey,
+                tx_ref: transactionId,
+                amount: amount,
+                currency: CONFIG.flutterwave.currency,
+                country: CONFIG.flutterwave.country,
+                payment_options: 'card, mobilemoney, ussd',
+                customer: {
+                    email: 'client@monvillage.cm',
+                    phone_number: '+237697182925',
+                    name: 'Client MonVillage'
+                },
+                customizations: {
+                    title: 'MonVillage - Impression Carte',
+                    description: `Impression ${title} (${format})`,
+                    logo: 'assets/images/logo.svg'
+                },
+                callback: function(data) {
+                    console.log('Payment callback:', data);
+                    if (data.status === 'successful') {
+                        // Enregistrer le paiement
+                        recordPayment(data, title, format, bounds);
+                        // Procéder à l'impression
+                        proceedWithPrint(title, format, bounds);
+                    } else {
+                        console.error('Payment failed:', data);
+                        alert('Paiement échoué. Veuillez réessayer.');
+                    }
+                },
+                onclose: function() {
+                    console.log('Payment modal closed');
+                    // L'utilisateur a fermé la modal de paiement
+                }
+            });
+        }
+
+        async function recordPayment(paymentData, title, format, bounds) {
+            console.log('Recording payment:', paymentData);
+            
+            try {
+                const { data, error } = await supabase
+                    .from('payments')
+                    .insert([
+                        {
+                            transaction_id: paymentData.transaction_id,
+                            user_session: paymentData.tx_ref,
+                            amount: paymentData.amount,
+                            currency: paymentData.currency || CONFIG.flutterwave.currency,
+                            status: 'success',
+                            payment_method: paymentData.payment_type,
+                            flutterwave_tx_ref: paymentData.tx_ref,
+                            flutterwave_tx_id: paymentData.transaction_id,
+                            print_format: format,
+                            print_title: title,
+                            map_bounds: bounds,
+                            processed_at: new Date().toISOString()
+                        }
+                    ]);
+
+                if (error) {
+                    console.error('Database error:', error);
+                    throw error;
+                }
+                
+                console.log('Payment recorded successfully:', data);
+            } catch (error) {
+                console.error('Erreur lors de l\'enregistrement du paiement:', error);
+                // Ne pas bloquer l'impression même si l'enregistrement échoue
+            }
+        }
+
+        function proceedWithPrint(title, format, bounds) {
+            console.log('Proceeding with print:', { title, format, bounds });
+            
+            // Masquer les contrôles pour l'impression
+            document.getElementById('sidebar').style.display = 'none';
+            document.getElementById('search-container').style.display = 'none';
+            document.querySelector('.leaflet-control-container').style.display = 'none';
+            
+            // Attendre un peu pour que les styles s'appliquent
+            setTimeout(() => {
+                window.print();
+                
+                // Restaurer l'affichage après impression
+                setTimeout(() => {
+                    document.getElementById('sidebar').style.display = 'block';
+                    document.getElementById('search-container').style.display = 'block';
+                    document.querySelector('.leaflet-control-container').style.display = 'block';
+                    console.log('Print completed, UI restored');
+                }, 1000);
+            }, 500);
+        }
+
+        // Fonction pour tester l'intégration Flutterwave
+        function testFlutterwaveIntegration() {
+            console.log('Testing Flutterwave integration...');
+            console.log('Flutterwave SDK loaded:', !!window.FlutterwaveCheckout);
+            console.log('Config:', CONFIG.flutterwave);
+            
+            if (!window.FlutterwaveCheckout) {
+                console.error('Flutterwave SDK not found. Check if script is loaded correctly.');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Tester l'intégration au chargement
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testFlutterwaveIntegration();
+            }, 2000); // Attendre que tous les scripts soient chargés
+        });
+
+        function showPrintDialog() {
+            if (!testFlutterwaveIntegration()) {
+                alert('Service de paiement non disponible. Veuillez recharger la page.');
+                return;
+            }
+
+            const modal = document.getElementById('print-modal');
+            modal.style.display = 'block';
         }
 
         function checkAdminAccess() {
