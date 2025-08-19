@@ -15,6 +15,14 @@ MonVillage permet de visualiser, rechercher et explorer les villages du Cameroun
 - 📱 Interface responsive
 - 🔐 Panneau d'administration
 
+## Accès Administrateur
+
+**Identifiants par défaut :**
+- Email : `admin@monvillage.cm`
+- Mot de passe : `admin123`
+
+⚠️ **Changez ces identifiants après la première connexion !**
+
 ## Technologies
 
 - HTML5, CSS3, JavaScript
