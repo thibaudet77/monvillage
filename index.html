@@ -936,20 +936,19 @@
                     <div class="legend-item">
                         <div class="legend-symbol" style="background: #F44336;">
                             <i class="fas fa-hospital" style="font-size: 10px; color: white;"></i>
-                        </div>
-                        <span class="legend-label">Centres de santé</span>
-                    </div>
+                <div class="logo-section">
+                    <img src="assets/images/logo.svg" alt="MonVillage" class="logo">
+                    <h1 class="app-title">MonVillage</h1>
                 </div>
             </aside>
-
-            <!-- Map Container -->
-            <div class="map-container">
-                <button class="toggle-sidebar" id="toggleSidebar">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Rechercher un village..." class="search-input">
+                    <i class="fas fa-search search-icon"></i>
                     <i class="fas fa-bars"></i>
                 </button>
 
-                <div class="toolbar">
-                    <button class="tool-btn" id="measureDistance" title="Mesurer une distance">
+                <div class="header-controls">
+                    <button id="measureBtn" class="control-btn" title="Mesurer">
                         <i class="fas fa-ruler"></i>
                     </button>
                     <button class="tool-btn" id="measureArea" title="Mesurer une surface">
@@ -961,7 +960,7 @@
                     <button class="tool-btn" id="zoomHome" title="Vue d'ensemble">
                         <i class="fas fa-home"></i>
                     </button>
-                    <button class="tool-btn" id="toggleSatellite" title="Vue satellite">
+                    <button id="adminBtn" class="control-btn" title="Administration">
                         <i class="fas fa-satellite"></i>
                     </button>
                 </div>
@@ -1111,7 +1110,7 @@
                 accessToken: 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg'
             },
             map: {
-                center: [4.1485, 9.504],
+                center: [3.87, 11.504],
                 zoom: 7
             },
             flutterwave: {
