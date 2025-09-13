@@ -6,11 +6,10 @@
     <title>MonVillage - Cartographie des Villages du Cameroun</title>
     
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         * {
@@ -23,8 +22,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             height: 100vh;
             overflow: hidden;
-            background: #1a1a1a;
-            color: #333;
         }
 
         .app-container {
@@ -35,60 +32,68 @@
 
         /* Header */
         .header {
-            background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+            background: linear-gradient(135deg, #2c5530, #4a7c59);
             color: white;
             padding: 10px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
             position: relative;
         }
 
         .header-content {
-            height: 40px;
+            display: flex;
             align-items: center;
             justify-content: space-between;
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
 
         .logo {
             width: 40px;
             height: 40px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
+            background: white;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            color: #2c5530;
+            font-size: 20px;
+            font-weight: bold;
         }
 
         .app-title {
             font-size: 24px;
-            font-weight: bold;
+            font-weight: 600;
             margin: 0;
         }
 
         .search-container {
-            position: relative;
             flex: 1;
             max-width: 400px;
             margin: 0 20px;
+            position: relative;
         }
 
         .search-input {
             width: 100%;
-            padding: 10px 40px 10px 15px;
+            padding: 10px 45px 10px 15px;
             border: none;
             border-radius: 25px;
             font-size: 14px;
+            outline: none;
             background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
         }
 
         .search-btn {
@@ -96,43 +101,47 @@
             right: 5px;
             top: 50%;
             transform: translateY(-50%);
-            background: #4a7c59;
-            border: none;
+            background: #2c5530;
             color: white;
-            padding: 8px 12px;
+            border: none;
             border-radius: 50%;
+            width: 35px;
+            height: 35px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
         }
 
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1001;
-            display: none;
+        .search-btn:hover {
+            background: #1a3a1e;
         }
 
-        .search-result-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
             cursor: pointer;
-            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 16px;
         }
 
-        .search-result-item:hover {
-            background: #f5f5f5;
-        }
-
-        .admin-access {
-            color: rgba(255,255,255,0.7);
-            font-size: 12px;
-            cursor: pointer;
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
         }
 
         /* Main Content */
@@ -140,122 +149,96 @@
             display: flex;
             flex: 1;
             overflow: hidden;
-            position: relative;
-        }
-
-        /* Sidebar Overlay for Mobile */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            backdrop-filter: blur(2px);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
-            opacity: 1;
         }
 
         /* Sidebar */
         .sidebar {
-            width: 300px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            padding: 0 12px;
-            transition: transform 0.3s ease;
-            z-index: 1000;
+            width: 280px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
             overflow-y: auto;
-            position: relative;
-        }
-
-        /* Desktop sidebar collapsed state */
-        .sidebar.collapsed {
-            transform: translateX(-280px);
+            transition: transform 0.3s ease;
+            z-index: 999;
         }
 
         .sidebar-header {
             padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
-            background: #f8f9fa;
-            position: relative;
-        }
-
-        .sidebar-header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
         }
 
         .sidebar-title {
             font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-weight: 600;
             color: #2c5530;
+            margin-bottom: 10px;
         }
 
-        .sidebar-close-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            color: #666;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            position: absolute;
-            top: 15px;
-            right: 15px;
+        .layer-group {
+            margin-bottom: 20px;
         }
 
-        .sidebar-close-btn:hover {
-            background: #e0e0e0;
-            color: #333;
+        .layer-group h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            padding: 0 20px;
         }
 
-        .legend-section {
-            padding: 15px 20px;
-        }
-
-        .legend-item {
+        .layer-item {
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
-            padding: 8px;
-            border-radius: 8px;
+            padding: 12px 20px;
             cursor: pointer;
-            transition: background 0.2s;
-        }
-            gap: 8px;
-        .legend-item:hover {
-            background: #f0f0f0;
+            transition: background 0.2s ease;
+            border-left: 3px solid transparent;
         }
 
-        .legend-symbol {
-            gap: 6px;
+        .layer-item:hover {
+            background: #e9ecef;
+        }
+
+        .layer-item.active {
+            background: #e8f5e8;
+            border-left-color: #2c5530;
+        }
+
+        .layer-toggle {
+            width: 20px;
             height: 20px;
-            margin-right: 10px;
-            border-radius: 3px;
-            display: flex;
-            width: 24px;
-            height: 24px;
-            font-size: 12px;
+            border: 2px solid #6c757d;
+            border-radius: 4px;
+            margin-right: 12px;
+            position: relative;
+            transition: all 0.2s ease;
         }
 
+        .layer-toggle.active {
+            background: #2c5530;
+            border-color: #2c5530;
+        }
+
+        .layer-toggle.active::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 2px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .layer-label {
             font-size: 14px;
-            font-size: 14px;
-            color: #333;
+            color: #495057;
+            flex: 1;
+        }
+
+        .layer-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
         }
 
         /* Map Container */
@@ -267,130 +250,47 @@
         #map {
             width: 100%;
             height: 100%;
-            background-color: #f0f0f0;
-            position: relative;
-            z-index: 1;
         }
 
         /* Toolbar */
         .toolbar {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            z-index: 600;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border-radius: 25px;
             padding: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 5px;
+            z-index: 1000;
         }
 
         .tool-btn {
-            background: none;
+            width: 45px;
+            height: 45px;
             border: none;
-            padding: 10px;
-            border-radius: 10px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            color: #495057;
             cursor: pointer;
-            font-size: 16px;
-            color: #666;
-            transition: all 0.2s;
-            min-width: 40px;
-            min-height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 18px;
         }
 
         .tool-btn:hover {
-            background: #f0f0f0;
-            color: #333;
+            background: #2c5530;
+            color: white;
+            transform: translateY(-2px);
         }
 
         .tool-btn.active {
-            background: #4a7c59;
+            background: #2c5530;
             color: white;
-        }
-
-        /* Toggle Sidebar Button */
-        .toggle-sidebar {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
-            z-index: 600;
-            color: #4a7c59;
-            transition: all 0.2s ease;
-        }
-
-        .toggle-sidebar:hover {
-            background: rgba(255,255,255,1);
-            transform: scale(1.05);
-        }
-
-        /* Popup Styles */
-        .custom-popup {
-            font-family: inherit;
-        }
-
-        .popup-header {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2c5530;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #4a7c59;
-        }
-
-        .popup-content {
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .popup-field {
-            margin-bottom: 8px;
-        }
-
-        .popup-label {
-            font-weight: bold;
-            color: #666;
-        }
-
-        .photo-carousel {
-            margin-top: 15px;
-            text-align: center;
-        }
-
-        .photo-carousel img {
-            max-width: 200px;
-            max-height: 150px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .photo-nav {
-            margin-top: 10px;
-        }
-
-        .photo-nav button {
-            background: #4a7c59;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            margin: 0 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
         }
 
         /* Footer */
@@ -399,15 +299,16 @@
             color: white;
             padding: 15px 20px;
             text-align: center;
-            font-size: 14px;
         }
 
         .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .contact-info {
@@ -420,171 +321,114 @@
             display: flex;
             align-items: center;
             gap: 5px;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 2000;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            height: 28px;
-            transform: translate(-50%, -50%);
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #2c5530;
-            text-align: center;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-input, .form-select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
             font-size: 14px;
         }
-            padding: 0 36px 0 10px;
-            font-size: 13px;
-            outline: none;
-            border-color: #4a7c59;
-        }
 
-            width: 20px;
-            height: 20px;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
+        .copyright {
             font-size: 14px;
-            font-weight: bold;
-            transition: background 0.2s;
+            opacity: 0.9;
         }
 
-        .btn:hover {
-            background: #3a6b49;
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 1001;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .search-container {
+                max-width: 250px;
+                margin: 0 10px;
+            }
+
+            .app-title {
+                font-size: 20px;
+            }
+
+            .logo {
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }
+
+            .header-content {
+                padding: 0 10px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .contact-info {
+                justify-content: center;
+            }
+
+            .toolbar {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                justify-content: center;
+            }
         }
 
-        .btn-secondary {
-            background: #6c757d;
-        }
+        @media (max-width: 480px) {
+            .header {
+                padding: 8px 15px;
+            }
 
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
+            .app-title {
+                font-size: 18px;
+            }
 
-        /* Print Dialog */
-        .print-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+            .logo {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+            }
 
-        .format-option {
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+            .search-input {
+                padding: 8px 40px 8px 12px;
+                font-size: 13px;
+            }
 
-        .format-option:hover {
-            border-color: #4a7c59;
-        }
+            .search-btn {
+                width: 30px;
+                height: 30px;
+            }
 
-        .format-option.selected {
-            border-color: #4a7c59;
-            background: rgba(74, 124, 89, 0.1);
-        }
-
-        .price-display {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .price {
-            font-size: 24px;
-            font-weight: bold;
-            color: #4a7c59;
+            .control-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
         }
 
         /* Loading Spinner */
         .loading {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.9);
-            z-index: 3000;
-            backdrop-filter: blur(5px);
-        }
-
-        .loading-content {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            text-align: center;
+            z-index: 1000;
         }
 
         .spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4a7c59;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2c5530;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
         }
 
         @keyframes spin {
@@ -592,246 +436,49 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Authentication Styles */
-        .auth-container {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        /* Popup Styles */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
 
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
+        .leaflet-popup-content {
+            margin: 15px;
+            line-height: 1.4;
         }
 
-        .auth-header h2 {
+        .popup-title {
+            font-weight: 600;
             color: #2c5530;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
-        .auth-header p {
-            color: #666;
+        .popup-info {
+            color: #495057;
             font-size: 14px;
         }
 
-        .two-factor-input {
-            font-family: monospace;
-            font-size: 18px;
-            text-align: center;
-            letter-spacing: 5px;
+        .popup-info strong {
+            color: #2c5530;
         }
 
-        /* Notification Styles */
-        .notification {
+        /* Sidebar Overlay for Mobile */
+        .sidebar-overlay {
+            display: none;
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4a7c59;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            z-index: 2500;
-            transform: translateX(400px);
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            opacity: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
         }
 
-        .notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .notification.error {
-            background: #dc3545;
-        }
-
-        .notification.success {
-            background: #28a745;
-        }
-
-        .notification.warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .notification.info {
-            background: #17a2b8;
-        }
-
-        /* Layer Controls */
-        .layer-controls {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .layer-control-item {
-            display: flex;
-            gap: 6px;
-            justify-content: space-between;
-            font-size: 11px;
-        }
-
-            width: 28px;
-            height: 28px;
-            width: 50px;
-                height: 36px;
-                padding: 0 10px;
-                gap: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-                width: 20px;
-                height: 20px;
-            background: #4a7c59;
-        }
-
-                font-size: 12px;
-            content: '';
-            position: absolute;
-            top: 2px;
-                height: 24px;
-                padding: 0 32px 0 8px;
-                font-size: 12px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.2s;
-                width: 18px;
-                height: 18px;
-                font-size: 10px;
-            font-size: 12px;
-        }
-
-                width: 24px;
-                height: 24px;
-                font-size: 11px;
-            .header-content {
-                flex-direction: column;
-                gap: 10px;
-                gap: 4px;
+        @media (max-width: 768px) {
+            .sidebar-overlay.active {
+                display: block;
             }
-
-            .logo-section {
-                order: 1;
-            }
-
-            .search-container {
-                order: 2;
-                max-width: 100%;
-                margin: 0;
-            }
-
-            .admin-access {
-                order: 3;
-                margin-top: 5px;
-            }
-
-            /* Sidebar mobile behavior */
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-                z-index: 1000;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                width: 280px;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .sidebar.collapsed {
-                transform: translateX(-100%);
-            }
-
-            .sidebar-close-btn {
-                display: flex !important;
-            }
-
-            .sidebar-header {
-                padding-top: 25px;
-            }
-
-            /* Toolbar mobile */
-            .toolbar {
-                flex-direction: row;
-                top: auto;
-                bottom: 20px;
-                right: 20px;
-                left: 20px;
-                justify-content: center;
-                max-width: none;
-            }
-
-            /* Footer mobile */
-            .footer-content {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-
-            .contact-info {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            /* Modal mobile */
-            .modal-content {
-                width: 95%;
-                margin: 20px;
-                max-height: 90vh;
-            }
-
-            /* Print options mobile */
-            .print-options {
-                grid-template-columns: 1fr;
-            }
-
-            /* Notification mobile */
-            .notification {
-                right: 10px;
-                left: 10px;
-                transform: translateY(-100px);
-            }
-
-            .notification.show {
-                transform: translateY(0);
-            }
-        }
-
-        @media (min-width: 769px) {
-            .sidebar-close-btn {
-                display: none !important;
-            }
-
-            .sidebar-overlay {
-                display: none !important;
-            }
-
-            /* Desktop sidebar behavior */
-            .sidebar {
-                position: relative;
-                transform: translateX(0);
-            }
-
-            .sidebar.collapsed {
-                transform: translateX(-280px);
-            }
-        }
-
-        /* Animation pour le bouton toggle */
-        .toggle-sidebar i {
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-animating .toggle-sidebar i {
-            transform: rotate(180deg);
         }
     </style>
 </head>
@@ -852,126 +499,118 @@
                     <button class="search-btn" id="searchBtn">
                         <i class="fas fa-search"></i>
                     </button>
-                    <div class="search-results" id="searchResults"></div>
                 </div>
                 
-                <div class="admin-access" onclick="checkAdminAccess()">
-                    <i class="fas fa-cog"></i> Admin
+                <div class="header-controls">
+                    <button class="control-btn" id="sidebarToggle" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button class="control-btn" id="adminBtn" title="Administration">
+                        <i class="fas fa-cog"></i>
+                    </button>
                 </div>
             </div>
         </header>
 
         <!-- Main Content -->
         <div class="main-content">
-            <!-- Overlay pour mobile -->
-            <div class="sidebar-overlay" id="sidebarOverlay"></div>
-            
             <!-- Sidebar -->
-            <aside class="sidebar" id="sidebar">
+            <div class="sidebar" id="sidebar">
                 <div class="sidebar-header">
-                    <button class="sidebar-close-btn" id="closeSidebar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <div class="sidebar-header-content">
-                        <div>
-                            <h3 class="sidebar-title">Légende</h3>
-                            <p>Couches cartographiques</p>
-                        </div>
-                    </div>
+                    <h2 class="sidebar-title">Couches de données</h2>
                 </div>
                 
-                <div class="layer-controls">
-                    <div class="layer-control-item">
-                        <span>Régions</span>
-                        <div class="layer-toggle active" data-layer="regions"></div>
+                <div class="layer-group">
+                    <h3>Données géographiques</h3>
+                    
+                    <div class="layer-item active" data-layer="villages">
+                        <div class="layer-toggle active"></div>
+                        <div class="layer-icon" style="background: #4CAF50; border-radius: 3px;"></div>
+                        <span class="layer-label">Villages</span>
                     </div>
-                    <div class="layer-control-item">
-                        <span>Départements</span>
-                        <div class="layer-toggle active" data-layer="departements"></div>
+                    
+                    <div class="layer-item" data-layer="poi">
+                        <div class="layer-toggle"></div>
+                        <div class="layer-icon" style="background: #FF9800; border-radius: 50%;"></div>
+                        <span class="layer-label">Points d'intérêt</span>
                     </div>
-                    <div class="layer-control-item">
-                        <span>Arrondissements</span>
-                        <div class="layer-toggle active" data-layer="arrondissements"></div>
-                    </div>
-                    <div class="layer-control-item">
-                        <span>Villages</span>
-                        <div class="layer-toggle active" data-layer="villages"></div>
-                    </div>
-                    <div class="layer-control-item">
-                        <span>Points d'intérêt</span>
-                        <div class="layer-toggle active" data-layer="poi"></div>
-                    </div>
-                    <div class="layer-control-item">
-                        <span>Géonymes</span>
-                        <div class="layer-toggle active" data-layer="geonames"></div>
+                    
+                    <div class="layer-item" data-layer="geonames">
+                        <div class="layer-toggle"></div>
+                        <div class="layer-icon" style="background: #2196F3; border-radius: 3px;"></div>
+                        <span class="layer-label">Géonymes</span>
                     </div>
                 </div>
 
-                <div class="legend-section">
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: transparent; border: 3px solid #d62728;"></div>
-                        <span class="legend-label">Régions</span>
+                <div class="layer-group">
+                    <h3>Divisions administratives</h3>
+                    
+                    <div class="layer-item" data-layer="regions">
+                        <div class="layer-toggle"></div>
+                        <div class="layer-icon" style="background: #E91E63; border: 2px solid #E91E63; background: transparent;"></div>
+                        <span class="layer-label">Régions</span>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: transparent; border: 2px solid #000000;"></div>
-                        <span class="legend-label">Départements</span>
+                    
+                    <div class="layer-item" data-layer="departements">
+                        <div class="layer-toggle"></div>
+                        <div class="layer-icon" style="background: #9C27B0; border: 2px solid #9C27B0; background: transparent;"></div>
+                        <span class="layer-label">Départements</span>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: transparent; border: 2px dashed #8B008B;"></div>
-                        <span class="legend-label">Arrondissements</span>
+                    
+                    <div class="layer-item" data-layer="arrondissements">
+                        <div class="layer-toggle"></div>
+                        <div class="layer-icon" style="background: #673AB7; border: 2px dashed #673AB7; background: transparent;"></div>
+                        <span class="layer-label">Arrondissements</span>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: rgba(74, 124, 89, 0.3); border: 2px solid #4a7c59;"></div>
-                        <span class="legend-label">Villages</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: #FFD700;">
-                            <i class="fas fa-crown" style="font-size: 10px; color: #333;"></i>
-                        </div>
-                        <span class="legend-label">Chefferies</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: #4CAF50;">
-                            <i class="fas fa-school" style="font-size: 10px; color: white;"></i>
-                        </div>
-                        <span class="legend-label">Écoles</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: #F44336;">
-                            <i class="fas fa-hospital" style="font-size: 10px; color: white;"></i>
-                        </div>
-                        <span class="legend-label">Centres de santé</span>
+                    
+                    <div class="layer-item" data-layer="villages-admin">
+                        <div class="layer-toggle"></div>
+                        <div class="layer-icon" style="background: #4CAF50; border: 2px solid #4CAF50; background: transparent;"></div>
+                        <span class="layer-label">Villages</span>
                     </div>
                 </div>
-            </aside>
+
+                <div class="layer-group">
+                    <h3>Autres</h3>
+                    
+                    <div class="layer-item" data-layer="chefferies">
+                        <div class="layer-toggle"></div>
+                        <div class="layer-icon" style="background: #FFC107; border-radius: 50%;"></div>
+                        <span class="layer-label">Chefferies</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Overlay for Mobile -->
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
             <!-- Map Container -->
             <div class="map-container">
-                <!-- Toggle Sidebar Button -->
-                <button class="toggle-sidebar" id="toggleSidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-
+                <div id="map"></div>
+                
+                <!-- Loading Spinner -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                </div>
+                
                 <!-- Toolbar -->
                 <div class="toolbar">
-                    <button class="tool-btn" id="measureDistance" title="Mesurer une distance">
+                    <button class="tool-btn" id="editBtn" title="Éditer">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="tool-btn" id="measureBtn" title="Mesurer">
                         <i class="fas fa-ruler"></i>
                     </button>
-                    <button class="tool-btn" id="measureArea" title="Mesurer une surface">
-                        <i class="fas fa-draw-polygon"></i>
-                    </button>
-                    <button class="tool-btn" id="printMap" title="Imprimer la carte">
+                    <button class="tool-btn" id="printBtn" title="Imprimer">
                         <i class="fas fa-print"></i>
                     </button>
-                    <button class="tool-btn" id="zoomHome" title="Vue d'ensemble">
+                    <button class="tool-btn" id="homeBtn" title="Vue d'ensemble">
                         <i class="fas fa-home"></i>
                     </button>
-                    <button class="tool-btn" id="toggleSatellite" title="Vue satellite">
-                        <i class="fas fa-satellite"></i>
+                    <button class="tool-btn" id="layersBtn" title="Couches">
+                        <i class="fas fa-layer-group"></i>
                     </button>
                 </div>
-
-                <div id="map"></div>
             </div>
         </div>
 
@@ -988,2079 +627,395 @@
                         <span>+237 697 182 925</span>
                     </div>
                 </div>
-                <div>
+                <div class="copyright">
                     © 2024 MonVillage - Cartographie des Villages du Cameroun
                 </div>
             </div>
         </footer>
     </div>
 
-    <!-- Print Modal -->
-    <div class="modal" id="printModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closePrintModal()">&times;</button>
-            <div class="modal-header">Impression de la carte</div>
-            
-            <div class="form-group">
-                <label class="form-label">Titre de la carte</label>
-                <input type="text" class="form-input" id="printTitle" value="Carte des Villages - MonVillage">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Format d'impression</label>
-                <div class="print-options">
-                    <div class="format-option" data-format="A1">
-                        <strong>A1</strong><br>
-                        <small>59.4 × 84.1 cm</small>
-                    </div>
-                    <div class="format-option" data-format="A0">
-                        <strong>A0</strong><br>
-                        <small>84.1 × 118.9 cm</small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Type d'export</label>
-                <select class="form-select" id="exportType">
-                    <option value="PDF">PDF (Recommandé)</option>
-                    <option value="TIFF">TIFF (Haute qualité)</option>
-                </select>
-            </div>
-
-            <div class="price-display">
-                <div>Prix: <span class="price">2 000 XAF</span></div>
-                <small>Paiement sécurisé via Flutterwave</small>
-            </div>
-
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn btn-secondary" onclick="closePrintModal()" style="margin-right: 10px;">Annuler</button>
-                <button class="btn" onclick="processPrint()">Procéder au paiement</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Login Modal -->
-    <div class="modal" id="adminModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeAdminModal()">&times;</button>
-            <div class="auth-container">
-                <div class="auth-header">
-                    <h2>Accès Administrateur</h2>
-                    <p>Connexion sécurisée avec authentification à deux facteurs</p>
-                </div>
-                
-                <div id="loginForm">
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="adminEmail" placeholder="admin@monvillage.cm">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Mot de passe</label>
-                        <input type="password" class="form-input" id="adminPassword">
-                    </div>
-                    <button class="btn" onclick="loginAdmin()" style="width: 100%;">Se connecter</button>
-                </div>
-
-                <div id="twoFactorForm" style="display: none;">
-                    <div class="form-group">
-                        <label class="form-label">Code d'authentification à deux facteurs</label>
-                        <input type="text" class="form-input two-factor-input" id="twoFactorCode" placeholder="000000" maxlength="6">
-                    </div>
-                    <button class="btn" onclick="verifyTwoFactor()" style="width: 100%;">Vérifier</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Spinner -->
-    <div class="loading" id="loading">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <div>Chargement en cours...</div>
-        </div>
-    </div>
-
-    <!-- Notification Container -->
-    <div class="notification" id="notification"></div>
-
     <!-- Leaflet JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.js"></script>
-    
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Flutterwave -->
-    <script src="https://checkout.flutterwave.com/v3.js"></script>
-    <script>
-        // Vérifier que Flutterwave est chargé
-        window.addEventListener('load', function() {
-            if (typeof FlutterwaveCheckout === 'undefined') {
-                console.error('Flutterwave SDK failed to load');
-            } else {
-                console.log('Flutterwave SDK loaded successfully');
-            }
-        });
-    </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // Configuration globale
+        // Configuration
         const CONFIG = {
             supabase: {
-                url: 'https://hrlufnjhwhgddxkpyzst.supabase.co',
-                anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8'
+                url: 'https://your-project.supabase.co',
+                anonKey: 'your-anon-key'
             },
             mapbox: {
-                url: 'mapbox://styles/ekanson/cme47jwpm00ez01qzc8206krr',
-                accessToken: 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg'
+                accessToken: 'your-mapbox-token'
             },
             map: {
-                center: [3.87, 11.504],
-                zoom: 7
+                center: [7.3697, 12.3547], // Centre du Cameroun
+                zoom: 6,
+                minZoom: 5,
+                maxZoom: 18
             },
-            flutterwave: {
-                publicKey: 'FLWPUBK_TEST-SANDBOXDEMOKEY-X',
-                currency: 'XAF',
-                country: 'CM'
+            adminCredentials: {
+                email: 'admin@monvillage.cm',
+                password: 'admin123'
             }
         };
 
         // Variables globales
         let map;
-        let supabase;
-        let currentUser = null;
-        let isAdmin = false;
-        let searchTimeout;
-        let measureControl;
-        let drawnItems;
-        let currentTool = null;
-        let mapLayers = {
-            regions: null,
+        let layers = {
             villages: null,
-            arrondissements: null,
-            departements: null,
             poi: null,
-            geonames: null
+            geonames: null,
+            regions: null,
+            departements: null,
+            arrondissements: null,
+            'villages-admin': null,
+            chefferies: null
         };
-        let baseLayers = {
-            standard: null,
-            satellite: null
-        };
-        let currentBaseLayer = 'standard';
-
-        // Variables pour les outils de mesure - PRIORITÉ ABSOLUE
-        let isDrawing = false;
-        let currentDrawing = null;
-        let drawingPoints = [];
-        let vertexMarkers = [];
-        let measureEventHandlers = {
-            click: null,
-            dblclick: null
-        };
-
-        // Gestion des outils de mesure
-        let measurementMode = null;
-        let measurementLayer = null;
-        let measurementActive = false;
-        let distanceMeasurement = null;
-
-        // Initialiser les outils de mesure
-        function initMeasurementTools() {
-          distanceMeasurement = new L.Control.Measure({
-            position: 'topleft',
-            primaryLengthUnit: 'kilometers',
-            secondaryLengthUnit: 'meters',
-            primaryAreaUnit: 'hectares',
-            secondaryAreaUnit: 'sqmeters',
-            drawOptions: {
-              polyline: {
-                shapeOptions: {
-                  color: '#ff0000',
-                  weight: 3,
-                  opacity: 0.8
-                }
-              },
-              polygon: {
-                shapeOptions: {
-                  color: '#ff0000',
-                  weight: 3,
-                  opacity: 0.8,
-                  fillOpacity: 0.2
-                }
-              }
-            },
-            localization: 'fr'
-          });
-          
-          map.addControl(distanceMeasurement);
-          
-          // Augmenter le z-index des outils de mesure
-          distanceMeasurement.on('measurestart', function() {
-            measurementActive = true;
-            // Trouver et modifier le z-index des éléments de mesure
-            setTimeout(() => {
-              const measureElements = document.querySelectorAll('.leaflet-measure-path-container, .leaflet-interactive[stroke="#ff0000"]');
-              measureElements.forEach(element => {
-                element.style.zIndex = '1000';
-              });
-              
-              // Modifier le z-index du pane de mesure
-              const measurePane = map.getPane('overlayPane');
-              if (measurePane) {
-                measurePane.style.zIndex = '1000';
-              }
-            }, 100);
-          });
-          
-          distanceMeasurement.on('measurefinish', function() {
-            measurementActive = false;
-            // Maintenir le z-index élevé pour les mesures terminées
-            setTimeout(() => {
-              const measureElements = document.querySelectorAll('.leaflet-measure-path-container, .leaflet-interactive[stroke="#ff0000"]');
-              measureElements.forEach(element => {
-                element.style.zIndex = '1000';
-              });
-            }, 100);
-          });
-        }
-
-        function startDistanceMeasurement() {
-            stopMeasurement();
-            measurementMode = 'distance';
-            measurementActive = true;
-            
-            // Changer le curseur
-            map.getContainer().style.cursor = 'crosshair';
-            
-            // Activer le bouton
-            document.getElementById('distance-tool').classList.add('active');
-            
-            // Désactiver temporairement les événements des couches
-            disableLayerEvents();
-        }
-
-        function startAreaMeasurement() {
-            stopMeasurement();
-            measurementMode = 'area';
-            measurementActive = true;
-            
-            // Changer le curseur
-            map.getContainer().style.cursor = 'crosshair';
-            
-            // Activer le bouton
-            document.getElementById('area-tool').classList.add('active');
-            
-            // Désactiver temporairement les événements des couches
-            disableLayerEvents();
-        }
-
-        function stopMeasurement() {
-            measurementMode = null;
-            measurementActive = false;
-            
-            // Restaurer le curseur
-            map.getContainer().style.cursor = '';
-            
-            // Désactiver les boutons
-            document.getElementById('distance-tool').classList.remove('active');
-            document.getElementById('area-tool').classList.remove('active');
-            
-            // Réactiver les événements des couches
-            enableLayerEvents();
-        }
-        
-        function disableLayerEvents() {
-            // Désactiver les événements de clic sur les couches d'arrondissements
-            if (arrondissementsLayer) {
-                arrondissementsLayer.off('click');
-            }
-            if (departementsLayer) {
-                departementsLayer.off('click');
-            }
-            if (regionsLayer) {
-                regionsLayer.off('click');
-            }
-        }
-        
-        function enableLayerEvents() {
-            // Réactiver les événements de clic sur les couches d'arrondissements
-            if (arrondissementsLayer) {
-                arrondissementsLayer.on('click', function(e) {
-                    if (!measurementActive) {
-                        showArrondissementPopup(e);
-                    }
-                });
-            }
-            if (departementsLayer) {
-                departementsLayer.on('click', function(e) {
-                    if (!measurementActive) {
-                        showDepartementPopup(e);
-                    }
-                });
-            }
-            if (regionsLayer) {
-                regionsLayer.on('click', function(e) {
-                    if (!measurementActive) {
-                        showRegionPopup(e);
-                    }
-                });
-            }
-        }
-
-        // Fonction pour calculer la distance
-
-        // Fonction pour afficher les popups des arrondissements
-        function showArrondissementPopup(e) {
-            if (measurementActive) return; // Ne pas afficher si un outil de mesure est actif
-            
-            if (!e.target || !e.target.feature || !e.target.feature.properties) {
-                return;
-            }
-            
-            const feature = e.target.feature;
-            const props = feature.properties;
-            const nom = props.nom_arrondissement || 'Nom non disponible';
-            const departement = props.nom_departement || 'Département non disponible';
-            const region = props.nom_region || 'Région non disponible';
-            
-            const popupContent = `
-                <div class="popup-content">
-                    <h3>${nom}</h3>
-                    <p><strong>Département:</strong> ${departement}</p>
-                    <p><strong>Région:</strong> ${region}</p>
-                </div>
-            `;
-            
-            e.target.bindPopup(popupContent).openPopup();
-        }
+        let activeLayers = new Set(['villages']);
 
         // Initialisation de l'application
         document.addEventListener('DOMContentLoaded', function() {
-            initializeSupabase();
             initializeMap();
             initializeEventListeners();
             loadInitialData();
-            checkAdminKeySequence();
-            handleWindowResize();
         });
 
-        // Initialisation de Supabase
-        function initializeSupabase() {
-            try {
-                supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
-                console.log('✅ Supabase initialisé avec succès');
-                console.log('📡 URL Supabase:', CONFIG.supabase.url);
-                
-                testSupabaseConnection();
-                
-            } catch (error) {
-                console.error('❌ Erreur lors de l\'initialisation de Supabase:', error);
-                showNotification('Erreur de connexion à la base de données', 'error');
-                loadDemoData();
-            }
-        }
-
-        // Fonction pour tester la connexion Supabase
-        async function testSupabaseConnection() {
-            try {
-                const { data, error } = await supabase
-                    .from('regions')
-                    .select('count', { count: 'exact', head: true });
-                
-                if (error) {
-                    console.warn('⚠️ Erreur de connexion Supabase:', error.message);
-                    showNotification('Mode démo activé - Problème de connexion DB', 'warning');
-                    loadDemoData();
-                } else {
-                    console.log('✅ Connexion Supabase OK');
-                }
-            } catch (error) {
-                console.warn('⚠️ Test de connexion échoué:', error);
-                showNotification('Mode démo activé - Base de données non accessible', 'warning');
-                loadDemoData();
-            }
-        }
-
-        // Initialisation de la carte
         function initializeMap() {
+            console.log('Initialisation de la carte...');
+            
+            // Créer la carte
             map = L.map('map', {
                 center: CONFIG.map.center,
                 zoom: CONFIG.map.zoom,
+                minZoom: CONFIG.map.minZoom,
+                maxZoom: CONFIG.map.maxZoom,
                 zoomControl: false
             });
 
+            // Ajouter les contrôles de zoom
             L.control.zoom({
-                position: 'bottomright'
+                position: 'topright'
             }).addTo(map);
 
-            // Couches de base
-            baseLayers.standard = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: '© <a href="https://www.mapbox.com/">Mapbox</a> © <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
-                id: 'mapbox/streets-v11',
-                accessToken: CONFIG.mapbox.accessToken,
-                maxZoom: 18
+            // Couche de base Mapbox
+            const baseLayer = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' + CONFIG.mapbox.accessToken, {
+                attribution: '© <a href="https://www.mapbox.com/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                tileSize: 512,
+                zoomOffset: -1
             });
 
-            baseLayers.satellite = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-                attribution: '© Google',
-                maxZoom: 20
+            baseLayer.addTo(map);
+
+            // Masquer le spinner une fois la carte chargée
+            map.whenReady(function() {
+                document.getElementById('loading').style.display = 'none';
+                console.log('Carte initialisée avec succès');
             });
-
-            baseLayers.standard.addTo(map);
-            currentBaseLayer = 'standard';
-
-            drawnItems = new L.FeatureGroup();
-            map.addLayer(drawnItems);
-
-            measureControl = null;
         }
 
-        // Initialisation des événements
         function initializeEventListeners() {
-            // Recherche
+            // Toggle sidebar
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('active');
+            });
+
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
+            });
+
+            // Layer toggles
+            document.querySelectorAll('.layer-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const layerName = this.dataset.layer;
+                    toggleLayer(layerName, this);
+                });
+            });
+
+            // Search functionality
             const searchInput = document.getElementById('searchInput');
             const searchBtn = document.getElementById('searchBtn');
 
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    if (this.value.length >= 2) {
-                        searchVillages(this.value);
-                    } else {
-                        hideSearchResults();
-                    }
-                }, 300);
-            });
-
-            searchBtn.addEventListener('click', function() {
-                const query = searchInput.value.trim();
-                if (query) {
-                    searchVillages(query);
-                }
-            });
-
-            // Toggle sidebar
-            document.getElementById('toggleSidebar').addEventListener('click', function() {
-                toggleSidebarMobile();
-            });
-
-            document.getElementById('closeSidebar').addEventListener('click', function() {
-                closeSidebarMobile();
-            });
-
-            document.getElementById('sidebarOverlay').addEventListener('click', function() {
-                closeSidebarMobile();
-            });
-
-            // Outils de mesure - PRIORITÉ MAXIMALE
-            document.getElementById('measureDistance').addEventListener('click', function() {
-                toggleMeasureTool('distance', this);
-            });
-
-            document.getElementById('measureArea').addEventListener('click', function() {
-                toggleMeasureTool('area', this);
-            });
-
-            // Autres outils
-            document.getElementById('printMap').addEventListener('click', openPrintModal);
-            document.getElementById('zoomHome').addEventListener('click', zoomToHome);
-            document.getElementById('toggleSatellite').addEventListener('click', toggleSatelliteView);
-
-            // Contrôles de couches
-            document.querySelectorAll('.layer-toggle').forEach(toggle => {
-                toggle.addEventListener('click', function() {
-                    const layer = this.dataset.layer;
-                    toggleLayer(layer, this);
-                });
-            });
-
-            // Options d'impression
-            document.querySelectorAll('.format-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.format-option').forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
-            });
-
-            // Fermer les résultats de recherche en cliquant ailleurs
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.search-container')) {
-                    hideSearchResults();
-                }
-            });
-
-            searchInput.addEventListener('keydown', function(e) {
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const query = this.value.trim();
-                    if (query) {
-                        searchVillages(query);
-                    }
+                    performSearch();
                 }
+            });
+
+            // Toolbar buttons
+            document.getElementById('homeBtn').addEventListener('click', function() {
+                map.setView(CONFIG.map.center, CONFIG.map.zoom);
+            });
+
+            document.getElementById('measureBtn').addEventListener('click', function() {
+                // TODO: Implémenter l'outil de mesure
+                alert('Outil de mesure - À implémenter');
+            });
+
+            document.getElementById('printBtn').addEventListener('click', function() {
+                // TODO: Implémenter l'impression
+                alert('Impression - À implémenter');
+            });
+
+            document.getElementById('editBtn').addEventListener('click', function() {
+                // TODO: Implémenter l'édition
+                alert('Édition - À implémenter');
+            });
+
+            document.getElementById('layersBtn').addEventListener('click', function() {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('open');
+                document.getElementById('sidebarOverlay').classList.toggle('active');
+            });
+
+            // Admin button
+            document.getElementById('adminBtn').addEventListener('click', function() {
+                checkAdminAccess();
             });
         }
 
-        // Gestion du sidebar responsive
-        function toggleSidebarMobile() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const icon = toggleBtn.querySelector('i');
-            
-            if (window.innerWidth <= 768) {
-                if (sidebar.classList.contains('open')) {
-                    closeSidebarMobile();
-                } else {
-                    openSidebarMobile();
+        function toggleLayer(layerName, element) {
+            const toggle = element.querySelector('.layer-toggle');
+            const isActive = activeLayers.has(layerName);
+
+            if (isActive) {
+                activeLayers.delete(layerName);
+                toggle.classList.remove('active');
+                element.classList.remove('active');
+                if (layers[layerName]) {
+                    map.removeLayer(layers[layerName]);
                 }
             } else {
-                sidebar.classList.toggle('collapsed');
-                if (sidebar.classList.contains('collapsed')) {
-                    icon.className = 'fas fa-bars';
-                } else {
-                    icon.className = 'fas fa-times';
-                }
+                activeLayers.add(layerName);
+                toggle.classList.add('active');
+                element.classList.add('active');
+                loadLayer(layerName);
             }
         }
 
-        function openSidebarMobile() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const icon = toggleBtn.querySelector('i');
+        function loadLayer(layerName) {
+            console.log(`Chargement de la couche: ${layerName}`);
             
-            sidebar.classList.add('open');
-            sidebar.classList.remove('collapsed');
-            overlay.classList.add('active');
-            icon.className = 'fas fa-times';
-            
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeSidebarMobile() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const icon = toggleBtn.querySelector('i');
-            
-            sidebar.classList.remove('open');
-            overlay.classList.remove('active');
-            icon.className = 'fas fa-bars';
-            
-            document.body.style.overflow = '';
-            
+            // Simuler le chargement des données
             setTimeout(() => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.add('collapsed');
+                switch(layerName) {
+                    case 'villages':
+                        loadVillages();
+                        break;
+                    case 'poi':
+                        loadPOI();
+                        break;
+                    case 'geonames':
+                        loadGeonames();
+                        break;
+                    case 'regions':
+                        loadRegions();
+                        break;
+                    case 'departements':
+                        loadDepartements();
+                        break;
+                    case 'arrondissements':
+                        loadArrondissements();
+                        break;
+                    case 'villages-admin':
+                        loadVillagesAdmin();
+                        break;
+                    case 'chefferies':
+                        loadChefferies();
+                        break;
                 }
-            }, 300);
-        }
-
-        function handleWindowResize() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const icon = toggleBtn.querySelector('i');
-            
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-                
-                if (sidebar.classList.contains('collapsed')) {
-                    icon.className = 'fas fa-bars';
-                } else {
-                    icon.className = 'fas fa-times';
-                }
-            } else {
-                if (!sidebar.classList.contains('open')) {
-                    sidebar.classList.add('collapsed');
-                    overlay.classList.remove('active');
-                    icon.className = 'fas fa-bars';
-                    document.body.style.overflow = '';
-                }
-            }
-        }
-
-        window.addEventListener('resize', handleWindowResize);
-
-        // Chargement des données initiales
-        async function loadInitialData() {
-            console.log('🔄 Début du chargement des données...');
-            
-            if (!supabase) {
-                console.log('🎭 Mode démo - Chargement de données factices');
-                loadDemoData();
-                return;
-            }
-
-            showLoading();
-            try {
-                console.log('📊 Chargement des régions...');
-                await loadRegions();
-                
-                console.log('📊 Chargement des départements...');
-                await loadDepartements();
-                
-                console.log('📊 Chargement des arrondissements...');
-                await loadArrondissements();
-                
-                console.log('📊 Chargement des villages...');
-                await loadVillages();
-                
-                console.log('📊 Chargement des POI...');
-                await loadPOI();
-                
-                console.log('📊 Chargement des géonymes...');
-                await loadGeonames();
-                
-                hideLoading();
-                showNotification('Données chargées avec succès', 'success', 2000);
-                console.log('✅ Toutes les données chargées avec succès');
-                
-            } catch (error) {
-                hideLoading();
-                console.error('❌ Erreur lors du chargement des données:', error);
-                showNotification('Erreur lors du chargement - Basculement en mode démo', 'warning');
-                loadDemoData();
-            }
-        }
-
-        // Fonction utilitaire pour parser les géométries
-        function parseGeometry(geom) {
-            if (!geom) return null;
-            
-            try {
-                if (typeof geom === 'object') {
-                    return geom;
-                }
-                
-                if (typeof geom === 'string') {
-                    return JSON.parse(geom);
-                }
-                
-                return null;
-            } catch (error) {
-                console.error('Erreur parsing géométrie:', error, geom);
-                return null;
-            }
-        }
-
-        // Fonction pour charger les régions avec nouveaux styles
-        async function loadRegions() {
-            if (!supabase) return;
-            
-            try {
-                console.log('🔍 Requête régions...');
-                const { data, error } = await supabase
-                    .from('regions')
-                    .select('*');
-
-                if (error) {
-                    console.error('❌ Erreur régions:', error);
-                    throw error;
-                }
-
-                console.log(`📍 ${data?.length || 0} régions trouvées:`, data);
-
-                if (!data || data.length === 0) {
-                    console.warn('⚠️ Aucune région trouvée dans la base');
-                    return;
-                }
-
-                if (!mapLayers.regions) {
-                    mapLayers.regions = L.layerGroup().addTo(map);
-                }
-                
-                let loadedCount = 0;
-                data.forEach(region => {
-                    try {
-                        if (region.geom) {
-                            const geometry = parseGeometry(region.geom);
-                            
-                            if (!geometry) {
-                                console.warn(`⚠️ Géométrie invalide pour région ${region.nom_region}`);
-                                return;
-                            }
-
-                            const layer = L.geoJSON(geometry, {
-                                style: {
-                                    fillColor: 'transparent',     // NOUVEAU: Complètement transparent
-                                    color: '#d62728',             // Rouge pour les bordures
-                                    weight: 3,
-                                    opacity: 1,                   // Bordure bien visible
-                                    fillOpacity: 0                // NOUVEAU: Aucun remplissage
-                                },
-                                onEachFeature: function(feature, layer) {
-                                    layer.on('click', function(e) {
-                                        if (!measurementActive) {
-                                            showRegionPopup(e);
-                                        }
-                                    });
-                                }
-                            }).addTo(mapLayers.regions);
-
-                            // Gestion des événements avec priorité pour les outils de mesure
-                            layer.on('click', function(e) {
-                                if (currentTool) {
-                                    // Si un outil de mesure est actif, bloquer la popup et propager l'événement
-                                    e.originalEvent.stopPropagation();
-                                    L.DomEvent.stopPropagation(e);
-                                    return false;
-                                }
-                                
-                                // Sinon, afficher la popup normalement
-                                layer.openPopup();
-                            });
-
-                            layer.bindPopup(`
-                                <div style="font-family: inherit;">
-                                    <h4 style="color: #d62728; margin-bottom: 8px;">
-                                        <i class="fas fa-map"></i> ${region.nom_region}
-                                    </h4>
-                                    <p><strong>Type:</strong> Région</p>
-                                    <p><strong>ID:</strong> ${region.id_region}</p>
-                                </div>
-                            `);
-                            
-                            loadedCount++;
-                        } else {
-                            console.warn(`⚠️ Région ${region.nom_region} sans géométrie`);
-                        }
-                    } catch (geoError) {
-                        console.error(`❌ Erreur géométrie région ${region.nom_region}:`, geoError);
-                    }
-                });
-
-                console.log(`✅ ${loadedCount} régions affichées sur la carte`);
-                
-            } catch (error) {
-                console.error('❌ Erreur lors du chargement des régions:', error);
-                throw error;
-            }
-        }
-
-        // Fonction pour charger les départements avec nouveaux styles
-        async function loadDepartements() {
-            if (!supabase) return;
-            
-            try {
-                console.log('🔍 Requête départements...');
-                const { data, error } = await supabase
-                    .from('departements')
-                    .select('*');
-
-                if (error) {
-                    console.error('❌ Erreur départements:', error);
-                    throw error;
-                }
-
-                console.log(`📍 ${data?.length || 0} départements trouvés:`, data);
-
-                if (!data || data.length === 0) {
-                    console.warn('⚠️ Aucun département trouvé dans la base');
-                    return;
-                }
-
-                if (!mapLayers.departements) {
-                    mapLayers.departements = L.layerGroup().addTo(map);
-                }
-                
-                let loadedCount = 0;
-                data.forEach(departement => {
-                    try {
-                        if (departement.geom) {
-                            const geometry = parseGeometry(departement.geom);
-                            
-                            if (!geometry) {
-                                console.warn(`⚠️ Géométrie invalide pour département ${departement.nom_departement}`);
-                                return;
-                            }
-
-                            const layer = L.geoJSON(geometry, {
-                                style: {
-                                    fillColor: 'transparent',     // NOUVEAU: Complètement transparent
-                                    color: '#000000',             // NOUVEAU: Noir pour les bordures
-                                    weight: 2,
-                                    opacity: 1,                   // Bordure bien visible
-                                    fillOpacity: 0                // NOUVEAU: Aucun remplissage
-                                },
-                                onEachFeature: function(feature, layer) {
-                                    layer.on('click', function(e) {
-                                        if (!measurementActive) {
-                                            showDepartementPopup(e);
-                                        }
-                                    });
-                                }
-                            }).addTo(mapLayers.departements);
-
-                            // Gestion des événements avec priorité pour les outils de mesure
-                            layer.on('click', function(e) {
-                                if (currentTool) {
-                                    e.originalEvent.stopPropagation();
-                                    L.DomEvent.stopPropagation(e);
-                                    return false;
-                                }
-                                
-                                layer.openPopup();
-                            });
-
-                            layer.bindPopup(`
-                                <div style="font-family: inherit;">
-                                    <h4 style="color: #000000; margin-bottom: 8px;">
-                                        <i class="fas fa-map"></i> ${departement.nom_departement}
-                                    </h4>
-                                    <p><strong>Type:</strong> Département</p>
-                                    <p><strong>ID:</strong> ${departement.id_departement}</p>
-                                </div>
-                            `);
-                            
-                            loadedCount++;
-                        } else {
-                            console.warn(`⚠️ Département ${departement.nom_departement} sans géométrie`);
-                        }
-                    } catch (geoError) {
-                        console.error(`❌ Erreur géométrie département ${departement.nom_departement}:`, geoError);
-                    }
-                });
-
-                console.log(`✅ ${loadedCount} départements affichés sur la carte`);
-                
-            } catch (error) {
-                console.error('❌ Erreur lors du chargement des départements:', error);
-                throw error;
-            }
-        }
-
-        // Fonction pour charger les arrondissements avec nouveaux styles
-        async function loadArrondissements() {
-            if (!supabase) return;
-            
-            try {
-                console.log('🔍 Requête arrondissements...');
-                const { data, error } = await supabase
-                    .from('arrondissements')
-                    .select('*');
-
-                if (error) {
-                    console.error('❌ Erreur arrondissements:', error);
-                    throw error;
-                }
-
-                console.log(`📍 ${data?.length || 0} arrondissements trouvés:`, data);
-
-                if (!data || data.length === 0) {
-                    console.warn('⚠️ Aucun arrondissement trouvé dans la base');
-                    return;
-                }
-
-                if (!mapLayers.arrondissements) {
-                    mapLayers.arrondissements = L.layerGroup().addTo(map);
-                }
-                
-                let loadedCount = 0;
-                data.forEach(arrondissement => {
-                    try {
-                        if (arrondissement.geom) {
-                            const geometry = parseGeometry(arrondissement.geom);
-                            
-                            if (!geometry) {
-                                console.warn(`⚠️ Géométrie invalide pour arrondissement ${arrondissement.nom_arrondissement}`);
-                                return;
-                            }
-
-                            const layer = L.geoJSON(geometry, {
-                                style: {
-                                    fillColor: 'transparent',     // NOUVEAU: Complètement transparent
-                                    color: '#8B008B',             // NOUVEAU: Violet foncé pour les bordures
-                                    weight: 2,
-                                    opacity: 1,                   // Bordure bien visible
-                                    fillOpacity: 0,               // NOUVEAU: Aucun remplissage
-                                    dashArray: '5, 5'             // NOUVEAU: Ligne pointillée/interrompue
-                                },
-                                onEachFeature: function(feature, layer) {
-                                    layer.on('click', function(e) {
-                                        if (!measurementActive) {
-                                            showArrondissementPopup(e);
-                                        }
-                                    });
-                                }
-                            }).addTo(mapLayers.arrondissements);
-
-                            // Gestion des événements avec priorité pour les outils de mesure
-                            layer.on('click', function(e) {
-                                if (currentTool) {
-                                    e.originalEvent.stopPropagation();
-                                    L.DomEvent.stopPropagation(e);
-                                    return false;
-                                }
-                                
-                                layer.openPopup();
-                            });
-
-                            layer.bindPopup(`
-                                <div style="font-family: inherit;">
-                                    <h4 style="color: #8B008B; margin-bottom: 8px;">
-                                        <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
-                                    </h4>
-                                    <p><strong>Type:</strong> Arrondissement</p>
-                                    <p><strong>ID:</strong> ${arrondissement.id_arrondissement}</p>
-                                </div>
-                            `);
-                            
-                            loadedCount++;
-                        } else {
-                            console.warn(`⚠️ Arrondissement ${arrondissement.nom_arrondissement} sans géométrie`);
-                        }
-                    } catch (geoError) {
-                        console.error(`❌ Erreur géométrie arrondissement ${arrondissement.nom_arrondissement}:`, geoError);
-                    }
-                });
-
-                console.log(`✅ ${loadedCount} arrondissements affichés sur la carte`);
-                
-            } catch (error) {
-                console.error('❌ Erreur lors du chargement des arrondissements:', error);
-                throw error;
-            }
-        }
-
-        // Chargement de données de démonstration
-        function loadDemoData() {
-            const demoVillages = [
-                {
-                    id: 'demo1',
-                    village_name: 'Yaoundé Centre',
-                    chief_name: 'Chef Mvondo',
-                    region_name: 'Centre',
-                    departement_name: 'Mfoundi',
-                    arrondissement_name: 'Yaoundé I',
-                    coordinates: [3.848, 11.502]
-                },
-                {
-                    id: 'demo2',
-                    village_name: 'Douala Akwa',
-                    chief_name: 'Chef Sango',
-                    region_name: 'Littoral',
-                    departement_name: 'Wouri',
-                    arrondissement_name: 'Douala I',
-                    coordinates: [4.048, 9.767]
-                },
-                {
-                    id: 'demo3',
-                    village_name: 'Garoua Central',
-                    chief_name: 'Chef Amadou',
-                    region_name: 'Nord',
-                    departement_name: 'Bénoué',
-                    arrondissement_name: 'Garoua',
-                    coordinates: [4.1485, 9.504]
-                }
-            ];
-
-            mapLayers.villages = L.layerGroup().addTo(map);
-
-            demoVillages.forEach(village => {
-                const marker = L.circleMarker(village.coordinates, {
-                    radius: 8,
-                    fillColor: '#4a7c59',
-                    color: '#2c5530',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                }).addTo(mapLayers.villages);
-
-                // Gestion des événements avec priorité pour les outils de mesure
-                marker.on('click', function(e) {
-                    if (currentTool) {
-                        e.originalEvent.stopPropagation();
-                        L.DomEvent.stopPropagation(e);
-                        return false;
-                    }
-                    
-                    marker.openPopup();
-                });
-
-                const popupContent = `
-                    <div class="custom-popup">
-                        <div class="popup-header">${village.village_name}</div>
-                        <div class="popup-content">
-                            <div class="popup-field">
-                                <span class="popup-label">Région:</span> ${village.region_name}
-                            </div>
-                            <div class="popup-field">
-                                <span class="popup-label">Département:</span> ${village.departement_name}
-                            </div>
-                            <div class="popup-field">
-                                <span class="popup-label">Arrondissement:</span> ${village.arrondissement_name}
-                            </div>
-                            <div class="popup-field">
-                                <span class="popup-label">Chef de village:</span> ${village.chief_name}
-                            </div>
-                            <div style="margin-top: 10px; padding: 10px; background: #f0f8ff; border-radius: 5px; font-size: 12px;">
-                                💡 <strong>Mode démo</strong><br>
-                                Configurez Supabase pour voir vos vraies données
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                marker.bindPopup(popupContent);
-            });
-
-            mapLayers.poi = L.layerGroup().addTo(map);
-            
-            const demoPOI = [
-                { name: 'Chefferie de Yaoundé', type: 'chefferie', coordinates: [3.850, 11.504] },
-                { name: 'École Publique', type: 'school', coordinates: [4.050, 9.769] },
-                { name: 'Centre de Santé', type: 'health_center', coordinates: [4.150, 9.506] }
-            ];
-
-            demoPOI.forEach(poi => {
-                const icon = getPOIIcon(poi.type);
-                const marker = L.marker(poi.coordinates, { icon }).addTo(mapLayers.poi);
-                
-                // Gestion des événements avec priorité pour les outils de mesure
-                marker.on('click', function(e) {
-                    if (currentTool) {
-                        e.originalEvent.stopPropagation();
-                        L.DomEvent.stopPropagation(e);
-                        return false;
-                    }
-                    
-                    marker.openPopup();
-                });
-                
-                marker.bindPopup(`<b>${poi.name}</b><br>Type: ${poi.type}<br><small>Données de démonstration</small>`);
-            });
-
-            console.log('📍 Données de démonstration chargées (3 villages, 3 POI)');
-            showNotification('Mode démonstration activé - Villages exemple', 'info', 2000);
-        }
-
-        // Fonctions de chargement de données réelles
-        async function loadVillages() {
-            if (!supabase) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('villages_complete')
-                    .select('*')
-                    .eq('is_active', true);
-
-                if (error) throw error;
-
-                mapLayers.villages = L.layerGroup().addTo(map);
-                
-                data.forEach(village => {
-                    const geometry = JSON.parse(village.geom);
-                    const layer = L.geoJSON(geometry, {
-                        style: {
-                            fillColor: '#4a7c59',
-                            color: '#2c5530',
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.6
-                        }
-                    }).addTo(mapLayers.villages);
-
-                    // Gestion des événements avec priorité pour les outils de mesure
-                    layer.on('click', function(e) {
-                        if (currentTool) {
-                            e.originalEvent.stopPropagation();
-                            L.DomEvent.stopPropagation(e);
-                            return false;
-                        }
-                        
-                        layer.openPopup();
-                    });
-
-                    const popupContent = createVillagePopup(village);
-                    layer.bindPopup(popupContent);
-                });
-
-                console.log(`✅ ${data.length} villages chargés`);
-            } catch (error) {
-                console.error('Erreur lors du chargement des villages:', error);
-                throw error;
-            }
-        }
-
-        async function loadPOI() {
-            if (!supabase) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('poi_with_location')
-                    .select('*')
-                    .eq('is_active', true);
-
-                if (error) throw error;
-
-                mapLayers.poi = L.layerGroup().addTo(map);
-                
-                data.forEach(poi => {
-                    if (poi.geom) {
-                        const geometry = JSON.parse(poi.geom);
-                        const coordinates = geometry.coordinates;
-                        const icon = getPOIIcon(poi.type);
-                        
-                        const marker = L.marker([coordinates[1], coordinates[0]], { icon })
-                            .addTo(mapLayers.poi);
-
-                        // Gestion des événements avec priorité pour les outils de mesure
-                        marker.on('click', function(e) {
-                            if (currentTool) {
-                                e.originalEvent.stopPropagation();
-                                L.DomEvent.stopPropagation(e);
-                                return false;
-                            }
-                            
-                            marker.openPopup();
-                        });
-
-                        const popupContent = `
-                            <div class="custom-popup">
-                                <div class="popup-header">${poi.name}</div>
-                                <div class="popup-content">
-                                    <div class="popup-field">
-                                        <span class="popup-label">Type:</span> ${poi.type}
-                                    </div>
-                                    ${poi.village_name ? `<div class="popup-field">
-                                        <span class="popup-label">Village:</span> ${poi.village_name}
-                                    </div>` : ''}
-                                    ${poi.description ? `<div class="popup-field">
-                                        <span class="popup-label">Description:</span> ${poi.description}
-                                    </div>` : ''}
-                                </div>
-                            </div>
-                        `;
-
-                        marker.bindPopup(popupContent);
-                    }
-                });
-
-                console.log(`✅ ${data.length} POI chargés`);
-            } catch (error) {
-                console.error('Erreur lors du chargement des POI:', error);
-                throw error;
-            }
-        }
-
-        async function loadGeonames() {
-            if (!supabase) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('geonames')
-                    .select('*')
-                    .eq('is_active', true);
-
-                if (error) throw error;
-
-                mapLayers.geonames = L.layerGroup().addTo(map);
-                
-                data.forEach(geoname => {
-                    if (geoname.geom) {
-                        const geometry = JSON.parse(geoname.geom);
-                        const coordinates = geometry.coordinates;
-                        
-                        const marker = L.circleMarker([coordinates[1], coordinates[0]], {
-                            radius: 5,
-                            fillColor: '#6c757d',
-                            color: '#495057',
-                            weight: 1,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        }).addTo(mapLayers.geonames);
-
-                        // Gestion des événements avec priorité pour les outils de mesure
-                        marker.on('click', function(e) {
-                            if (currentTool) {
-                                e.originalEvent.stopPropagation();
-                                L.DomEvent.stopPropagation(e);
-                                return false;
-                            }
-                            
-                            marker.openPopup();
-                        });
-
-                        marker.bindPopup(`<b>${geoname.nom}</b><br>Type: ${geoname.type}`);
-                    }
-                });
-
-                console.log(`✅ ${data.length} géonymes chargés`);
-            } catch (error) {
-                console.error('Erreur lors du chargement des géonymes:', error);
-                throw error;
-            }
-        }
-
-        // Fonctions utilitaires
-        function createVillagePopup(village) {
-            return `
-                <div class="custom-popup">
-                    <div class="popup-header">${village.village_name}</div>
-                    <div class="popup-content">
-                        <div class="popup-field">
-                            <span class="popup-label">Région:</span> ${village.region_name}
-                        </div>
-                        <div class="popup-field">
-                            <span class="popup-label">Département:</span> ${village.departement_name}
-                        </div>
-                        <div class="popup-field">
-                            <span class="popup-label">Arrondissement:</span> ${village.arrondissement_name}
-                        </div>
-                        ${village.chief_name ? `<div class="popup-field">
-                            <span class="popup-label">Chef de village:</span> ${village.chief_name}
-                        </div>` : ''}
-                        ${village.area_hectares ? `<div class="popup-field">
-                            <span class="popup-label">Superficie:</span> ${parseFloat(village.area_hectares).toFixed(2)} ha
-                        </div>` : ''}
-                        ${village.population ? `<div class="popup-field">
-                            <span class="popup-label">Population:</span> ${village.population.toLocaleString()}
-                        </div>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        function getPOIIcon(type) {
-            const icons = {
-                chefferie: { icon: 'fa-crown', color: '#FFD700' },
-                school: { icon: 'fa-school', color: '#4CAF50' },
-                health_center: { icon: 'fa-hospital', color: '#F44336' },
-                market: { icon: 'fa-shopping-cart', color: '#FF9800' },
-                church: { icon: 'fa-church', color: '#9C27B0' },
-                mosque: { icon: 'fa-mosque', color: '#607D8B' },
-                water_point: { icon: 'fa-droplet', color: '#2196F3' },
-                bridge: { icon: 'fa-bridge', color: '#795548' }
-            };
-
-            const iconConfig = icons[type] || { icon: 'fa-map-marker', color: '#666' };
-
-            return L.divIcon({
-                html: `<i class="fas ${iconConfig.icon}" style="color: ${iconConfig.color};"></i>`,
-                iconSize: [20, 20],
-                className: 'poi-icon'
-            });
-        }
-
-        // Fonctions de recherche
-        async function searchVillages(query) {
-            const searchResults = document.getElementById('searchResults');
-            
-            if (!query || query.length < 2) {
-                hideSearchResults();
-                return;
-            }
-
-            try {
-                let results = [];
-
-                if (supabase) {
-                    const { data, error } = await supabase
-                        .rpc('search_villages', { 
-                            search_term: query,
-                            limit_count: 10 
-                        });
-
-                    if (error) throw error;
-                    results = data;
-                } else {
-                    const demoVillages = [
-                        { village_name: 'Yaoundé Centre', chief_name: 'Chef Mvondo', region_name: 'Centre' },
-                        { village_name: 'Douala Akwa', chief_name: 'Chef Sango', region_name: 'Littoral' },
-                        { village_name: 'Garoua Central', chief_name: 'Chef Amadou', region_name: 'Nord' }
-                    ];
-
-                    results = demoVillages.filter(village => 
-                        village.village_name.toLowerCase().includes(query.toLowerCase()) ||
-                        village.chief_name.toLowerCase().includes(query.toLowerCase())
-                    );
-                }
-
-                displaySearchResults(results);
-
-            } catch (error) {
-                console.error('Erreur lors de la recherche:', error);
-                showNotification('Erreur lors de la recherche', 'error');
-            }
-        }
-
-        function displaySearchResults(results) {
-            const searchResults = document.getElementById('searchResults');
-            
-            if (results.length === 0) {
-                searchResults.innerHTML = '<div class="search-result-item">Aucun résultat trouvé</div>';
-            } else {
-                searchResults.innerHTML = results.map(result => `
-                    <div class="search-result-item" onclick="selectSearchResult('${result.id || 'demo'}', ${result.coordinates ? result.coordinates[0] : 4.1485}, ${result.coordinates ? result.coordinates[1] : 9.504})">
-                        <strong>${result.village_name}</strong><br>
-                        <small>${result.region_name} - ${result.departement_name || ''} - ${result.arrondissement_name || ''}</small>
-                        ${result.chief_name ? `<br><small>Chef: ${result.chief_name}</small>` : ''}
-                    </div>
-                `).join('');
-            }
-            
-            searchResults.style.display = 'block';
-        }
-
-        function hideSearchResults() {
-            document.getElementById('searchResults').style.display = 'none';
-        }
-
-        function selectSearchResult(villageId, lat, lng) {
-            map.setView([lat, lng], 15);
-            hideSearchResults();
-            document.getElementById('searchInput').value = '';
-            
-            if (window.innerWidth <= 768) {
-                closeSidebarMobile();
-            }
-        }
-
-        // ===== SYSTÈME DE MESURE AVEC PRIORITÉ ABSOLUE =====
-        function toggleMeasureTool(tool, button) {
-            console.log(`🔧 Activation de l'outil: ${tool}`);
-            
-            // Nettoyer l'état précédent
-            cleanupMeasureTools();
-
-            // Désactiver tous les boutons
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-
-            if (currentTool === tool) {
-                // Si l'outil était déjà actif, le désactiver
-                currentTool = null;
-                showNotification('Outil de mesure désactivé', 'info');
-                return;
-            }
-
-            // Activer le nouvel outil
-            currentTool = tool;
-            button.classList.add('active');
-
-            // Désactiver temporairement TOUTES les interactions avec les couches existantes
-            disableLayerInteractions();
-
-            if (tool === 'distance') {
-                activateDistanceMeasure();
-            } else if (tool === 'area') {
-                activateAreaMeasure();
-            }
-        }
-
-        function cleanupMeasureTools() {
-            // Supprimer tous les event listeners de mesure
-            if (measureEventHandlers.click) {
-                map.off('click', measureEventHandlers.click);
-                measureEventHandlers.click = null;
-            }
-            
-            if (measureEventHandlers.dblclick) {
-                map.off('dblclick', measureEventHandlers.dblclick);
-                measureEventHandlers.dblclick = null;
-            }
-            
-            // Nettoyer les couches de mesure
-            drawnItems.clearLayers();
-            clearVertexMarkers();
-            
-            // Réinitialiser l'état de dessin
-            resetDrawingState();
-            
-            // Réactiver les interactions avec les couches
-            enableLayerInteractions();
-        }
-
-        function disableLayerInteractions() {
-            // Temporairement désactiver les popups de toutes les couches
-            Object.values(mapLayers).forEach(layerGroup => {
-                if (layerGroup) {
-                    layerGroup.eachLayer(layer => {
-                        if (layer.closePopup) {
-                            layer.closePopup();
-                        }
-                        // Marquer la couche comme ayant les interactions désactivées
-                        layer._measureToolDisabled = true;
-                    });
-                }
-            });
-        }
-
-        function enableLayerInteractions() {
-            // Réactiver les interactions avec toutes les couches
-            Object.values(mapLayers).forEach(layerGroup => {
-                if (layerGroup) {
-                    layerGroup.eachLayer(layer => {
-                        // Retirer la marque de désactivation
-                        layer._measureToolDisabled = false;
-                    });
-                }
-            });
-        }
-
-        function resetDrawingState() {
-            isDrawing = false;
-            currentDrawing = null;
-            drawingPoints = [];
-            clearVertexMarkers();
-        }
-
-        function clearVertexMarkers() {
-            vertexMarkers.forEach(marker => {
-                drawnItems.removeLayer(marker);
-            });
-            vertexMarkers = [];
-        }
-
-        function createVertexMarker(latlng, isStart = false) {
-            const marker = L.circleMarker(latlng, {
-                radius: isStart ? 8 : 6,
-                fillColor: isStart ? '#ff6b6b' : '#4a7c59',
-                color: '#ffffff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.9
-            });
-            
-            if (isStart) {
-                marker.bindTooltip('Point de départ', {
-                    permanent: false,
-                    direction: 'top',
-                    offset: [0, -10]
-                });
-            } else {
-                marker.bindTooltip(`Point ${drawingPoints.length}`, {
-                    permanent: false,
-                    direction: 'top',
-                    offset: [0, -10]
-                });
-            }
-            
-            drawnItems.addLayer(marker);
-            vertexMarkers.push(marker);
-            return marker;
-        }
-
-        // FONCTIONS POUR MESURE DE DISTANCE
-        function activateDistanceMeasure() {
-            resetDrawingState();
-            showNotification('Mode mesure de distance - Cliquez pour commencer, double-cliquez pour terminer', 'info');
-            
-            // Créer des gestionnaires d'événements avec priorité maximale
-            measureEventHandlers.click = function(e) {
-                e.originalEvent.stopPropagation();
-                L.DomEvent.stopPropagation(e);
-                
-                if (!isDrawing) {
-                    startNewDistance(e.latlng);
-                } else {
-                    addPointToDistance(e.latlng);
-                }
-                
-                return false;
-            };
-            
-            measureEventHandlers.dblclick = function(e) {
-                e.originalEvent.stopPropagation();
-                L.DomEvent.stopPropagation(e);
-                
-                if (isDrawing && drawingPoints.length > 1) {
-                    finishDistance();
-                }
-                
-                return false;
-            };
-            
-            // Ajouter les gestionnaires avec priorité maximale
-            map.on('click', measureEventHandlers.click);
-            map.on('dblclick', measureEventHandlers.dblclick);
-        }
-
-        function startNewDistance(latlng) {
-            isDrawing = true;
-            drawingPoints = [latlng];
-            
-            createVertexMarker(latlng, true);
-            
-            currentDrawing = L.polyline(drawingPoints, {
-                color: '#4a7c59',
-                weight: 4,
-                opacity: 0.8,
-                dashArray: '10, 5'
-            });
-            drawnItems.addLayer(currentDrawing);
-            
-            showNotification('Cliquez pour ajouter des points, double-cliquez pour terminer', 'info');
-        }
-
-        function addPointToDistance(latlng) {
-            drawingPoints.push(latlng);
-            createVertexMarker(latlng);
-            currentDrawing.setLatLngs(drawingPoints);
-            
-            const distance = calculateSimpleDistance(drawingPoints);
-            currentDrawing.bindTooltip(`Distance: ${distance}`, {
-                sticky: true,
-                direction: 'top'
-            }).openTooltip();
-        }
-
-        function finishDistance() {
-            if (drawingPoints.length < 2) return;
-            
-            isDrawing = false;
-            const distance = calculateSimpleDistance(drawingPoints);
-            
-            const popupContent = `
-                <div style="text-align: center; font-family: inherit;">
-                    <div style="color: #4a7c59; font-weight: bold; margin-bottom: 8px;">
-                        <i class="fas fa-ruler" style="margin-right: 5px;"></i>
-                        Distance mesurée
-                    </div>
-                    <div style="font-size: 18px; font-weight: bold; color: #2c5530;">
-                        ${distance}
-                    </div>
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                        ${drawingPoints.length} points • Cliquez pour fermer
-                    </div>
-                </div>
-            `;
-            
-            currentDrawing.setStyle({
-                dashArray: null,
-                weight: 3,
-                opacity: 1
-            });
-            
-            currentDrawing.bindPopup(popupContent).openPopup();
-            showNotification(`Mesure terminée: ${distance}`, 'success');
-            
-            setTimeout(() => {
-                resetDrawingState();
-            }, 100);
-        }
-
-        // FONCTIONS POUR MESURE DE SURFACE
-        function activateAreaMeasure() {
-            resetDrawingState();
-            showNotification('Mode mesure de surface - Cliquez pour dessiner, double-cliquez pour fermer', 'info');
-            
-            measureEventHandlers.click = function(e) {
-                e.originalEvent.stopPropagation();
-                L.DomEvent.stopPropagation(e);
-                
-                if (!isDrawing) {
-                    startNewArea(e.latlng);
-                } else {
-                    addPointToArea(e.latlng);
-                }
-                
-                return false;
-            };
-            
-            measureEventHandlers.dblclick = function(e) {
-                e.originalEvent.stopPropagation();
-                L.DomEvent.stopPropagation(e);
-                
-                if (isDrawing && drawingPoints.length > 2) {
-                    finishArea();
-                }
-                
-                return false;
-            };
-            
-            map.on('click', measureEventHandlers.click);
-            map.on('dblclick', measureEventHandlers.dblclick);
-        }
-
-        function startNewArea(latlng) {
-            isDrawing = true;
-            drawingPoints = [latlng];
-            
-            createVertexMarker(latlng, true);
-            
-            currentDrawing = L.polygon(drawingPoints, {
-                color: '#4a7c59',
-                fillColor: '#4a7c59',
-                fillOpacity: 0.2,
-                weight: 3,
-                opacity: 0.8,
-                dashArray: '10, 5'
-            });
-            drawnItems.addLayer(currentDrawing);
-            
-            showNotification('Continuez à cliquer pour dessiner, double-cliquez pour fermer', 'info');
-        }
-
-        function addPointToArea(latlng) {
-            drawingPoints.push(latlng);
-            createVertexMarker(latlng);
-            currentDrawing.setLatLngs(drawingPoints);
-            
-            if (drawingPoints.length > 2) {
-                const area = calculateSimpleArea(drawingPoints);
-                currentDrawing.bindTooltip(`Surface: ${area}`, {
-                    sticky: true,
-                    direction: 'center'
-                }).openTooltip();
-            }
-        }
-
-        function finishArea() {
-            if (drawingPoints.length < 3) {
-                showNotification('Il faut au moins 3 points pour mesurer une surface', 'warning');
-                return;
-            }
-            
-            isDrawing = false;
-            
-            if (drawingPoints.length > 2) {
-                drawingPoints.push(drawingPoints[0]);
-                currentDrawing.setLatLngs(drawingPoints);
-            }
-            
-            const area = calculateSimpleArea(drawingPoints);
-            
-            const popupContent = `
-                <div style="text-align: center; font-family: inherit;">
-                    <div style="color: #4a7c59; font-weight: bold; margin-bottom: 8px;">
-                        <i class="fas fa-draw-polygon" style="margin-right: 5px;"></i>
-                        Surface mesurée
-                    </div>
-                    <div style="font-size: 18px; font-weight: bold; color: #2c5530;">
-                        ${area}
-                    </div>
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                        ${drawingPoints.length - 1} points • Cliquez pour fermer
-                    </div>
-                </div>
-            `;
-            
-            currentDrawing.setStyle({
-                dashArray: null,
-                fillOpacity: 0.3,
-                weight: 2
-            });
-            
-            currentDrawing.bindPopup(popupContent).openPopup();
-            showNotification(`Mesure terminée: ${area}`, 'success');
-            
-            setTimeout(() => {
-                resetDrawingState();
-            }, 100);
-        }
-
-        function calculateSimpleDistance(points) {
-            let distance = 0;
-            
-            for (let i = 0; i < points.length - 1; i++) {
-                distance += points[i].distanceTo(points[i + 1]);
-            }
-            
-            if (distance < 1000) {
-                return `${Math.round(distance)} m`;
-            } else if (distance < 100000) {
-                return `${(distance / 1000).toFixed(2)} km`;
-            } else {
-                return `${(distance / 1000).toFixed(1)} km`;
-            }
-        }
-
-        function calculateSimpleArea(points) {
-            if (points.length < 3) return '0 m²';
-            
-            let area = 0;
-            const n = points.length;
-            
-            const centerLat = points.reduce((sum, p) => sum + p.lat, 0) / n;
-            const centerLng = points.reduce((sum, p) => sum + p.lng, 0) / n;
-            
-            const latToMeters = 111320;
-            const lngToMeters = 111320 * Math.cos(centerLat * Math.PI / 180);
-            
-            const projectedPoints = points.map(p => ({
-                x: (p.lng - centerLng) * lngToMeters,
-                y: (p.lat - centerLat) * latToMeters
-            }));
-            
-            for (let i = 0; i < n; i++) {
-                const j = (i + 1) % n;
-                area += projectedPoints[i].x * projectedPoints[j].y;
-                area -= projectedPoints[j].x * projectedPoints[i].y;
-            }
-            
-            area = Math.abs(area) / 2;
-            
-            if (area < 10000) {
-                return `${Math.round(area)} m²`;
-            } else if (area < 1000000) {
-                return `${(area / 10000).toFixed(2)} ha`;
-            } else {
-                return `${(area / 1000000).toFixed(2)} km²`;
-            }
-        }
-
-        // Fonctions de contrôle des couches
-        function toggleLayer(layerName, toggle) {
-            toggle.classList.toggle('active');
-            
-            if (mapLayers[layerName]) {
-                if (map.hasLayer(mapLayers[layerName])) {
-                    map.removeLayer(mapLayers[layerName]);
-                } else {
-                    map.addLayer(mapLayers[layerName]);
-                }
-            }
-        }
-
-        // Fonctions de navigation
-        function zoomToHome() {
-            map.setView(CONFIG.map.center, CONFIG.map.zoom);
-            
-            // Nettoyer complètement les outils de mesure
-            cleanupMeasureTools();
-            
-            currentTool = null;
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-            
-            showNotification('Vue d\'ensemble restaurée - Toutes les mesures effacées', 'info');
-        }
-
-        function toggleSatelliteView() {
-            const button = document.getElementById('toggleSatellite');
-            
-            if (currentBaseLayer === 'standard') {
-                map.removeLayer(baseLayers.standard);
-                map.addLayer(baseLayers.satellite);
-                currentBaseLayer = 'satellite';
-                button.classList.add('active');
-            } else {
-                map.removeLayer(baseLayers.satellite);
-                map.addLayer(baseLayers.standard);
-                currentBaseLayer = 'standard';
-                button.classList.remove('active');
-            }
-        }
-
-        // Fonctions utilitaires
-        function showLoading() {
-            document.getElementById('loading').style.display = 'block';
-        }
-
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
-
-        function showNotification(message, type = 'info', duration = 4000) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, duration);
-        }
-
-        // Vérification de la séquence admin (Ctrl+Shift+A)
-        function checkAdminKeySequence() {
-            let keys = [];
-            
-            document.addEventListener('keydown', function(e) {
-                keys.push(e.key);
-                
-                if (keys.length > 3) {
-                    keys.shift();
-                }
-                
-                if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-                    e.preventDefault();
-                    checkAdminAccess();
-                }
-            });
-        }
-
-        // Fonctions modales
-        function openPrintModal() {
-            document.getElementById('printModal').style.display = 'block';
-        }
-
-        function closePrintModal() {
-            document.getElementById('printModal').style.display = 'none';
-        }
-
-        function processPrint() {
-            const title = document.getElementById('printTitle').value;
-            const format = document.querySelector('.format-option.selected').dataset.format;
-            const exportType = document.getElementById('exportType').value;
-            
-            console.log('Print requested:', { format, title });
-            
-            // Obtenir les limites actuelles de la carte
-            const bounds = map.getBounds();
-            
-            // Prix fixe pour l'impression
-            const amount = 2000; // 2000 XAF
-            
-            console.log('Initializing payment for amount:', amount);
-            initializePayment(amount, title, format, bounds);
-        }
-
-        function initializePayment(amount, title, format, bounds) {
-            if (!window.FlutterwaveCheckout) {
-                console.error('Flutterwave SDK not loaded');
-                alert('Erreur: Service de paiement non disponible');
-                return;
-            }
-
-            const transactionId = 'TXN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            
-            FlutterwaveCheckout({
-                public_key: CONFIG.flutterwave.publicKey,
-                tx_ref: transactionId,
-                amount: amount,
-                currency: CONFIG.flutterwave.currency,
-                country: CONFIG.flutterwave.country,
-                payment_options: 'card, mobilemoney, ussd',
-                customer: {
-                    email: 'client@monvillage.cm',
-                    phone_number: '+237697182925',
-                    name: 'Client MonVillage'
-                },
-                customizations: {
-                    title: 'MonVillage - Impression Carte',
-                    description: `Impression ${title} (${format})`,
-                    logo: 'assets/images/logo.svg'
-                },
-                callback: function(data) {
-                    console.log('Payment callback:', data);
-                    if (data.status === 'successful') {
-                        // Enregistrer le paiement
-                        recordPayment(data, title, format, bounds);
-                        // Procéder à l'impression
-                        proceedWithPrint(title, format, bounds);
-                    } else {
-                        console.error('Payment failed:', data);
-                        alert('Paiement échoué. Veuillez réessayer.');
-                    }
-                },
-                onclose: function() {
-                    console.log('Payment modal closed');
-                    // L'utilisateur a fermé la modal de paiement
-                }
-            });
-        }
-
-        async function recordPayment(paymentData, title, format, bounds) {
-            console.log('Recording payment:', paymentData);
-            
-            try {
-                const { data, error } = await supabase
-                    .from('payments')
-                    .insert([
-                        {
-                            transaction_id: paymentData.transaction_id,
-                            user_session: paymentData.tx_ref,
-                            amount: paymentData.amount,
-                            currency: paymentData.currency || CONFIG.flutterwave.currency,
-                            status: 'success',
-                            payment_method: paymentData.payment_type,
-                            flutterwave_tx_ref: paymentData.tx_ref,
-                            flutterwave_tx_id: paymentData.transaction_id,
-                            print_format: format,
-                            print_title: title,
-                            map_bounds: bounds,
-                            processed_at: new Date().toISOString()
-                        }
-                    ]);
-
-                if (error) {
-                    console.error('Database error:', error);
-                    throw error;
-                }
-                
-                console.log('Payment recorded successfully:', data);
-            } catch (error) {
-                console.error('Erreur lors de l\'enregistrement du paiement:', error);
-                // Ne pas bloquer l'impression même si l'enregistrement échoue
-            }
-        }
-
-        function proceedWithPrint(title, format, bounds) {
-            console.log('Proceeding with print:', { title, format, bounds });
-            
-            // Masquer les contrôles pour l'impression
-            document.getElementById('sidebar').style.display = 'none';
-            document.getElementById('search-container').style.display = 'none';
-            document.querySelector('.leaflet-control-container').style.display = 'none';
-            
-            // Attendre un peu pour que les styles s'appliquent
-            setTimeout(() => {
-                window.print();
-                
-                // Restaurer l'affichage après impression
-                setTimeout(() => {
-                    document.getElementById('sidebar').style.display = 'block';
-                    document.getElementById('search-container').style.display = 'block';
-                    document.querySelector('.leaflet-control-container').style.display = 'block';
-                    console.log('Print completed, UI restored');
-                }, 1000);
             }, 500);
         }
 
-        // Fonction pour tester l'intégration Flutterwave
-        function testFlutterwaveIntegration() {
-            console.log('Testing Flutterwave integration...');
-            console.log('Flutterwave SDK loaded:', !!window.FlutterwaveCheckout);
-            console.log('Config:', CONFIG.flutterwave);
-            
-            if (!window.FlutterwaveCheckout) {
-                console.error('Flutterwave SDK not found. Check if script is loaded correctly.');
-                return false;
+        function loadVillages() {
+            // Données d'exemple pour les villages
+            const villagesData = [
+                { name: "Yaoundé", lat: 3.8480, lng: 11.5021, population: 2440462 },
+                { name: "Douala", lat: 4.0511, lng: 9.7679, population: 2768400 },
+                { name: "Bamenda", lat: 5.9631, lng: 10.1591, population: 348766 },
+                { name: "Bafoussam", lat: 5.4781, lng: 10.4167, population: 347517 },
+                { name: "Garoua", lat: 9.3265, lng: 13.3958, population: 436899 }
+            ];
+
+            if (layers.villages) {
+                map.removeLayer(layers.villages);
             }
-            
-            return true;
+
+            layers.villages = L.layerGroup();
+
+            villagesData.forEach(village => {
+                const marker = L.circleMarker([village.lat, village.lng], {
+                    radius: 8,
+                    fillColor: '#4CAF50',
+                    color: '#2E7D32',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                });
+
+                marker.bindPopup(`
+                    <div class="popup-title">${village.name}</div>
+                    <div class="popup-info">
+                        <strong>Population:</strong> ${village.population.toLocaleString()}<br>
+                        <strong>Type:</strong> Village<br>
+                        <strong>Coordonnées:</strong> ${village.lat.toFixed(4)}, ${village.lng.toFixed(4)}
+                    </div>
+                `);
+
+                layers.villages.addLayer(marker);
+            });
+
+            map.addLayer(layers.villages);
         }
 
-        // Tester l'intégration au chargement
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                testFlutterwaveIntegration();
-            }, 2000); // Attendre que tous les scripts soient chargés
-        });
+        function loadPOI() {
+            // Points d'intérêt d'exemple
+            const poiData = [
+                { name: "Hôpital Central", lat: 3.8580, lng: 11.5121, type: "Santé" },
+                { name: "Université de Yaoundé I", lat: 3.8280, lng: 11.4921, type: "Éducation" },
+                { name: "Aéroport de Douala", lat: 4.0061, lng: 9.7195, type: "Transport" }
+            ];
 
-        function showPrintDialog() {
-            if (!testFlutterwaveIntegration()) {
-                alert('Service de paiement non disponible. Veuillez recharger la page.');
-                return;
+            if (layers.poi) {
+                map.removeLayer(layers.poi);
             }
 
-            const modal = document.getElementById('print-modal');
-            modal.style.display = 'block';
+            layers.poi = L.layerGroup();
+
+            poiData.forEach(poi => {
+                const marker = L.marker([poi.lat, poi.lng], {
+                    icon: L.divIcon({
+                        className: 'poi-icon',
+                        html: '<i class="fas fa-map-pin" style="color: #FF9800; font-size: 20px;"></i>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 20]
+                    })
+                });
+
+                marker.bindPopup(`
+                    <div class="popup-title">${poi.name}</div>
+                    <div class="popup-info">
+                        <strong>Type:</strong> ${poi.type}<br>
+                        <strong>Coordonnées:</strong> ${poi.lat.toFixed(4)}, ${poi.lng.toFixed(4)}
+                    </div>
+                `);
+
+                layers.poi.addLayer(marker);
+            });
+
+            map.addLayer(layers.poi);
+        }
+
+        function loadGeonames() {
+            // Géonymes d'exemple
+            const geonamesData = [
+                { name: "Mont Cameroun", lat: 4.2175, lng: 9.1709, type: "Montagne" },
+                { name: "Fleuve Sanaga", lat: 3.9500, lng: 10.7500, type: "Cours d'eau" },
+                { name: "Lac Tchad", lat: 13.0000, lng: 14.0000, type: "Lac" }
+            ];
+
+            if (layers.geonames) {
+                map.removeLayer(layers.geonames);
+            }
+
+            layers.geonames = L.layerGroup();
+
+            geonamesData.forEach(geo => {
+                const marker = L.circleMarker([geo.lat, geo.lng], {
+                    radius: 6,
+                    fillColor: '#2196F3',
+                    color: '#1976D2',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.7
+                });
+
+                marker.bindPopup(`
+                    <div class="popup-title">${geo.name}</div>
+                    <div class="popup-info">
+                        <strong>Type:</strong> ${geo.type}<br>
+                        <strong>Coordonnées:</strong> ${geo.lat.toFixed(4)}, ${geo.lng.toFixed(4)}
+                    </div>
+                `);
+
+                layers.geonames.addLayer(marker);
+            });
+
+            map.addLayer(layers.geonames);
+        }
+
+        function loadRegions() {
+            // Données d'exemple pour les régions
+            console.log('Chargement des régions...');
+            // TODO: Charger les vraies données depuis Supabase
+        }
+
+        function loadDepartements() {
+            console.log('Chargement des départements...');
+            // TODO: Charger les vraies données depuis Supabase
+        }
+
+        function loadArrondissements() {
+            console.log('Chargement des arrondissements...');
+            // TODO: Charger les vraies données depuis Supabase
+        }
+
+        function loadVillagesAdmin() {
+            console.log('Chargement des villages (admin)...');
+            // TODO: Charger les vraies données depuis Supabase
+        }
+
+        function loadChefferies() {
+            console.log('Chargement des chefferies...');
+            // TODO: Charger les vraies données depuis Supabase
+        }
+
+        function loadInitialData() {
+            // Charger les couches actives par défaut
+            activeLayers.forEach(layerName => {
+                loadLayer(layerName);
+            });
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            console.log(`Recherche: ${query}`);
+            // TODO: Implémenter la recherche
+            alert(`Recherche pour: ${query}`);
         }
 
         function checkAdminAccess() {
-            document.getElementById('adminModal').style.display = 'block';
-        }
+            const email = prompt('Email administrateur:');
+            const password = prompt('Mot de passe:');
 
-        function closeAdminModal() {
-            document.getElementById('adminModal').style.display = 'none';
-        }
-
-        async function loginAdmin() {
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-            
-            if (!email || !password) {
-                showNotification('Veuillez saisir votre email et mot de passe', 'warning');
-                return;
-            }
-            
-            if (!supabase) {
-                showNotification('Mode démo - Authentification non disponible', 'warning');
-                return;
-            }
-
-            try {
-                showLoading();
-                
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                const { data: profile, error: profileError } = await supabase
-                    .from('admin_profiles')
-                    .select('*')
-                    .eq('id', data.user.id)
-                    .eq('is_active', true)
-                    .single();
-
-                if (profileError || !profile) {
-                    await supabase.auth.signOut();
-                    throw new Error('Accès administrateur non autorisé');
-                }
-
-                currentUser = data.user;
-                isAdmin = true;
-                
-                if (profile.two_factor_enabled) {
-                    document.getElementById('loginForm').style.display = 'none';
-                    document.getElementById('twoFactorForm').style.display = 'block';
-                } else {
-                    hideLoading();
-                    closeAdminModal();
-                    showNotification('Connexion administrateur réussie', 'success');
-                    enableAdminFeatures();
-                }
-                
-            } catch (error) {
-                hideLoading();
-                console.error('Erreur de connexion:', error);
-                showNotification(error.message || 'Erreur de connexion', 'error');
+            if (email === CONFIG.adminCredentials.email && password === CONFIG.adminCredentials.password) {
+                alert('Accès administrateur accordé');
+                // TODO: Ouvrir le panneau d'administration
+            } else {
+                alert('Identifiants incorrects');
             }
         }
 
-        async function verifyTwoFactor() {
-            const code = document.getElementById('twoFactorCode').value;
+        // Gestion responsive du sidebar
+        function handleResize() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
             
-            if (!code || code.length !== 6) {
-                showNotification('Veuillez saisir un code à 6 chiffres', 'warning');
-                return;
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
             }
-            
-            showNotification('Vérification 2FA à implémenter', 'info');
-            
-            hideLoading();
-            closeAdminModal();
-            showNotification('Connexion administrateur réussie avec 2FA', 'success');
-            enableAdminFeatures();
         }
 
-        function enableAdminFeatures() {
-            console.log('Fonctionnalités admin activées');
-            
-            const toolbar = document.querySelector('.toolbar');
-            const adminButton = document.createElement('button');
-            adminButton.className = 'tool-btn';
-            adminButton.title = 'Panneau Admin';
-            adminButton.innerHTML = '<i class="fas fa-cog"></i>';
-            adminButton.onclick = function() {
-                showNotification('Panneau admin à implémenter', 'info');
-            };
-            toolbar.appendChild(adminButton);
-        }
-
-        // Gestionnaire global pour fermer les modales
-        window.onclick = function(event) {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        };
-
-        // Fonctions globales exposées pour les événements onclick dans le HTML
-        window.checkAdminAccess = checkAdminAccess;
-        window.closeAdminModal = closeAdminModal;
-        window.loginAdmin = loginAdmin;
-        window.verifyTwoFactor = verifyTwoFactor;
-        window.openPrintModal = openPrintModal;
-        window.closePrintModal = closePrintModal;
-        window.processPrint = processPrint;
-        window.selectSearchResult = selectSearchResult;
-
-        console.log('✅ Application MonVillage initialisée avec succès');
-        
-        // Message de bienvenue après initialisation
-        setTimeout(() => {
-            showNotification('Bienvenue dans MonVillage - Cartographie des Villages du Cameroun', 'success', 1000);
-        }, 1000);
+        window.addEventListener('resize', handleResize);
     </script>
 </body>
 </html>
