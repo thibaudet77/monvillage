@@ -936,19 +936,22 @@
                     <div class="legend-item">
                         <div class="legend-symbol" style="background: #F44336;">
                             <i class="fas fa-hospital" style="font-size: 10px; color: white;"></i>
-                <div class="logo-section">
-                    <img src="assets/images/logo.svg" alt="MonVillage" class="logo">
-                    <h1 class="app-title">MonVillage</h1>
+                        </div>
+                        <span class="legend-label">Centres de santé</span>
+                    </div>
                 </div>
             </aside>
-                <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Rechercher un village..." class="search-input">
-                    <i class="fas fa-search search-icon"></i>
+
+            <!-- Map Container -->
+            <div class="map-container">
+                <!-- Toggle Sidebar Button -->
+                <button class="toggle-sidebar" id="toggleSidebar">
                     <i class="fas fa-bars"></i>
                 </button>
 
-                <div class="header-controls">
-                    <button id="measureBtn" class="control-btn" title="Mesurer">
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <button class="tool-btn" id="measureDistance" title="Mesurer une distance">
                         <i class="fas fa-ruler"></i>
                     </button>
                     <button class="tool-btn" id="measureArea" title="Mesurer une surface">
@@ -960,7 +963,7 @@
                     <button class="tool-btn" id="zoomHome" title="Vue d'ensemble">
                         <i class="fas fa-home"></i>
                     </button>
-                    <button id="adminBtn" class="control-btn" title="Administration">
+                    <button class="tool-btn" id="toggleSatellite" title="Vue satellite">
                         <i class="fas fa-satellite"></i>
                     </button>
                 </div>
