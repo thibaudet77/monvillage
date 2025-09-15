@@ -5,909 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MonVillage - Cartographie des Villages du Cameroun</title>
     
-    <!-- Leaflet CSS -->
+    <!-- Leaflet CSS uniquement -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; overflow: hidden; background: #1a1a1a; color: #333; }
+        .app-container { display: flex; flex-direction: column; height: 100vh; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            background: #1a1a1a;
-            color: #333;
-        }
-
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        /* Header - OPTIMISÉ POUR MOINS DE HAUTEUR */
-        .header {
-            background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
-            color: white;
-            padding: 8px 15px; /* Réduit de 10px 20px à 8px 15px */
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-            position: relative;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 1400px;
-            margin: 0 auto;
-            height: 50px; /* Hauteur fixe réduite */
-        }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 12px; /* Réduit de 15px à 12px */
-        }
-
-        .logo {
-            width: 32px; /* Réduit de 40px à 32px */
-            height: 32px; /* Réduit de 40px à 32px */
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px; /* Réduit de 18px à 14px */
-        }
-
-        .app-title {
-            font-size: 20px; /* Réduit de 24px à 20px */
-            font-weight: bold;
-            margin: 0;
-            line-height: 1; /* Assure un alignement parfait */
-        }
-
-        .search-container {
-            position: relative;
-            flex: 1;
-            max-width: 450px; /* Augmenté de 350px à 450px */
-            margin: 0 20px; /* Augmenté de 15px à 20px pour plus d'espace */
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 8px 35px 8px 12px; /* Réduit verticalement de 10px à 8px */
-            border: none;
-            border-radius: 20px; /* Légèrement réduit de 25px à 20px */
-            font-size: 13px; /* Réduit de 14px à 13px */
-            background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(10px);
-            height: 34px; /* Hauteur fixe pour alignement */
-        }
-
-        .search-btn {
-            position: absolute;
-            right: 4px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #4a7c59;
-            border: none;
-            color: white;
-            padding: 6px 10px; /* Réduit de 8px 12px à 6px 10px */
-            border-radius: 50%;
-            cursor: pointer;
-            width: 26px; /* Taille fixe pour consistance */
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1001;
-            display: none;
-        }
-
-        .search-result-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            color: #333;
-        }
-
-        .search-result-item:hover {
-            background: #f5f5f5;
-        }
-
-        .admin-access {
-            color: rgba(255,255,255,0.9);
-            font-size: 13px; /* Légèrement augmenté pour la lisibilité */
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 12px; /* Ajout de padding pour une meilleure zone de clic */
-            border-radius: 15px;
-            transition: background 0.2s;
-            height: 34px; /* Même hauteur que la barre de recherche */
-        }
-
-        .admin-access:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .admin-access i {
-            font-size: 14px; /* Taille de l'icône alignée */
-        }
+        /* Header */
+        .header { background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); color: white; padding: 8px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 1000; position: relative; }
+        .header-content { display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; height: 50px; }
+        .logo-section { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+        .logo { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .app-title { font-size: 20px; font-weight: bold; margin: 0; line-height: 1; }
+        .search-container { position: relative; flex: 1; max-width: 450px; margin: 0 20px; }
+        .search-input { width: 100%; padding: 8px 35px 8px 12px; border: none; border-radius: 20px; font-size: 13px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); height: 34px; }
+        .search-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: #4a7c59; border: none; color: white; padding: 6px 10px; border-radius: 50%; cursor: pointer; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .admin-access { color: rgba(255,255,255,0.9); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 15px; transition: background 0.2s; height: 34px; flex-shrink: 0; }
+        .admin-access:hover { background: rgba(255,255,255,0.1); }
 
         /* Main Content */
-        .main-content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Sidebar Overlay for Mobile */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            backdrop-filter: blur(2px);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
-            opacity: 1;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 300px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        /* Desktop sidebar collapsed state */
-        .sidebar.collapsed {
-            transform: translateX(-280px);
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
-            background: #f8f9fa;
-            position: relative;
-        }
-
-        .sidebar-header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .sidebar-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #2c5530;
-        }
-
-        .sidebar-close-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            color: #666;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-
-        .sidebar-close-btn:hover {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .legend-section {
-            padding: 15px 20px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .legend-item:hover {
-            background: #f0f0f0;
-        }
-
-        .legend-symbol {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-
-        .legend-label {
-            font-size: 14px;
-            color: #333;
-        }
+        .main-content { display: flex; flex: 1; overflow: hidden; position: relative; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s ease; }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+        .sidebar { width: 300px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); box-shadow: 2px 0 10px rgba(0,0,0,0.1); transition: transform 0.3s ease; z-index: 1000; overflow-y: auto; position: relative; }
+        .sidebar.collapsed { transform: translateX(-280px); }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #e0e0e0; background: #f8f9fa; position: relative; }
+        .sidebar-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #2c5530; }
+        .sidebar-close-btn { background: none; border: none; font-size: 18px; color: #666; cursor: pointer; padding: 5px; border-radius: 50%; width: 30px; height: 30px; display: none; align-items: center; justify-content: center; transition: all 0.2s; position: absolute; top: 15px; right: 15px; }
+        .sidebar-close-btn:hover { background: #e0e0e0; color: #333; }
+        .layer-controls { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+        .layer-control-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .layer-toggle { position: relative; width: 50px; height: 25px; background: #ccc; border-radius: 25px; cursor: pointer; transition: background 0.2s; }
+        .layer-toggle.active { background: #4a7c59; }
+        .layer-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 21px; height: 21px; background: white; border-radius: 50%; transition: transform 0.2s; }
+        .layer-toggle.active::after { transform: translateX(25px); }
+        .legend-section { padding: 15px 20px; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 12px; padding: 8px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        .legend-item:hover { background: #f0f0f0; }
+        .legend-symbol { width: 20px; height: 20px; margin-right: 10px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .legend-label { font-size: 14px; color: #333; }
 
         /* Map Container */
-        .map-container {
-            flex: 1;
-            position: relative;
-        }
+        .map-container { flex: 1; position: relative; }
+        #map { width: 100%; height: 100%; }
+        .toolbar { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 600; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .tool-btn { background: none; border: none; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 16px; color: #666; transition: all 0.2s; min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+        .tool-btn:hover { background: #f0f0f0; color: #333; }
+        .tool-btn.active { background: #4a7c59; color: white; }
+        .toggle-sidebar { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 18px; cursor: pointer; box-shadow: 0 3px 15px rgba(0,0,0,0.2); z-index: 600; color: #4a7c59; transition: all 0.2s ease; }
+        .toggle-sidebar:hover { background: rgba(255,255,255,1); transform: scale(1.05); }
 
-        #map {
-            width: 100%;
-            height: 100%;
-        }
+        /* Notification System */
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; max-width: 350px; }
+        .notification.show { transform: translateX(0); }
+        .notification.success { background: #4CAF50; color: white; }
+        .notification.error { background: #F44336; color: white; }
+        .notification.warning { background: #FF9800; color: white; }
+        .notification.info { background: #2196F3; color: white; }
 
-        /* Toolbar */
-        .toolbar {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            z-index: 600;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .tool-btn {
-            background: none;
-            border: none;
-            padding: 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            color: #666;
-            transition: all 0.2s;
-            min-width: 40px;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .tool-btn:hover {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .tool-btn.active {
-            background: #4a7c59;
-            color: white;
-        }
-
-        /* Toggle Sidebar Button */
-        .toggle-sidebar {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
-            z-index: 600;
-            color: #4a7c59;
-            transition: all 0.2s ease;
-        }
-
-        .toggle-sidebar:hover {
-            background: rgba(255,255,255,1);
-            transform: scale(1.05);
-        }
-
-        /* Popup Styles */
-        .custom-popup {
-            font-family: inherit;
-        }
-
-        .popup-header {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2c5530;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #4a7c59;
-        }
-
-        .popup-content {
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .popup-field {
-            margin-bottom: 8px;
-        }
-
-        .popup-label {
-            font-weight: bold;
-            color: #666;
-        }
-
-        .photo-carousel {
-            margin-top: 15px;
-            text-align: center;
-        }
-
-        .photo-carousel img {
-            max-width: 200px;
-            max-height: 150px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .photo-nav {
-            margin-top: 10px;
-        }
-
-        .photo-nav button {
-            background: #4a7c59;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            margin: 0 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
+        /* Measurement styles */
+        .measurement-tooltip { background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 5px; font-size: 13px; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
 
         /* Footer */
-        .footer {
-            background: #2c5530;
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
-            font-size: 14px;
-        }
+        .footer { background: #2c5530; color: white; padding: 15px 20px; text-align: center; font-size: 14px; }
+        .footer-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .contact-info { display: flex; gap: 20px; align-items: center; }
+        .contact-item { display: flex; align-items: center; gap: 5px; }
 
-        .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .contact-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 2000;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #2c5530;
-            text-align: center;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-input, .form-select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
-        .form-input:focus, .form-select:focus {
-            outline: none;
-            border-color: #4a7c59;
-        }
-
-        .btn {
-            background: #4a7c59;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        .btn:hover {
-            background: #3a6b49;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        /* Print Dialog */
-        .print-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .format-option {
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .format-option:hover {
-            border-color: #4a7c59;
-        }
-
-        .format-option.selected {
-            border-color: #4a7c59;
-            background: rgba(74, 124, 89, 0.1);
-        }
-
-        .price-display {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .price {
-            font-size: 24px;
-            font-weight: bold;
-            color: #4a7c59;
-        }
-
-        /* Loading Spinner */
-        .loading {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.9);
-            z-index: 3000;
-            backdrop-filter: blur(5px);
-        }
-
-        .loading-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4a7c59;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Authentication Styles */
-        .auth-container {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .auth-header h2 {
-            color: #2c5530;
-            margin-bottom: 10px;
-        }
-
-        .auth-header p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .two-factor-input {
-            font-family: monospace;
-            font-size: 18px;
-            text-align: center;
-            letter-spacing: 5px;
-        }
-
-        /* Notification Styles */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4a7c59;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            z-index: 2500;
-            transform: translateX(400px);
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            opacity: 0;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .notification.error {
-            background: #dc3545;
-        }
-
-        .notification.success {
-            background: #28a745;
-        }
-
-        .notification.warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .notification.info {
-            background: #17a2b8;
-        }
-
-        /* Layer Controls */
-        .layer-controls {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .layer-control-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .layer-toggle {
-            position: relative;
-            width: 50px;
-            height: 25px;
-            background: #ccc;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .layer-toggle.active {
-            background: #4a7c59;
-        }
-
-        .layer-toggle::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 21px;
-            height: 21px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.2s;
-        }
-
-        .layer-toggle.active::after {
-            transform: translateX(25px);
-        }
-
-        /* Responsive Design - HEADER MOBILE OPTIMISÉ */
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .header-content {
-                /* Garder l'alignement horizontal même sur mobile */
-                flex-direction: row; /* CHANGÉ: reste en ligne au lieu de column */
-                gap: 8px; /* Espace entre les éléments */
-                padding: 4px 8px; /* Réduit le padding horizontal */
-                height: 45px; /* Hauteur réduite */
-                justify-content: space-between; /* Répartition équilibrée */
-            }
-
-            .logo-section {
-                order: 1;
-            }
-
-            .logo {
-                width: 28px; /* Encore plus petit sur mobile */
-                height: 28px;
-                font-size: 12px;
-            }
-
-            .app-title {
-                font-size: 14px; /* Réduit de 16px à 14px pour mobile */
-            }
-
-            .search-container {
-                order: 2;
-                flex: 1; /* Prend l'espace disponible */
-                max-width: none;
-                margin: 0 10px; /* Marges réduites */
-            }
-
-            .search-input {
-                height: 32px; /* Légèrement plus petit sur mobile */
-                font-size: 12px;
-                padding: 6px 30px 6px 10px;
-            }
-
-            .search-btn {
-                width: 24px;
-                height: 24px;
-                font-size: 11px;
-            }
-
-            .admin-access {
-                order: 3;
-                font-size: 11px; /* Plus petit sur mobile */
-                height: 32px;
-                padding: 6px 8px;
-                gap: 4px;
-            }
-
-            .admin-access span {
-                display: none; /* Cache le texte "Admin" sur très petit écran */
-            }
-
-            /* Sidebar mobile behavior */
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-                z-index: 1000;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                width: 280px;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .sidebar.collapsed {
-                transform: translateX(-100%);
-            }
-
-            .sidebar-close-btn {
-                display: flex !important;
-            }
-
-            .sidebar-header {
-                padding-top: 25px;
-            }
-
-            /* Toolbar mobile */
-            .toolbar {
-                flex-direction: row;
-                top: auto;
-                bottom: 20px;
-                right: 20px;
-                left: 20px;
-                justify-content: center;
-                max-width: none;
-            }
-
-            /* Footer mobile */
-            .footer-content {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-
-            .contact-info {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            /* Modal mobile */
-            .modal-content {
-                width: 95%;
-                margin: 20px;
-                max-height: 90vh;
-            }
-
-            /* Print options mobile */
-            .print-options {
-                grid-template-columns: 1fr;
-            }
-
-            /* Notification mobile */
-            .notification {
-                right: 10px;
-                left: 10px;
-                transform: translateY(-100px);
-            }
-
-            .notification.show {
-                transform: translateY(0);
-            }
-        }
-
-        @media (min-width: 769px) {
-            .sidebar-close-btn {
-                display: none !important;
-            }
-
-            .sidebar-overlay {
-                display: none !important;
-            }
-
-            /* Desktop sidebar behavior */
-            .sidebar {
-                position: relative;
-                transform: translateX(0);
-            }
-
-            .sidebar.collapsed {
-                transform: translateX(-280px);
-            }
-        }
-
-        /* Animation pour le bouton toggle */
-        .toggle-sidebar i {
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-animating .toggle-sidebar i {
-            transform: rotate(180deg);
+            .header-content { flex-direction: row; gap: 8px; padding: 4px 8px; height: 45px; justify-content: space-between; }
+            .logo { width: 28px; height: 28px; font-size: 12px; }
+            .app-title { font-size: 14px; }
+            .search-container { flex: 1; margin: 0 10px; }
+            .search-input { height: 32px; font-size: 12px; padding: 6px 30px 6px 10px; }
+            .search-btn { width: 24px; height: 24px; font-size: 11px; }
+            .admin-access { font-size: 11px; height: 32px; padding: 6px 8px; gap: 4px; }
+            .admin-access span { display: none; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000; transform: translateX(-100%); width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar.collapsed { transform: translateX(-100%); }
+            .sidebar-close-btn { display: flex !important; }
+            .sidebar-header { padding-top: 25px; }
+            .toolbar { flex-direction: row; top: auto; bottom: 20px; right: 20px; left: 20px; justify-content: center; }
+            .footer-content { flex-direction: column; gap: 10px; text-align: center; }
+            .contact-info { flex-direction: column; gap: 10px; }
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Header Optimisé -->
+        <!-- Header -->
         <header class="header">
             <div class="header-content">
                 <div class="logo-section">
-                    <div class="logo">
-                        <i class="fas fa-map-marked-alt"></i>
-                    </div>
+                    <div class="logo"><i class="fas fa-map-marked-alt"></i></div>
                     <h1 class="app-title">MonVillage</h1>
                 </div>
-                
                 <div class="search-container">
                     <input type="text" class="search-input" placeholder="Rechercher un village..." id="searchInput">
-                    <button class="search-btn" id="searchBtn">
-                        <i class="fas fa-search"></i>
-                    </button>
+                    <button class="search-btn" id="searchBtn"><i class="fas fa-search"></i></button>
                     <div class="search-results" id="searchResults"></div>
                 </div>
-                
                 <div class="admin-access" onclick="checkAdminAccess()">
                     <i class="fas fa-cog"></i>
                     <span>Admin</span>
@@ -917,112 +121,42 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <!-- Overlay pour mobile -->
             <div class="sidebar-overlay" id="sidebarOverlay"></div>
-            
-            <!-- Sidebar -->
             <aside class="sidebar" id="sidebar">
                 <div class="sidebar-header">
-                    <button class="sidebar-close-btn" id="closeSidebar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <div class="sidebar-header-content">
-                        <div>
-                            <h3 class="sidebar-title">Légende</h3>
-                            <p>Couches cartographiques</p>
-                        </div>
-                    </div>
+                    <button class="sidebar-close-btn" id="closeSidebar"><i class="fas fa-times"></i></button>
+                    <div><h3 class="sidebar-title">Légende</h3><p>Couches cartographiques</p></div>
                 </div>
-                
                 <div class="layer-controls">
-                    <div class="layer-control-item">
-                        <span>Régions</span>
-                        <div class="layer-toggle active" data-layer="regions"></div>
-                    </div>
-                    <div class="layer-control-item">
-                        <span>Départements</span>
-                        <div class="layer-toggle active" data-layer="departements"></div>
-                    </div>
-                    <div class="layer-control-item">
-                        <span>Arrondissements</span>
-                        <div class="layer-toggle active" data-layer="arrondissements"></div>
-                    </div>
-                    <div class="layer-control-item">
-                        <span>Villages</span>
-                        <div class="layer-toggle active" data-layer="villages"></div>
-                    </div>
-                    <div class="layer-control-item">
-                        <span>Points d'intérêt</span>
-                        <div class="layer-toggle active" data-layer="poi"></div>
-                    </div>
-                    <div class="layer-control-item">
-                        <span>Géonymes</span>
-                        <div class="layer-toggle active" data-layer="geonames"></div>
-                    </div>
+                    <div class="layer-control-item"><span>Régions</span><div class="layer-toggle active" data-layer="regions"></div></div>
+                    <div class="layer-control-item"><span>Départements</span><div class="layer-toggle active" data-layer="departements"></div></div>
+                    <div class="layer-control-item"><span>Arrondissements</span><div class="layer-toggle active" data-layer="arrondissements"></div></div>
+                    <div class="layer-control-item"><span>Villages</span><div class="layer-toggle active" data-layer="villages"></div></div>
+                    <div class="layer-control-item"><span>Points d'intérêt</span><div class="layer-toggle active" data-layer="poi"></div></div>
+                    <div class="layer-control-item"><span>Géonymes</span><div class="layer-toggle active" data-layer="geonames"></div></div>
                 </div>
-
                 <div class="legend-section">
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: transparent; border: 3px solid #d62728;"></div>
-                        <span class="legend-label">Régions</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: transparent; border: 2px solid #000000;"></div>
-                        <span class="legend-label">Départements</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: transparent; border: 2px dashed #8B008B;"></div>
-                        <span class="legend-label">Arrondissements</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: rgba(74, 124, 89, 0.3); border: 2px solid #4a7c59;"></div>
-                        <span class="legend-label">Villages</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: #FFD700;">
-                            <i class="fas fa-crown" style="font-size: 10px; color: #333;"></i>
-                        </div>
-                        <span class="legend-label">Chefferies</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: #4CAF50;">
-                            <i class="fas fa-school" style="font-size: 10px; color: white;"></i>
-                        </div>
-                        <span class="legend-label">Écoles</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-symbol" style="background: #F44336;">
-                            <i class="fas fa-hospital" style="font-size: 10px; color: white;"></i>
-                        </div>
-                        <span class="legend-label">Centres de santé</span>
-                    </div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 3px solid #d62728;"></div><span class="legend-label">Régions</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px solid #000000;"></div><span class="legend-label">Départements</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px dashed #8B008B;"></div><span class="legend-label">Arrondissements</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: rgba(74, 124, 89, 0.3); border: 2px solid #4a7c59;"></div><span class="legend-label">Villages</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: #FFD700;"><i class="fas fa-crown" style="font-size: 10px; color: #333;"></i></div><span class="legend-label">Chefferies</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: #4CAF50;"><i class="fas fa-school" style="font-size: 10px; color: white;"></i></div><span class="legend-label">Écoles</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: #F44336;"><i class="fas fa-hospital" style="font-size: 10px; color: white;"></i></div><span class="legend-label">Centres de santé</span></div>
                 </div>
             </aside>
 
             <!-- Map Container -->
             <div class="map-container">
-                <button class="toggle-sidebar" id="toggleSidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-
+                <button class="toggle-sidebar" id="toggleSidebar"><i class="fas fa-bars"></i></button>
                 <div class="toolbar">
-                    <button class="tool-btn" id="measureDistance" title="Mesurer une distance">
-                        <i class="fas fa-ruler"></i>
-                    </button>
-                    <button class="tool-btn" id="measureArea" title="Mesurer une surface">
-                        <i class="fas fa-draw-polygon"></i>
-                    </button>
-                    <button class="tool-btn" id="printMap" title="Imprimer la carte">
-                        <i class="fas fa-print"></i>
-                    </button>
-                    <button class="tool-btn" id="zoomHome" title="Vue d'ensemble">
-                        <i class="fas fa-home"></i>
-                    </button>
-                    <button class="tool-btn" id="toggleSatellite" title="Vue satellite">
-                        <i class="fas fa-satellite"></i>
-                    </button>
+                    <button class="tool-btn" id="measureDistance" title="Mesurer une distance"><i class="fas fa-ruler"></i></button>
+                    <button class="tool-btn" id="measureArea" title="Mesurer une surface"><i class="fas fa-draw-polygon"></i></button>
+                    <button class="tool-btn" id="clearMeasurements" title="Effacer les mesures"><i class="fas fa-eraser"></i></button>
+                    <button class="tool-btn" id="printMap" title="Imprimer la carte"><i class="fas fa-print"></i></button>
+                    <button class="tool-btn" id="zoomHome" title="Vue d'ensemble"><i class="fas fa-home"></i></button>
+                    <button class="tool-btn" id="toggleSatellite" title="Vue satellite"><i class="fas fa-satellite"></i></button>
                 </div>
-
                 <div id="map"></div>
             </div>
         </div>
@@ -1031,233 +165,290 @@
         <footer class="footer">
             <div class="footer-content">
                 <div class="contact-info">
-                    <div class="contact-item">
-                        <i class="fas fa-envelope"></i>
-                        <span>monvillage.cm@gmail.com</span>
-                    </div>
-                    <div class="contact-item">
-                        <i class="fas fa-phone"></i>
-                        <span>+237 697 182 925</span>
-                    </div>
+                    <div class="contact-item"><i class="fas fa-envelope"></i><span>monvillage.cm@gmail.com</span></div>
+                    <div class="contact-item"><i class="fas fa-phone"></i><span>+237 697 182 925</span></div>
                 </div>
-                <div>
-                    © 2024 MonVillage - Cartographie des Villages du Cameroun
-                </div>
+                <div>© 2024 MonVillage - Cartographie des Villages du Cameroun</div>
             </div>
         </footer>
+
+        <!-- Notification Container -->
+        <div id="notification" class="notification"></div>
     </div>
 
-    <!-- Print Modal -->
-    <div class="modal" id="printModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closePrintModal()">&times;</button>
-            <div class="modal-header">Impression de la carte</div>
-            
-            <div class="form-group">
-                <label class="form-label">Titre de la carte</label>
-                <input type="text" class="form-input" id="printTitle" value="Carte des Villages - MonVillage">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Format d'impression</label>
-                <div class="print-options">
-                    <div class="format-option" data-format="A1">
-                        <strong>A1</strong><br>
-                        <small>59.4 × 84.1 cm</small>
-                    </div>
-                    <div class="format-option" data-format="A0">
-                        <strong>A0</strong><br>
-                        <small>84.1 × 118.9 cm</small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Type d'export</label>
-                <select class="form-select" id="exportType">
-                    <option value="PDF">PDF (Recommandé)</option>
-                    <option value="TIFF">TIFF (Haute qualité)</option>
-                </select>
-            </div>
-
-            <div class="price-display">
-                <div>Prix: <span class="price">2 000 XAF</span></div>
-                <small>Paiement sécurisé via Flutterwave</small>
-            </div>
-
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn btn-secondary" onclick="closePrintModal()" style="margin-right: 10px;">Annuler</button>
-                <button class="btn" onclick="processPrint()">Procéder au paiement</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Login Modal -->
-    <div class="modal" id="adminModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeAdminModal()">&times;</button>
-            <div class="auth-container">
-                <div class="auth-header">
-                    <h2>Accès Administrateur</h2>
-                    <p>Connexion sécurisée avec authentification à deux facteurs</p>
-                </div>
-                
-                <div id="loginForm">
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="adminEmail" placeholder="admin@monvillage.cm">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Mot de passe</label>
-                        <input type="password" class="form-input" id="adminPassword">
-                    </div>
-                    <button class="btn" onclick="loginAdmin()" style="width: 100%;">Se connecter</button>
-                </div>
-
-                <div id="twoFactorForm" style="display: none;">
-                    <div class="form-group">
-                        <label class="form-label">Code d'authentification à deux facteurs</label>
-                        <input type="text" class="form-input two-factor-input" id="twoFactorCode" placeholder="000000" maxlength="6">
-                    </div>
-                    <button class="btn" onclick="verifyTwoFactor()" style="width: 100%;">Vérifier</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Spinner -->
-    <div class="loading" id="loading">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <div>Chargement en cours...</div>
-        </div>
-    </div>
-
-    <!-- Notification Container -->
-    <div class="notification" id="notification"></div>
-
-    <!-- Leaflet JS -->
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.js"></script>
-    
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
-        // Configuration globale
+        console.log('🚀 MonVillage - Initialisation complète');
+        
+        // =================================================================
+        // CONFIGURATION ET VARIABLES GLOBALES
+        // =================================================================
+        
         const CONFIG = {
             supabase: {
                 url: 'https://hrlufnjhwhgddxkpyzst.supabase.co',
                 anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8'
             },
             mapbox: {
-                url: 'mapbox://styles/ekanson/cme47jwpm00ez01qzc8206krr',
                 accessToken: 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg'
             },
-            map: {
-                center: [4.1485, 9.504],
-                zoom: 7
-            },
-            flutterwave: {
-                publicKey: 'FLWPUBK_TEST-your-key-here'
-            }
+            map: { center: [4.1485, 9.504], zoom: 7 }
         };
 
-        // Variables globales
-        let map;
-        let supabase;
-        let currentUser = null;
-        let isAdmin = false;
-        let searchTimeout;
-        let measureControl;
-        let drawnItems;
-        let currentTool = null;
-        let mapLayers = {
-            regions: null,
-            villages: null,
-            arrondissements: null,
-            departements: null,
-            poi: null,
-            geonames: null
-        };
-        let baseLayers = {
-            standard: null,
-            satellite: null
-        };
+        let map, supabase;
+        let mapLayers = { regions: null, departements: null, arrondissements: null, villages: null, poi: null, geonames: null };
+        let baseLayers = { standard: null, satellite: null };
         let currentBaseLayer = 'standard';
+        
+        let measurementLayer;
+        let isDistanceMeasuring = false;
+        let isAreaMeasuring = false;
+        let distanceMarkers = [];
+        let measurementLines = [];
+        let measurementPolygons = [];
+        let polygonPoints = [];
+        let tempPolygon = null;
 
-        // Variables pour les outils de mesure - PRIORITÉ ABSOLUE
-        let isDrawing = false;
-        let currentDrawing = null;
-        let drawingPoints = [];
-        let vertexMarkers = [];
-        let measureEventHandlers = {
-            click: null,
-            dblclick: null
-        };
+        // =================================================================
+        // TOUTES LES FONCTIONS UTILITAIRES (DÉFINIES EN PREMIER)
+        // =================================================================
 
-        // Initialisation de l'application
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeSupabase();
-            initializeMap();
-            initializeEventListeners();
-            loadInitialData();
-            checkAdminKeySequence();
-            handleWindowResize();
-        });
+        function parseGeometry(geom) {
+            if (!geom) return null;
+            try {
+                return typeof geom === 'object' ? geom : JSON.parse(geom);
+            } catch (error) {
+                console.error('Erreur parsing géométrie:', error);
+                return null;
+            }
+        }
 
-        // Initialisation de Supabase
+        function showNotification(message, type = 'info', duration = 4000) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, duration);
+        }
+
+        function calculateDistance(latlng1, latlng2) {
+            const R = 6371000;
+            const lat1 = latlng1.lat * Math.PI / 180;
+            const lat2 = latlng2.lat * Math.PI / 180;
+            const deltaLat = (latlng2.lat - latlng1.lat) * Math.PI / 180;
+            const deltaLng = (latlng2.lng - latlng1.lng) * Math.PI / 180;
+
+            const a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+                    Math.cos(lat1) * Math.cos(lat2) *
+                    Math.sin(deltaLng/2) * Math.sin(deltaLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        function calculatePolygonArea(latlngs) {
+            if (latlngs.length < 3) return 0;
+            
+            const R = 6371000;
+            let area = 0;
+            const n = latlngs.length;
+            
+            for (let i = 0; i < n; i++) {
+                const j = (i + 1) % n;
+                const lat1 = latlngs[i].lat * Math.PI / 180;
+                const lat2 = latlngs[j].lat * Math.PI / 180;
+                const deltaLng = (latlngs[j].lng - latlngs[i].lng) * Math.PI / 180;
+                
+                area += deltaLng * (2 + Math.sin(lat1) + Math.sin(lat2));
+            }
+            
+            area = Math.abs(area) * R * R / 2;
+            return area;
+        }
+
+        function calculateAreaFromGeometry(geometry) {
+            if (!geometry || !geometry.coordinates) {
+                console.log('Géométrie invalide pour calcul superficie');
+                return 'Non calculé';
+            }
+            
+            try {
+                console.log('Calcul superficie pour géométrie:', geometry.type);
+                
+                let coordinates;
+                if (geometry.type === 'Polygon') {
+                    coordinates = geometry.coordinates[0];
+                } else if (geometry.type === 'MultiPolygon') {
+                    let totalArea = 0;
+                    geometry.coordinates.forEach(polygon => {
+                        const polygonCoords = polygon[0].map(coord => ({lat: coord[1], lng: coord[0]}));
+                        totalArea += calculatePolygonArea(polygonCoords);
+                    });
+                    console.log('Superficie MultiPolygon calculée:', totalArea);
+                    return totalArea;
+                }
+                
+                if (coordinates && coordinates.length > 3) {
+                    const latlngs = coordinates.map(coord => ({lat: coord[1], lng: coord[0]}));
+                    const area = calculatePolygonArea(latlngs);
+                    console.log('Superficie Polygon calculée:', area);
+                    return area;
+                }
+                
+                console.log('Coordonnées insuffisantes pour calcul');
+                return 0;
+            } catch (error) {
+                console.error('Erreur calcul superficie:', error);
+                return 'Erreur calcul';
+            }
+        }
+
+        function formatDistance(distance) {
+            if (distance < 1000) {
+                return `${Math.round(distance)} m`;
+            } else {
+                return `${(distance / 1000).toFixed(2)} km`;
+            }
+        }
+
+        function formatArea(area) {
+            if (area < 1000) {
+                return `${Math.round(area)} m²`;
+            } else if (area < 10000) {
+                return `${(area / 1000).toFixed(2)} k m²`;
+            } else if (area < 1000000) {
+                const hectares = area / 10000;
+                return `${hectares.toFixed(2)} ha`;
+            } else {
+                const km2 = area / 1000000;
+                if (km2 < 10) {
+                    return `${km2.toFixed(3)} km²`;
+                } else if (km2 < 1000) {
+                    return `${km2.toFixed(2)} km²`;
+                } else {
+                    return `${Math.round(km2).toLocaleString()} km²`;
+                }
+            }
+        }
+
+        function disableAdministrativeLayers() {
+            console.log('Désactivation temporaire des popups administratives');
+            
+            if (mapLayers.regions) {
+                mapLayers.regions.eachLayer(layer => {
+                    layer.off('click');
+                });
+            }
+            if (mapLayers.departements) {
+                mapLayers.departements.eachLayer(layer => {
+                    layer.off('click');
+                });
+            }
+            if (mapLayers.arrondissements) {
+                mapLayers.arrondissements.eachLayer(layer => {
+                    layer.off('click');
+                });
+            }
+        }
+
+        function enableAdministrativeLayers() {
+            console.log('Réactivation des popups administratives');
+            
+            if (mapLayers.regions) {
+                mapLayers.regions.eachLayer(layer => {
+                    layer.on('click', function() {
+                        layer.openPopup();
+                    });
+                });
+            }
+            if (mapLayers.departements) {
+                mapLayers.departements.eachLayer(layer => {
+                    layer.on('click', function() {
+                        layer.openPopup();
+                    });
+                });
+            }
+            if (mapLayers.arrondissements) {
+                mapLayers.arrondissements.eachLayer(layer => {
+                    layer.on('click', function() {
+                        layer.openPopup();
+                    });
+                });
+            }
+        }
+
+        function clearActiveMeasurements() {
+            if (isDistanceMeasuring) {
+                stopDistanceMeasurement();
+            }
+            if (isAreaMeasuring) {
+                stopAreaMeasurement();
+            }
+
+            distanceMarkers.forEach(marker => {
+                if (map.hasLayer(marker)) map.removeLayer(marker);
+            });
+            distanceMarkers = [];
+
+            measurementLines.forEach(line => {
+                if (map.hasLayer(line)) map.removeLayer(line);
+            });
+            measurementLines = [];
+
+            map.closePopup();
+        }
+
+        function clearAllMeasurements() {
+            clearActiveMeasurements();
+            
+            measurementPolygons.forEach(item => {
+                if (map.hasLayer(item)) map.removeLayer(item);
+            });
+            measurementPolygons = [];
+            
+            measurementLayer.clearLayers();
+            
+            if (tempPolygon) {
+                map.removeLayer(tempPolygon);
+                tempPolygon = null;
+            }
+            
+            map.closePopup();
+            showNotification('Toutes les mesures effacées', 'info');
+        }
+
+        // =================================================================
+        // FONCTIONS D'INITIALISATION
+        // =================================================================
+
         function initializeSupabase() {
             try {
                 supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
-                console.log('✅ Supabase initialisé avec succès');
-                console.log('📡 URL Supabase:', CONFIG.supabase.url);
-                
-                testSupabaseConnection();
-                
+                console.log('✅ Supabase initialisé');
             } catch (error) {
-                console.error('❌ Erreur lors de l\'initialisation de Supabase:', error);
-                showNotification('Erreur de connexion à la base de données', 'error');
-                loadDemoData();
+                console.error('❌ Erreur Supabase:', error);
+                showNotification('Mode hors ligne - données démo', 'warning');
             }
         }
 
-        // Fonction pour tester la connexion Supabase
-        async function testSupabaseConnection() {
-            try {
-                const { data, error } = await supabase
-                    .from('regions')
-                    .select('count', { count: 'exact', head: true });
-                
-                if (error) {
-                    console.warn('⚠️ Erreur de connexion Supabase:', error.message);
-                    showNotification('Mode démo activé - Problème de connexion DB', 'warning');
-                    loadDemoData();
-                } else {
-                    console.log('✅ Connexion Supabase OK');
-                }
-            } catch (error) {
-                console.warn('⚠️ Test de connexion échoué:', error);
-                showNotification('Mode démo activé - Base de données non accessible', 'warning');
-                loadDemoData();
-            }
-        }
-
-        // Initialisation de la carte
         function initializeMap() {
-            map = L.map('map', {
-                center: CONFIG.map.center,
-                zoom: CONFIG.map.zoom,
-                zoomControl: false
+            console.log('🗺️ Initialisation de la carte');
+            
+            map = L.map('map', { 
+                center: CONFIG.map.center, 
+                zoom: CONFIG.map.zoom, 
+                zoomControl: false 
             });
+            
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-            L.control.zoom({
-                position: 'bottomright'
-            }).addTo(map);
-
-            // Couches de base
             baseLayers.standard = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: '© <a href="https://www.mapbox.com/">Mapbox</a> © <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
+                attribution: '© Mapbox © OpenStreetMap',
                 id: 'mapbox/streets-v11',
                 accessToken: CONFIG.mapbox.accessToken,
                 maxZoom: 18
@@ -1269,1309 +460,479 @@
             });
 
             baseLayers.standard.addTo(map);
-            currentBaseLayer = 'standard';
-
-            drawnItems = new L.FeatureGroup();
-            map.addLayer(drawnItems);
-
-            measureControl = null;
+            console.log('✅ Carte initialisée');
         }
 
-        // Initialisation des événements
-        function initializeEventListeners() {
-            // Recherche
-            const searchInput = document.getElementById('searchInput');
-            const searchBtn = document.getElementById('searchBtn');
+        function initializeNativeMeasurementTools() {
+            console.log('📏 Initialisation des outils de mesure natifs');
+            
+            measurementLayer = new L.FeatureGroup();
+            map.addLayer(measurementLayer);
+            
+            console.log('✅ Outils de mesure prêts');
+        }
 
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    if (this.value.length >= 2) {
-                        searchVillages(this.value);
+        // =================================================================
+        // FONCTIONS DE CHARGEMENT DES DONNÉES
+        // =================================================================
+
+        async function loadInitialData() {
+            console.log('📊 Chargement des données...');
+            if (!supabase) {
+                showNotification('Mode démo - pas de données', 'warning');
+                return;
+            }
+            try {
+                await loadRegions();
+                await loadDepartements();
+                await loadArrondissements();
+                console.log('✅ Données chargées avec succès');
+            } catch (error) {
+                console.error('❌ Erreur chargement:', error);
+                showNotification('Erreur de chargement des données', 'error');
+            }
+        }
+
+        async function loadRegions() {
+            try {
+                const { data, error } = await supabase.from('regions').select('*');
+                if (error) throw error;
+                if (!data || data.length === 0) return;
+
+                mapLayers.regions = L.layerGroup().addTo(map);
+                
+                data.forEach(region => {
+                    if (region.geom) {
+                        const geometry = parseGeometry(region.geom);
+                        if (!geometry) return;
+
+                        const layer = L.geoJSON(geometry, {
+                            style: { 
+                                fillColor: 'transparent', 
+                                color: '#d62728', 
+                                weight: 3, 
+                                opacity: 1, 
+                                fillOpacity: 0 
+                            }
+                        }).addTo(mapLayers.regions);
+
+                        console.log('Calcul superficie région:', region.nom_region);
+                        const area = calculateAreaFromGeometry(geometry);
+                        const areaText = typeof area === 'number' ? formatArea(area) : area;
+                        console.log('Superficie région calculée:', areaText);
+
+                        layer.bindPopup(`
+                            <div style="font-family: inherit;">
+                                <h4 style="color: #d62728; margin-bottom: 8px;">
+                                    <i class="fas fa-map"></i> ${region.nom_region}
+                                </h4>
+                                <p><strong>Type:</strong> Région</p>
+                                <p><strong>Superficie:</strong> ${areaText}</p>
+                            </div>
+                        `);
+
+                        layer.on('click', function() {
+                            layer.openPopup();
+                        });
+                    }
+                });
+                
+                console.log(`✅ ${data.length} régions chargées avec superficies`);
+            } catch (error) {
+                console.error('Erreur régions:', error);
+                throw error;
+            }
+        }
+
+        async function loadDepartements() {
+            try {
+                const { data, error } = await supabase.from('departements').select('*');
+                if (error) throw error;
+                if (!data || data.length === 0) return;
+
+                mapLayers.departements = L.layerGroup().addTo(map);
+                
+                data.forEach(departement => {
+                    if (departement.geom) {
+                        const geometry = parseGeometry(departement.geom);
+                        if (!geometry) return;
+
+                        const layer = L.geoJSON(geometry, {
+                            style: { 
+                                fillColor: 'transparent', 
+                                color: '#000000', 
+                                weight: 2, 
+                                opacity: 1, 
+                                fillOpacity: 0 
+                            }
+                        }).addTo(mapLayers.departements);
+
+                        console.log('Calcul superficie département:', departement.nom_departement);
+                        const area = calculateAreaFromGeometry(geometry);
+                        const areaText = typeof area === 'number' ? formatArea(area) : area;
+                        console.log('Superficie département calculée:', areaText);
+
+                        layer.bindPopup(`
+                            <div style="font-family: inherit;">
+                                <h4 style="color: #000000; margin-bottom: 8px;">
+                                    <i class="fas fa-map"></i> ${departement.nom_departement}
+                                </h4>
+                                <p><strong>Type:</strong> Département</p>
+                                <p><strong>Superficie:</strong> ${areaText}</p>
+                            </div>
+                        `);
+
+                        layer.on('click', function() {
+                            layer.openPopup();
+                        });
+                    }
+                });
+                
+                console.log(`✅ ${data.length} départements chargés avec superficies`);
+            } catch (error) {
+                console.error('Erreur départements:', error);
+                throw error;
+            }
+        }
+
+        async function loadArrondissements() {
+            try {
+                const { data, error } = await supabase.from('arrondissements').select('*');
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    console.log('⚠️ Aucun arrondissement trouvé dans la base de données');
+                    return;
+                }
+
+                mapLayers.arrondissements = L.layerGroup().addTo(map);
+                
+                data.forEach(arrondissement => {
+                    if (arrondissement.geom) {
+                        const geometry = parseGeometry(arrondissement.geom);
+                        if (!geometry) {
+                            console.warn('Géométrie invalide pour arrondissement:', arrondissement.nom_arrondissement);
+                            return;
+                        }
+
+                        const layer = L.geoJSON(geometry, {
+                            style: { 
+                                fillColor: 'transparent', 
+                                color: '#8B008B', 
+                                weight: 2, 
+                                opacity: 0.8,
+                                fillOpacity: 0, 
+                                dashArray: '8, 8'
+                            }
+                        }).addTo(mapLayers.arrondissements);
+
+                        console.log('Calcul superficie arrondissement:', arrondissement.nom_arrondissement);
+                        const area = calculateAreaFromGeometry(geometry);
+                        const areaText = typeof area === 'number' ? formatArea(area) : area;
+                        console.log('Superficie arrondissement calculée:', areaText);
+
+                        layer.bindPopup(`
+                            <div style="font-family: inherit;">
+                                <h4 style="color: #8B008B; margin-bottom: 8px;">
+                                    <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
+                                </h4>
+                                <p><strong>Type:</strong> Arrondissement</p>
+                                <p><strong>Superficie:</strong> ${areaText}</p>
+                            </div>
+                        `);
+
+                        layer.on('click', function() {
+                            layer.openPopup();
+                        });
                     } else {
-                        hideSearchResults();
+                        console.warn('Pas de géométrie pour arrondissement:', arrondissement.nom_arrondissement);
                     }
-                }, 300);
-            });
-
-            searchBtn.addEventListener('click', function() {
-                const query = searchInput.value.trim();
-                if (query) {
-                    searchVillages(query);
-                }
-            });
-
-            // Toggle sidebar
-            document.getElementById('toggleSidebar').addEventListener('click', function() {
-                toggleSidebarMobile();
-            });
-
-            document.getElementById('closeSidebar').addEventListener('click', function() {
-                closeSidebarMobile();
-            });
-
-            document.getElementById('sidebarOverlay').addEventListener('click', function() {
-                closeSidebarMobile();
-            });
-
-            // Outils de mesure - PRIORITÉ MAXIMALE
-            document.getElementById('measureDistance').addEventListener('click', function() {
-                toggleMeasureTool('distance', this);
-            });
-
-            document.getElementById('measureArea').addEventListener('click', function() {
-                toggleMeasureTool('area', this);
-            });
-
-            // Autres outils
-            document.getElementById('printMap').addEventListener('click', openPrintModal);
-            document.getElementById('zoomHome').addEventListener('click', zoomToHome);
-            document.getElementById('toggleSatellite').addEventListener('click', toggleSatelliteView);
-
-            // Contrôles de couches
-            document.querySelectorAll('.layer-toggle').forEach(toggle => {
-                toggle.addEventListener('click', function() {
-                    const layer = this.dataset.layer;
-                    toggleLayer(layer, this);
                 });
-            });
-
-            // Options d'impression
-            document.querySelectorAll('.format-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.format-option').forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
-            });
-
-            // Fermer les résultats de recherche en cliquant ailleurs
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.search-container')) {
-                    hideSearchResults();
-                }
-            });
-
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const query = this.value.trim();
-                    if (query) {
-                        searchVillages(query);
-                    }
-                }
-            });
+                
+                console.log(`✅ ${data.length} arrondissements chargés avec superficies`);
+            } catch (error) {
+                console.error('Erreur arrondissements:', error);
+                throw error;
+            }
         }
 
-        // Gestion du sidebar responsive
-        function toggleSidebarMobile() {
+        // =================================================================
+        // OUTILS DE MESURE
+        // =================================================================
+
+        function startDistanceMeasurement() {
+            clearActiveMeasurements();
+            
+            const button = document.getElementById('measureDistance');
+            if (isDistanceMeasuring) {
+                stopDistanceMeasurement();
+                return;
+            }
+
+            isDistanceMeasuring = true;
+            button.classList.add('active');
+            
+            showNotification('Cliquez sur deux points pour mesurer la distance', 'info');
+            
+            disableAdministrativeLayers();
+            
+            map.on('click', onDistanceClick);
+            map.getContainer().style.cursor = 'crosshair';
+        }
+
+        function stopDistanceMeasurement() {
+            isDistanceMeasuring = false;
+            document.getElementById('measureDistance').classList.remove('active');
+            map.off('click', onDistanceClick);
+            map.getContainer().style.cursor = '';
+            
+            enableAdministrativeLayers();
+            
+            if (distanceMarkers.length === 1) {
+                map.removeLayer(distanceMarkers[0]);
+                distanceMarkers = [];
+            }
+        }
+
+        function onDistanceClick(e) {
+            if (!isDistanceMeasuring) return;
+
+            L.DomEvent.stopPropagation(e);
+
+            const marker = L.circleMarker(e.latlng, {
+                radius: 6,
+                color: '#ff4757',
+                fillColor: '#ff4757',
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(measurementLayer);
+
+            distanceMarkers.push(marker);
+
+            if (distanceMarkers.length === 2) {
+                const distance = calculateDistance(
+                    distanceMarkers[0].getLatLng(),
+                    distanceMarkers[1].getLatLng()
+                );
+
+                const line = L.polyline([
+                    distanceMarkers[0].getLatLng(),
+                    distanceMarkers[1].getLatLng()
+                ], {
+                    color: '#ff4757',
+                    weight: 3,
+                    dashArray: '8, 12'
+                }).addTo(measurementLayer);
+
+                measurementLines.push(line);
+
+                const midPoint = L.latLngBounds([
+                    distanceMarkers[0].getLatLng(),
+                    distanceMarkers[1].getLatLng()
+                ]).getCenter();
+
+                L.popup({
+                    closeButton: true,
+                    autoClose: false,
+                    className: 'measurement-tooltip'
+                })
+                .setLatLng(midPoint)
+                .setContent(`<strong>Distance: ${formatDistance(distance)}</strong>`)
+                .openOn(map);
+
+                showNotification(`Distance: ${formatDistance(distance)}`, 'success');
+                stopDistanceMeasurement();
+            }
+        }
+
+        function startAreaMeasurement() {
+            clearActiveMeasurements();
+            
+            const button = document.getElementById('measureArea');
+            if (isAreaMeasuring) {
+                stopAreaMeasurement();
+                return;
+            }
+
+            isAreaMeasuring = true;
+            button.classList.add('active');
+            polygonPoints = [];
+            
+            showNotification('Cliquez pour dessiner un polygone. Double-clic pour terminer.', 'info');
+            
+            disableAdministrativeLayers();
+            
+            map.on('click', onPolygonClick);
+            map.on('dblclick', onPolygonFinish);
+            map.on('mousemove', onPolygonMouseMove);
+            map.getContainer().style.cursor = 'crosshair';
+        }
+
+        function stopAreaMeasurement() {
+            isAreaMeasuring = false;
+            document.getElementById('measureArea').classList.remove('active');
+            
+            map.off('click', onPolygonClick);
+            map.off('dblclick', onPolygonFinish);
+            map.off('mousemove', onPolygonMouseMove);
+            map.getContainer().style.cursor = '';
+            
+            enableAdministrativeLayers();
+            
+            if (tempPolygon) {
+                map.removeLayer(tempPolygon);
+                tempPolygon = null;
+            }
+        }
+
+        function onPolygonClick(e) {
+            if (!isAreaMeasuring) return;
+            
+            L.DomEvent.stopPropagation(e);
+            
+            polygonPoints.push(e.latlng);
+            
+            const marker = L.circleMarker(e.latlng, {
+                radius: 5,
+                color: '#4CAF50',
+                fillColor: '#4CAF50',
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(measurementLayer);
+            
+            measurementPolygons.push(marker);
+            
+            if (polygonPoints.length >= 2) {
+                if (tempPolygon) {
+                    map.removeLayer(tempPolygon);
+                }
+                
+                tempPolygon = L.polyline(polygonPoints, {
+                    color: '#4CAF50',
+                    weight: 3,
+                    opacity: 0.7,
+                    dashArray: '5, 10'
+                }).addTo(map);
+            }
+        }
+
+        function onPolygonFinish(e) {
+            if (!isAreaMeasuring || polygonPoints.length < 3) return;
+            
+            L.DomEvent.stopPropagation(e);
+            L.DomEvent.preventDefault(e);
+            
+            if (tempPolygon) {
+                map.removeLayer(tempPolygon);
+                tempPolygon = null;
+            }
+            
+            const finalPolygon = L.polygon(polygonPoints, {
+                color: '#4CAF50',
+                weight: 3,
+                fillColor: '#4CAF50',
+                fillOpacity: 0.2
+            }).addTo(measurementLayer);
+            
+            measurementPolygons.push(finalPolygon);
+            
+            const area = calculatePolygonArea(polygonPoints);
+            const center = finalPolygon.getBounds().getCenter();
+            
+            L.popup({
+                closeButton: true,
+                autoClose: false,
+                className: 'measurement-tooltip'
+            })
+            .setLatLng(center)
+            .setContent(`<strong>Surface: ${formatArea(area)}</strong>`)
+            .openOn(map);
+
+            showNotification(`Surface: ${formatArea(area)}`, 'success');
+            
+            stopAreaMeasurement();
+        }
+
+        function onPolygonMouseMove(e) {
+            if (!isAreaMeasuring || polygonPoints.length === 0) return;
+            
+            if (tempPolygon) {
+                map.removeLayer(tempPolygon);
+            }
+            
+            const tempPoints = [...polygonPoints, e.latlng];
+            tempPolygon = L.polyline(tempPoints, {
+                color: '#4CAF50',
+                weight: 2,
+                opacity: 0.5,
+                dashArray: '5, 10'
+            }).addTo(map);
+        }
+
+        // =================================================================
+        // AUTRES FONCTIONS
+        // =================================================================
+
+        function printMap() {
+            showNotification('Fonctionnalité d\'impression en développement', 'info');
+            
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>MonVillage - Impression</title>
+                    <style>
+                        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                        .header { text-align: center; margin-bottom: 20px; }
+                        .map-print { width: 100%; height: 80vh; border: 1px solid #ccc; background: #f9f9f9; display: flex; align-items: center; justify-content: center; }
+                        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>MonVillage - Cartographie du Cameroun</h1>
+                        <p>Date: ${new Date().toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <div class="map-print">
+                        <p>Capture de carte sera disponible prochainement</p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 MonVillage - monvillage.cm@gmail.com - +237 697 182 925</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            setTimeout(() => printWindow.print(), 500);
+        }
+
+        function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const icon = toggleBtn.querySelector('i');
-            
             if (window.innerWidth <= 768) {
                 if (sidebar.classList.contains('open')) {
-                    closeSidebarMobile();
+                    closeSidebar();
                 } else {
-                    openSidebarMobile();
+                    sidebar.classList.add('open');
+                    overlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
                 }
             } else {
                 sidebar.classList.toggle('collapsed');
-                if (sidebar.classList.contains('collapsed')) {
-                    icon.className = 'fas fa-bars';
-                } else {
-                    icon.className = 'fas fa-times';
-                }
             }
         }
 
-        function openSidebarMobile() {
+        function closeSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const icon = toggleBtn.querySelector('i');
-            
-            sidebar.classList.add('open');
-            sidebar.classList.remove('collapsed');
-            overlay.classList.add('active');
-            icon.className = 'fas fa-times';
-            
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeSidebarMobile() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const icon = toggleBtn.querySelector('i');
-            
             sidebar.classList.remove('open');
             overlay.classList.remove('active');
-            icon.className = 'fas fa-bars';
-            
             document.body.style.overflow = '';
-            
-            setTimeout(() => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.add('collapsed');
-                }
-            }, 300);
-        }
-
-        function handleWindowResize() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const icon = toggleBtn.querySelector('i');
-            
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-                
-                if (sidebar.classList.contains('collapsed')) {
-                    icon.className = 'fas fa-bars';
-                } else {
-                    icon.className = 'fas fa-times';
-                }
-            } else {
-                if (!sidebar.classList.contains('open')) {
-                    sidebar.classList.add('collapsed');
-                    overlay.classList.remove('active');
-                    icon.className = 'fas fa-bars';
-                    document.body.style.overflow = '';
-                }
-            }
-        }
-
-        window.addEventListener('resize', handleWindowResize);
-
-        // Chargement des données initiales
-        async function loadInitialData() {
-            console.log('📄 Début du chargement des données...');
-            
-            if (!supabase) {
-                console.log('🎭 Mode démo - Chargement de données factices');
-                loadDemoData();
-                return;
-            }
-
-            showLoading();
-            try {
-                console.log('📊 Chargement des régions...');
-                await loadRegions();
-                
-                console.log('📊 Chargement des départements...');
-                await loadDepartements();
-                
-                console.log('📊 Chargement des arrondissements...');
-                await loadArrondissements();
-                
-                console.log('📊 Chargement des villages...');
-                await loadVillages();
-                
-                console.log('📊 Chargement des POI...');
-                await loadPOI();
-                
-                console.log('📊 Chargement des géonymes...');
-                await loadGeonames();
-                
-                hideLoading();
-                showNotification('Données chargées avec succès', 'success', 2000);
-                console.log('✅ Toutes les données chargées avec succès');
-                
-            } catch (error) {
-                hideLoading();
-                console.error('❌ Erreur lors du chargement des données:', error);
-                showNotification('Erreur lors du chargement - Basculement en mode démo', 'warning');
-                loadDemoData();
-            }
-        }
-
-        // Fonction utilitaire pour parser les géométries
-        function parseGeometry(geom) {
-            if (!geom) return null;
-            
-            try {
-                if (typeof geom === 'object') {
-                    return geom;
-                }
-                
-                if (typeof geom === 'string') {
-                    return JSON.parse(geom);
-                }
-                
-                return null;
-            } catch (error) {
-                console.error('Erreur parsing géométrie:', error, geom);
-                return null;
-            }
-        }
-
-        // Fonction pour charger les régions avec nouveaux styles
-        async function loadRegions() {
-            if (!supabase) return;
-            
-            try {
-                console.log('🔍 Requête régions...');
-                const { data, error } = await supabase
-                    .from('regions')
-                    .select('*');
-
-                if (error) {
-                    console.error('❌ Erreur régions:', error);
-                    throw error;
-                }
-
-                console.log(`🔍 ${data?.length || 0} régions trouvées:`, data);
-
-                if (!data || data.length === 0) {
-                    console.warn('⚠️ Aucune région trouvée dans la base');
-                    return;
-                }
-
-                if (!mapLayers.regions) {
-                    mapLayers.regions = L.layerGroup().addTo(map);
-                }
-                
-                let loadedCount = 0;
-                data.forEach(region => {
-                    try {
-                        if (region.geom) {
-                            const geometry = parseGeometry(region.geom);
-                            
-                            if (!geometry) {
-                                console.warn(`⚠️ Géométrie invalide pour région ${region.nom_region}`);
-                                return;
-                            }
-
-                            const layer = L.geoJSON(geometry, {
-                                style: {
-                                    fillColor: 'transparent',     // NOUVEAU: Complètement transparent
-                                    color: '#d62728',             // Rouge pour les bordures
-                                    weight: 3,
-                                    opacity: 1,                   // Bordure bien visible
-                                    fillOpacity: 0                // NOUVEAU: Aucun remplissage
-                                }
-                            }).addTo(mapLayers.regions);
-
-                            // Gestion des événements avec priorité pour les outils de mesure
-                            layer.on('click', function(e) {
-                                if (currentTool) {
-                                    // Si un outil de mesure est actif, bloquer la popup et propager l'événement
-                                    e.originalEvent.stopPropagation();
-                                    L.DomEvent.stopPropagation(e);
-                                    return false;
-                                }
-                                
-                                // Sinon, afficher la popup normalement
-                                layer.openPopup();
-                            });
-
-                            layer.bindPopup(`
-                                <div style="font-family: inherit;">
-                                    <h4 style="color: #d62728; margin-bottom: 8px;">
-                                        <i class="fas fa-map"></i> ${region.nom_region}
-                                    </h4>
-                                    <p><strong>Type:</strong> Région</p>
-                                    <p><strong>ID:</strong> ${region.id_region}</p>
-                                </div>
-                            `);
-                            
-                            loadedCount++;
-                        } else {
-                            console.warn(`⚠️ Région ${region.nom_region} sans géométrie`);
-                        }
-                    } catch (geoError) {
-                        console.error(`❌ Erreur géométrie région ${region.nom_region}:`, geoError);
-                    }
-                });
-
-                console.log(`✅ ${loadedCount} régions affichées sur la carte`);
-                
-            } catch (error) {
-                console.error('❌ Erreur lors du chargement des régions:', error);
-                throw error;
-            }
-        }
-
-        // Fonction pour charger les départements avec nouveaux styles
-        async function loadDepartements() {
-            if (!supabase) return;
-            
-            try {
-                console.log('🔍 Requête départements...');
-                const { data, error } = await supabase
-                    .from('departements')
-                    .select('*');
-
-                if (error) {
-                    console.error('❌ Erreur départements:', error);
-                    throw error;
-                }
-
-                console.log(`🔍 ${data?.length || 0} départements trouvés:`, data);
-
-                if (!data || data.length === 0) {
-                    console.warn('⚠️ Aucun département trouvé dans la base');
-                    return;
-                }
-
-                if (!mapLayers.departements) {
-                    mapLayers.departements = L.layerGroup().addTo(map);
-                }
-                
-                let loadedCount = 0;
-                data.forEach(departement => {
-                    try {
-                        if (departement.geom) {
-                            const geometry = parseGeometry(departement.geom);
-                            
-                            if (!geometry) {
-                                console.warn(`⚠️ Géométrie invalide pour département ${departement.nom_departement}`);
-                                return;
-                            }
-
-                            const layer = L.geoJSON(geometry, {
-                                style: {
-                                    fillColor: 'transparent',     // NOUVEAU: Complètement transparent
-                                    color: '#000000',             // NOUVEAU: Noir pour les bordures
-                                    weight: 2,
-                                    opacity: 1,                   // Bordure bien visible
-                                    fillOpacity: 0                // NOUVEAU: Aucun remplissage
-                                }
-                            }).addTo(mapLayers.departements);
-
-                            // Gestion des événements avec priorité pour les outils de mesure
-                            layer.on('click', function(e) {
-                                if (currentTool) {
-                                    e.originalEvent.stopPropagation();
-                                    L.DomEvent.stopPropagation(e);
-                                    return false;
-                                }
-                                
-                                layer.openPopup();
-                            });
-
-                            layer.bindPopup(`
-                                <div style="font-family: inherit;">
-                                    <h4 style="color: #000000; margin-bottom: 8px;">
-                                        <i class="fas fa-map"></i> ${departement.nom_departement}
-                                    </h4>
-                                    <p><strong>Type:</strong> Département</p>
-                                    <p><strong>ID:</strong> ${departement.id_departement}</p>
-                                </div>
-                            `);
-                            
-                            loadedCount++;
-                        } else {
-                            console.warn(`⚠️ Département ${departement.nom_departement} sans géométrie`);
-                        }
-                    } catch (geoError) {
-                        console.error(`❌ Erreur géométrie département ${departement.nom_departement}:`, geoError);
-                    }
-                });
-
-                console.log(`✅ ${loadedCount} départements affichés sur la carte`);
-                
-            } catch (error) {
-                console.error('❌ Erreur lors du chargement des départements:', error);
-                throw error;
-            }
-        }
-
-        // Fonction pour charger les arrondissements avec nouveaux styles
-        async function loadArrondissements() {
-            if (!supabase) return;
-            
-            try {
-                console.log('🔍 Requête arrondissements...');
-                const { data, error } = await supabase
-                    .from('arrondissements')
-                    .select('*');
-
-                if (error) {
-                    console.error('❌ Erreur arrondissements:', error);
-                    throw error;
-                }
-
-                console.log(`🔍 ${data?.length || 0} arrondissements trouvés:`, data);
-
-                if (!data || data.length === 0) {
-                    console.warn('⚠️ Aucun arrondissement trouvé dans la base');
-                    return;
-                }
-
-                if (!mapLayers.arrondissements) {
-                    mapLayers.arrondissements = L.layerGroup().addTo(map);
-                }
-                
-                let loadedCount = 0;
-                data.forEach(arrondissement => {
-                    try {
-                        if (arrondissement.geom) {
-                            const geometry = parseGeometry(arrondissement.geom);
-                            
-                            if (!geometry) {
-                                console.warn(`⚠️ Géométrie invalide pour arrondissement ${arrondissement.nom_arrondissement}`);
-                                return;
-                            }
-
-                            const layer = L.geoJSON(geometry, {
-                                style: {
-                                    fillColor: 'transparent',     // NOUVEAU: Complètement transparent
-                                    color: '#8B008B',             // NOUVEAU: Violet foncé pour les bordures
-                                    weight: 2,
-                                    opacity: 1,                   // Bordure bien visible
-                                    fillOpacity: 0,               // NOUVEAU: Aucun remplissage
-                                    dashArray: '5, 5'             // NOUVEAU: Ligne pointillée/interrompue
-                                }
-                            }).addTo(mapLayers.arrondissements);
-
-                            // Gestion des événements avec priorité pour les outils de mesure
-                            layer.on('click', function(e) {
-                                if (currentTool) {
-                                    e.originalEvent.stopPropagation();
-                                    L.DomEvent.stopPropagation(e);
-                                    return false;
-                                }
-                                
-                                layer.openPopup();
-                            });
-
-                            layer.bindPopup(`
-                                <div style="font-family: inherit;">
-                                    <h4 style="color: #8B008B; margin-bottom: 8px;">
-                                        <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
-                                    </h4>
-                                    <p><strong>Type:</strong> Arrondissement</p>
-                                    <p><strong>ID:</strong> ${arrondissement.id_arrondissement}</p>
-                                </div>
-                            `);
-                            
-                            loadedCount++;
-                        } else {
-                            console.warn(`⚠️ Arrondissement ${arrondissement.nom_arrondissement} sans géométrie`);
-                        }
-                    } catch (geoError) {
-                        console.error(`❌ Erreur géométrie arrondissement ${arrondissement.nom_arrondissement}:`, geoError);
-                    }
-                });
-
-                console.log(`✅ ${loadedCount} arrondissements affichés sur la carte`);
-                
-            } catch (error) {
-                console.error('❌ Erreur lors du chargement des arrondissements:', error);
-                throw error;
-            }
-        }
-
-        // Chargement de données de démonstration
-        function loadDemoData() {
-            const demoVillages = [
-                {
-                    id: 'demo1',
-                    village_name: 'Yaoundé Centre',
-                    chief_name: 'Chef Mvondo',
-                    region_name: 'Centre',
-                    departement_name: 'Mfoundi',
-                    arrondissement_name: 'Yaoundé I',
-                    coordinates: [3.848, 11.502]
-                },
-                {
-                    id: 'demo2',
-                    village_name: 'Douala Akwa',
-                    chief_name: 'Chef Sango',
-                    region_name: 'Littoral',
-                    departement_name: 'Wouri',
-                    arrondissement_name: 'Douala I',
-                    coordinates: [4.048, 9.767]
-                },
-                {
-                    id: 'demo3',
-                    village_name: 'Garoua Central',
-                    chief_name: 'Chef Amadou',
-                    region_name: 'Nord',
-                    departement_name: 'Bénoué',
-                    arrondissement_name: 'Garoua',
-                    coordinates: [4.1485, 9.504]
-                }
-            ];
-
-            mapLayers.villages = L.layerGroup().addTo(map);
-
-            demoVillages.forEach(village => {
-                const marker = L.circleMarker(village.coordinates, {
-                    radius: 8,
-                    fillColor: '#4a7c59',
-                    color: '#2c5530',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                }).addTo(mapLayers.villages);
-
-                // Gestion des événements avec priorité pour les outils de mesure
-                marker.on('click', function(e) {
-                    if (currentTool) {
-                        e.originalEvent.stopPropagation();
-                        L.DomEvent.stopPropagation(e);
-                        return false;
-                    }
-                    
-                    marker.openPopup();
-                });
-
-                const popupContent = `
-                    <div class="custom-popup">
-                        <div class="popup-header">${village.village_name}</div>
-                        <div class="popup-content">
-                            <div class="popup-field">
-                                <span class="popup-label">Région:</span> ${village.region_name}
-                            </div>
-                            <div class="popup-field">
-                                <span class="popup-label">Département:</span> ${village.departement_name}
-                            </div>
-                            <div class="popup-field">
-                                <span class="popup-label">Arrondissement:</span> ${village.arrondissement_name}
-                            </div>
-                            <div class="popup-field">
-                                <span class="popup-label">Chef de village:</span> ${village.chief_name}
-                            </div>
-                            <div style="margin-top: 10px; padding: 10px; background: #f0f8ff; border-radius: 5px; font-size: 12px;">
-                                💡 <strong>Mode démo</strong><br>
-                                Configurez Supabase pour voir vos vraies données
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                marker.bindPopup(popupContent);
-            });
-
-            mapLayers.poi = L.layerGroup().addTo(map);
-            
-            const demoPOI = [
-                { name: 'Chefferie de Yaoundé', type: 'chefferie', coordinates: [3.850, 11.504] },
-                { name: 'École Publique', type: 'school', coordinates: [4.050, 9.769] },
-                { name: 'Centre de Santé', type: 'health_center', coordinates: [4.150, 9.506] }
-            ];
-
-            demoPOI.forEach(poi => {
-                const icon = getPOIIcon(poi.type);
-                const marker = L.marker(poi.coordinates, { icon }).addTo(mapLayers.poi);
-                
-                // Gestion des événements avec priorité pour les outils de mesure
-                marker.on('click', function(e) {
-                    if (currentTool) {
-                        e.originalEvent.stopPropagation();
-                        L.DomEvent.stopPropagation(e);
-                        return false;
-                    }
-                    
-                    marker.openPopup();
-                });
-                
-                marker.bindPopup(`<b>${poi.name}</b><br>Type: ${poi.type}<br><small>Données de démonstration</small>`);
-            });
-
-            console.log('🔍 Données de démonstration chargées (3 villages, 3 POI)');
-            showNotification('Mode démonstration activé - Villages exemple', 'info', 2000);
-        }
-
-        // Fonctions de chargement de données réelles
-        async function loadVillages() {
-            if (!supabase) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('villages_complete')
-                    .select('*')
-                    .eq('is_active', true);
-
-                if (error) throw error;
-
-                mapLayers.villages = L.layerGroup().addTo(map);
-                
-                data.forEach(village => {
-                    const geometry = JSON.parse(village.geom);
-                    const layer = L.geoJSON(geometry, {
-                        style: {
-                            fillColor: '#4a7c59',
-                            color: '#2c5530',
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.6
-                        }
-                    }).addTo(mapLayers.villages);
-
-                    // Gestion des événements avec priorité pour les outils de mesure
-                    layer.on('click', function(e) {
-                        if (currentTool) {
-                            e.originalEvent.stopPropagation();
-                            L.DomEvent.stopPropagation(e);
-                            return false;
-                        }
-                        
-                        layer.openPopup();
-                    });
-
-                    const popupContent = createVillagePopup(village);
-                    layer.bindPopup(popupContent);
-                });
-
-                console.log(`✅ ${data.length} villages chargés`);
-            } catch (error) {
-                console.error('Erreur lors du chargement des villages:', error);
-                throw error;
-            }
-        }
-
-        async function loadPOI() {
-            if (!supabase) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('poi_with_location')
-                    .select('*')
-                    .eq('is_active', true);
-
-                if (error) throw error;
-
-                mapLayers.poi = L.layerGroup().addTo(map);
-                
-                data.forEach(poi => {
-                    if (poi.geom) {
-                        const geometry = JSON.parse(poi.geom);
-                        const coordinates = geometry.coordinates;
-                        const icon = getPOIIcon(poi.type);
-                        
-                        const marker = L.marker([coordinates[1], coordinates[0]], { icon })
-                            .addTo(mapLayers.poi);
-
-                        // Gestion des événements avec priorité pour les outils de mesure
-                        marker.on('click', function(e) {
-                            if (currentTool) {
-                                e.originalEvent.stopPropagation();
-                                L.DomEvent.stopPropagation(e);
-                                return false;
-                            }
-                            
-                            marker.openPopup();
-                        });
-
-                        const popupContent = `
-                            <div class="custom-popup">
-                                <div class="popup-header">${poi.name}</div>
-                                <div class="popup-content">
-                                    <div class="popup-field">
-                                        <span class="popup-label">Type:</span> ${poi.type}
-                                    </div>
-                                    ${poi.village_name ? `<div class="popup-field">
-                                        <span class="popup-label">Village:</span> ${poi.village_name}
-                                    </div>` : ''}
-                                    ${poi.description ? `<div class="popup-field">
-                                        <span class="popup-label">Description:</span> ${poi.description}
-                                    </div>` : ''}
-                                </div>
-                            </div>
-                        `;
-
-                        marker.bindPopup(popupContent);
-                    }
-                });
-
-                console.log(`✅ ${data.length} POI chargés`);
-            } catch (error) {
-                console.error('Erreur lors du chargement des POI:', error);
-                throw error;
-            }
-        }
-
-        async function loadGeonames() {
-            if (!supabase) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('geonames')
-                    .select('*')
-                    .eq('is_active', true);
-
-                if (error) throw error;
-
-                mapLayers.geonames = L.layerGroup().addTo(map);
-                
-                data.forEach(geoname => {
-                    if (geoname.geom) {
-                        const geometry = JSON.parse(geoname.geom);
-                        const coordinates = geometry.coordinates;
-                        
-                        const marker = L.circleMarker([coordinates[1], coordinates[0]], {
-                            radius: 5,
-                            fillColor: '#6c757d',
-                            color: '#495057',
-                            weight: 1,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        }).addTo(mapLayers.geonames);
-
-                        // Gestion des événements avec priorité pour les outils de mesure
-                        marker.on('click', function(e) {
-                            if (currentTool) {
-                                e.originalEvent.stopPropagation();
-                                L.DomEvent.stopPropagation(e);
-                                return false;
-                            }
-                            
-                            marker.openPopup();
-                        });
-
-                        marker.bindPopup(`<b>${geoname.nom}</b><br>Type: ${geoname.type}`);
-                    }
-                });
-
-                console.log(`✅ ${data.length} géonymes chargés`);
-            } catch (error) {
-                console.error('Erreur lors du chargement des géonymes:', error);
-                throw error;
-            }
-        }
-
-        // Fonctions utilitaires
-        function createVillagePopup(village) {
-            return `
-                <div class="custom-popup">
-                    <div class="popup-header">${village.village_name}</div>
-                    <div class="popup-content">
-                        <div class="popup-field">
-                            <span class="popup-label">Région:</span> ${village.region_name}
-                        </div>
-                        <div class="popup-field">
-                            <span class="popup-label">Département:</span> ${village.departement_name}
-                        </div>
-                        <div class="popup-field">
-                            <span class="popup-label">Arrondissement:</span> ${village.arrondissement_name}
-                        </div>
-                        ${village.chief_name ? `<div class="popup-field">
-                            <span class="popup-label">Chef de village:</span> ${village.chief_name}
-                        </div>` : ''}
-                        ${village.area_hectares ? `<div class="popup-field">
-                            <span class="popup-label">Superficie:</span> ${parseFloat(village.area_hectares).toFixed(2)} ha
-                        </div>` : ''}
-                        ${village.population ? `<div class="popup-field">
-                            <span class="popup-label">Population:</span> ${village.population.toLocaleString()}
-                        </div>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        function getPOIIcon(type) {
-            const icons = {
-                chefferie: { icon: 'fa-crown', color: '#FFD700' },
-                school: { icon: 'fa-school', color: '#4CAF50' },
-                health_center: { icon: 'fa-hospital', color: '#F44336' },
-                market: { icon: 'fa-shopping-cart', color: '#FF9800' },
-                church: { icon: 'fa-church', color: '#9C27B0' },
-                mosque: { icon: 'fa-mosque', color: '#607D8B' },
-                water_point: { icon: 'fa-droplet', color: '#2196F3' },
-                bridge: { icon: 'fa-bridge', color: '#795548' }
-            };
-
-            const iconConfig = icons[type] || { icon: 'fa-map-marker', color: '#666' };
-
-            return L.divIcon({
-                html: `<i class="fas ${iconConfig.icon}" style="color: ${iconConfig.color};"></i>`,
-                iconSize: [20, 20],
-                className: 'poi-icon'
-            });
-        }
-
-        // Fonctions de recherche
-        async function searchVillages(query) {
-            const searchResults = document.getElementById('searchResults');
-            
-            if (!query || query.length < 2) {
-                hideSearchResults();
-                return;
-            }
-
-            try {
-                let results = [];
-
-                if (supabase) {
-                    const { data, error } = await supabase
-                        .rpc('search_villages', { 
-                            search_term: query,
-                            limit_count: 10 
-                        });
-
-                    if (error) throw error;
-                    results = data;
-                } else {
-                    const demoVillages = [
-                        { village_name: 'Yaoundé Centre', chief_name: 'Chef Mvondo', region_name: 'Centre' },
-                        { village_name: 'Douala Akwa', chief_name: 'Chef Sango', region_name: 'Littoral' },
-                        { village_name: 'Garoua Central', chief_name: 'Chef Amadou', region_name: 'Nord' }
-                    ];
-
-                    results = demoVillages.filter(village => 
-                        village.village_name.toLowerCase().includes(query.toLowerCase()) ||
-                        village.chief_name.toLowerCase().includes(query.toLowerCase())
-                    );
-                }
-
-                displaySearchResults(results);
-
-            } catch (error) {
-                console.error('Erreur lors de la recherche:', error);
-                showNotification('Erreur lors de la recherche', 'error');
-            }
-        }
-
-        function displaySearchResults(results) {
-            const searchResults = document.getElementById('searchResults');
-            
-            if (results.length === 0) {
-                searchResults.innerHTML = '<div class="search-result-item">Aucun résultat trouvé</div>';
-            } else {
-                searchResults.innerHTML = results.map(result => `
-                    <div class="search-result-item" onclick="selectSearchResult('${result.id || 'demo'}', ${result.coordinates ? result.coordinates[0] : 4.1485}, ${result.coordinates ? result.coordinates[1] : 9.504})">
-                        <strong>${result.village_name}</strong><br>
-                        <small>${result.region_name} - ${result.departement_name || ''} - ${result.arrondissement_name || ''}</small>
-                        ${result.chief_name ? `<br><small>Chef: ${result.chief_name}</small>` : ''}
-                    </div>
-                `).join('');
-            }
-            
-            searchResults.style.display = 'block';
-        }
-
-        function hideSearchResults() {
-            document.getElementById('searchResults').style.display = 'none';
-        }
-
-        function selectSearchResult(villageId, lat, lng) {
-            map.setView([lat, lng], 15);
-            hideSearchResults();
-            document.getElementById('searchInput').value = '';
-            
-            if (window.innerWidth <= 768) {
-                closeSidebarMobile();
-            }
-        }
-
-        // ===== SYSTÈME DE MESURE AVEC PRIORITÉ ABSOLUE =====
-        function toggleMeasureTool(tool, button) {
-            console.log(`🔧 Activation de l'outil: ${tool}`);
-            
-            // Nettoyer l'état précédent
-            cleanupMeasureTools();
-
-            // Désactiver tous les boutons
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-
-            if (currentTool === tool) {
-                // Si l'outil était déjà actif, le désactiver
-                currentTool = null;
-                showNotification('Outil de mesure désactivé', 'info');
-                return;
-            }
-
-            // Activer le nouvel outil
-            currentTool = tool;
-            button.classList.add('active');
-
-            // Désactiver temporairement TOUTES les interactions avec les couches existantes
-            disableLayerInteractions();
-
-            if (tool === 'distance') {
-                activateDistanceMeasure();
-            } else if (tool === 'area') {
-                activateAreaMeasure();
-            }
-        }
-
-        function cleanupMeasureTools() {
-            // Supprimer tous les event listeners de mesure
-            if (measureEventHandlers.click) {
-                map.off('click', measureEventHandlers.click);
-                measureEventHandlers.click = null;
-            }
-            
-            if (measureEventHandlers.dblclick) {
-                map.off('dblclick', measureEventHandlers.dblclick);
-                measureEventHandlers.dblclick = null;
-            }
-            
-            // Nettoyer les couches de mesure
-            drawnItems.clearLayers();
-            clearVertexMarkers();
-            
-            // Réinitialiser l'état de dessin
-            resetDrawingState();
-            
-            // Réactiver les interactions avec les couches
-            enableLayerInteractions();
-        }
-
-        function disableLayerInteractions() {
-            // Temporairement désactiver les popups de toutes les couches
-            Object.values(mapLayers).forEach(layerGroup => {
-                if (layerGroup) {
-                    layerGroup.eachLayer(layer => {
-                        if (layer.closePopup) {
-                            layer.closePopup();
-                        }
-                        // Marquer la couche comme ayant les interactions désactivées
-                        layer._measureToolDisabled = true;
-                    });
-                }
-            });
-        }
-
-        function enableLayerInteractions() {
-            // Réactiver les interactions avec toutes les couches
-            Object.values(mapLayers).forEach(layerGroup => {
-                if (layerGroup) {
-                    layerGroup.eachLayer(layer => {
-                        // Retirer la marque de désactivation
-                        layer._measureToolDisabled = false;
-                    });
-                }
-            });
-        }
-
-        function resetDrawingState() {
-            isDrawing = false;
-            currentDrawing = null;
-            drawingPoints = [];
-            clearVertexMarkers();
-        }
-
-        function clearVertexMarkers() {
-            vertexMarkers.forEach(marker => {
-                drawnItems.removeLayer(marker);
-            });
-            vertexMarkers = [];
-        }
-
-        function createVertexMarker(latlng, isStart = false) {
-            const marker = L.circleMarker(latlng, {
-                radius: isStart ? 8 : 6,
-                fillColor: isStart ? '#ff6b6b' : '#4a7c59',
-                color: '#ffffff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.9
-            });
-            
-            if (isStart) {
-                marker.bindTooltip('Point de départ', {
-                    permanent: false,
-                    direction: 'top',
-                    offset: [0, -10]
-                });
-            } else {
-                marker.bindTooltip(`Point ${drawingPoints.length}`, {
-                    permanent: false,
-                    direction: 'top',
-                    offset: [0, -10]
-                });
-            }
-            
-            drawnItems.addLayer(marker);
-            vertexMarkers.push(marker);
-            return marker;
-        }
-
-        // FONCTIONS POUR MESURE DE DISTANCE
-        function activateDistanceMeasure() {
-            resetDrawingState();
-            showNotification('Mode mesure de distance - Cliquez pour commencer, double-cliquez pour terminer', 'info');
-            
-            // Créer des gestionnaires d'événements avec priorité maximale
-            measureEventHandlers.click = function(e) {
-                e.originalEvent.stopPropagation();
-                L.DomEvent.stopPropagation(e);
-                
-                if (!isDrawing) {
-                    startNewDistance(e.latlng);
-                } else {
-                    addPointToDistance(e.latlng);
-                }
-                
-                return false;
-            };
-            
-            measureEventHandlers.dblclick = function(e) {
-                e.originalEvent.stopPropagation();
-                L.DomEvent.stopPropagation(e);
-                
-                if (isDrawing && drawingPoints.length > 1) {
-                    finishDistance();
-                }
-                
-                return false;
-            };
-            
-            // Ajouter les gestionnaires avec priorité maximale
-            map.on('click', measureEventHandlers.click);
-            map.on('dblclick', measureEventHandlers.dblclick);
-        }
-
-        function startNewDistance(latlng) {
-            isDrawing = true;
-            drawingPoints = [latlng];
-            
-            createVertexMarker(latlng, true);
-            
-            currentDrawing = L.polyline(drawingPoints, {
-                color: '#4a7c59',
-                weight: 4,
-                opacity: 0.8,
-                dashArray: '10, 5'
-            });
-            drawnItems.addLayer(currentDrawing);
-            
-            showNotification('Cliquez pour ajouter des points, double-cliquez pour terminer', 'info');
-        }
-
-        function addPointToDistance(latlng) {
-            drawingPoints.push(latlng);
-            createVertexMarker(latlng);
-            currentDrawing.setLatLngs(drawingPoints);
-            
-            const distance = calculateSimpleDistance(drawingPoints);
-            currentDrawing.bindTooltip(`Distance: ${distance}`, {
-                sticky: true,
-                direction: 'top'
-            }).openTooltip();
-        }
-
-        function finishDistance() {
-            if (drawingPoints.length < 2) return;
-            
-            isDrawing = false;
-            const distance = calculateSimpleDistance(drawingPoints);
-            
-            const popupContent = `
-                <div style="text-align: center; font-family: inherit;">
-                    <div style="color: #4a7c59; font-weight: bold; margin-bottom: 8px;">
-                        <i class="fas fa-ruler" style="margin-right: 5px;"></i>
-                        Distance mesurée
-                    </div>
-                    <div style="font-size: 18px; font-weight: bold; color: #2c5530;">
-                        ${distance}
-                    </div>
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                        ${drawingPoints.length} points • Cliquez pour fermer
-                    </div>
-                </div>
-            `;
-            
-            currentDrawing.setStyle({
-                dashArray: null,
-                weight: 3,
-                opacity: 1
-            });
-            
-            currentDrawing.bindPopup(popupContent).openPopup();
-            showNotification(`Mesure terminée: ${distance}`, 'success');
-            
-            setTimeout(() => {
-                resetDrawingState();
-            }, 100);
-        }
-
-        // FONCTIONS POUR MESURE DE SURFACE
-        function activateAreaMeasure() {
-            resetDrawingState();
-            showNotification('Mode mesure de surface - Cliquez pour dessiner, double-cliquez pour fermer', 'info');
-            
-            measureEventHandlers.click = function(e) {
-                e.originalEvent.stopPropagation();
-                L.DomEvent.stopPropagation(e);
-                
-                if (!isDrawing) {
-                    startNewArea(e.latlng);
-                } else {
-                    addPointToArea(e.latlng);
-                }
-                
-                return false;
-            };
-            
-            measureEventHandlers.dblclick = function(e) {
-                e.originalEvent.stopPropagation();
-                L.DomEvent.stopPropagation(e);
-                
-                if (isDrawing && drawingPoints.length > 2) {
-                    finishArea();
-                }
-                
-                return false;
-            };
-            
-            map.on('click', measureEventHandlers.click);
-            map.on('dblclick', measureEventHandlers.dblclick);
-        }
-
-        function startNewArea(latlng) {
-            isDrawing = true;
-            drawingPoints = [latlng];
-            
-            createVertexMarker(latlng, true);
-            
-            currentDrawing = L.polygon(drawingPoints, {
-                color: '#4a7c59',
-                fillColor: '#4a7c59',
-                fillOpacity: 0.2,
-                weight: 3,
-                opacity: 0.8,
-                dashArray: '10, 5'
-            });
-            drawnItems.addLayer(currentDrawing);
-            
-            showNotification('Continuez à cliquer pour dessiner, double-cliquez pour fermer', 'info');
-        }
-
-        function addPointToArea(latlng) {
-            drawingPoints.push(latlng);
-            createVertexMarker(latlng);
-            currentDrawing.setLatLngs(drawingPoints);
-            
-            if (drawingPoints.length > 2) {
-                const area = calculateSimpleArea(drawingPoints);
-                currentDrawing.bindTooltip(`Surface: ${area}`, {
-                    sticky: true,
-                    direction: 'center'
-                }).openTooltip();
-            }
-        }
-
-        function finishArea() {
-            if (drawingPoints.length < 3) {
-                showNotification('Il faut au moins 3 points pour mesurer une surface', 'warning');
-                return;
-            }
-            
-            isDrawing = false;
-            
-            if (drawingPoints.length > 2) {
-                drawingPoints.push(drawingPoints[0]);
-                currentDrawing.setLatLngs(drawingPoints);
-            }
-            
-            const area = calculateSimpleArea(drawingPoints);
-            
-            const popupContent = `
-                <div style="text-align: center; font-family: inherit;">
-                    <div style="color: #4a7c59; font-weight: bold; margin-bottom: 8px;">
-                        <i class="fas fa-draw-polygon" style="margin-right: 5px;"></i>
-                        Surface mesurée
-                    </div>
-                    <div style="font-size: 18px; font-weight: bold; color: #2c5530;">
-                        ${area}
-                    </div>
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                        ${drawingPoints.length - 1} points • Cliquez pour fermer
-                    </div>
-                </div>
-            `;
-            
-            currentDrawing.setStyle({
-                dashArray: null,
-                fillOpacity: 0.3,
-                weight: 2
-            });
-            
-            currentDrawing.bindPopup(popupContent).openPopup();
-            showNotification(`Mesure terminée: ${area}`, 'success');
-            
-            setTimeout(() => {
-                resetDrawingState();
-            }, 100);
-        }
-
-        function calculateSimpleDistance(points) {
-            let distance = 0;
-            
-            for (let i = 0; i < points.length - 1; i++) {
-                distance += points[i].distanceTo(points[i + 1]);
-            }
-            
-            if (distance < 1000) {
-                return `${Math.round(distance)} m`;
-            } else if (distance < 100000) {
-                return `${(distance / 1000).toFixed(2)} km`;
-            } else {
-                return `${(distance / 1000).toFixed(1)} km`;
-            }
-        }
-
-        function calculateSimpleArea(points) {
-            if (points.length < 3) return '0 m²';
-            
-            let area = 0;
-            const n = points.length;
-            
-            const centerLat = points.reduce((sum, p) => sum + p.lat, 0) / n;
-            const centerLng = points.reduce((sum, p) => sum + p.lng, 0) / n;
-            
-            const latToMeters = 111320;
-            const lngToMeters = 111320 * Math.cos(centerLat * Math.PI / 180);
-            
-            const projectedPoints = points.map(p => ({
-                x: (p.lng - centerLng) * lngToMeters,
-                y: (p.lat - centerLat) * latToMeters
-            }));
-            
-            for (let i = 0; i < n; i++) {
-                const j = (i + 1) % n;
-                area += projectedPoints[i].x * projectedPoints[j].y;
-                area -= projectedPoints[j].x * projectedPoints[i].y;
-            }
-            
-            area = Math.abs(area) / 2;
-            
-            if (area < 10000) {
-                return `${Math.round(area)} m²`;
-            } else if (area < 1000000) {
-                return `${(area / 10000).toFixed(2)} ha`;
-            } else {
-                return `${(area / 1000000).toFixed(2)} km²`;
-            }
-        }
-
-        // Fonctions de contrôle des couches
-        function toggleLayer(layerName, toggle) {
-            toggle.classList.toggle('active');
-            
-            if (mapLayers[layerName]) {
-                if (map.hasLayer(mapLayers[layerName])) {
-                    map.removeLayer(mapLayers[layerName]);
-                } else {
-                    map.addLayer(mapLayers[layerName]);
-                }
-            }
-        }
-
-        // Fonctions de navigation
-        function zoomToHome() {
-            map.setView(CONFIG.map.center, CONFIG.map.zoom);
-            
-            // Nettoyer complètement les outils de mesure
-            cleanupMeasureTools();
-            
-            currentTool = null;
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-            
-            showNotification('Vue d\'ensemble restaurée - Toutes les mesures effacées', 'info');
         }
 
         function toggleSatelliteView() {
             const button = document.getElementById('toggleSatellite');
-            
             if (currentBaseLayer === 'standard') {
                 map.removeLayer(baseLayers.standard);
                 map.addLayer(baseLayers.satellite);
@@ -2585,181 +946,132 @@
             }
         }
 
-        // Fonctions utilitaires
-        function showLoading() {
-            document.getElementById('loading').style.display = 'block';
-        }
+        // =================================================================
+        // GESTION DES ÉVÉNEMENTS
+        // =================================================================
 
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
-
-        function showNotification(message, type = 'info', duration = 4000) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
+        function initializeEventListeners() {
+            console.log('🎯 Initialisation des événements');
             
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, duration);
-        }
-
-        // Vérification de la séquence admin (Ctrl+Shift+A)
-        function checkAdminKeySequence() {
-            let keys = [];
+            document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
+            document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
+            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+            document.getElementById('zoomHome').addEventListener('click', () => map.setView(CONFIG.map.center, CONFIG.map.zoom));
+            document.getElementById('toggleSatellite').addEventListener('click', toggleSatelliteView);
             
+            document.getElementById('measureDistance').addEventListener('click', startDistanceMeasurement);
+            document.getElementById('measureArea').addEventListener('click', startAreaMeasurement);
+            document.getElementById('clearMeasurements').addEventListener('click', clearAllMeasurements);
+            document.getElementById('printMap').addEventListener('click', printMap);
+
+            document.querySelectorAll('.layer-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const layer = this.dataset.layer;
+                    if (mapLayers[layer]) {
+                        if (map.hasLayer(mapLayers[layer])) {
+                            map.removeLayer(mapLayers[layer]);
+                        } else {
+                            map.addLayer(mapLayers[layer]);
+                        }
+                    }
+                });
+            });
+
             document.addEventListener('keydown', function(e) {
-                keys.push(e.key);
-                
-                if (keys.length > 3) {
-                    keys.shift();
-                }
-                
-                if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                if (e.ctrlKey && e.key === 'd') {
                     e.preventDefault();
-                    checkAdminAccess();
+                    startDistanceMeasurement();
+                } else if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    startAreaMeasurement();
+                } else if (e.key === 'Escape') {
+                    clearActiveMeasurements();
                 }
             });
-        }
-
-        // Fonctions modales
-        function openPrintModal() {
-            document.getElementById('printModal').style.display = 'block';
-        }
-
-        function closePrintModal() {
-            document.getElementById('printModal').style.display = 'none';
-        }
-
-        function processPrint() {
-            const title = document.getElementById('printTitle').value;
-            const format = document.querySelector('.format-option.selected')?.dataset.format || 'A1';
-            const exportType = document.getElementById('exportType').value;
             
-            showNotification(`Impression ${format} (${exportType}) - Fonction à implémenter`, 'info');
-            closePrintModal();
+            console.log('✅ Événements initialisés');
         }
 
-        function checkAdminAccess() {
-            document.getElementById('adminModal').style.display = 'block';
-        }
+        // =================================================================
+        // ADMINISTRATION
+        // =================================================================
 
-        function closeAdminModal() {
-            document.getElementById('adminModal').style.display = 'none';
-        }
+        window.checkAdminAccess = function() {
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+                    <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">
+                        <h3 style="margin-bottom: 20px; color: #2c5530;">Accès Administrateur</h3>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
+                            <input type="email" id="adminEmail" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" placeholder="admin@monvillage.cm">
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Mot de passe:</label>
+                            <input type="password" id="adminPassword" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <div style="text-align: center;">
+                            <button onclick="processAdminLogin()" style="background: #4a7c59; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-right: 10px; cursor: pointer;">Se connecter</button>
+                            <button onclick="closeAdminModal()" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.id = 'adminModal';
+            document.body.appendChild(modal);
+        };
 
-        async function loginAdmin() {
+        window.processAdminLogin = function() {
             const email = document.getElementById('adminEmail').value;
             const password = document.getElementById('adminPassword').value;
             
-            if (!email || !password) {
-                showNotification('Veuillez saisir votre email et mot de passe', 'warning');
-                return;
+            if (email && password) {
+                showNotification('Connexion admin simulée réussie', 'success');
+                enableAdminFeatures({ name: 'Admin Demo', role: 'admin' });
+                closeAdminModal();
+            } else {
+                showNotification('Veuillez saisir email et mot de passe', 'warning');
             }
-            
-            if (!supabase) {
-                showNotification('Mode démo - Authentification non disponible', 'warning');
-                return;
-            }
-
-            try {
-                showLoading();
-                
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                const { data: profile, error: profileError } = await supabase
-                    .from('admin_profiles')
-                    .select('*')
-                    .eq('id', data.user.id)
-                    .eq('is_active', true)
-                    .single();
-
-                if (profileError || !profile) {
-                    await supabase.auth.signOut();
-                    throw new Error('Accès administrateur non autorisé');
-                }
-
-                currentUser = data.user;
-                isAdmin = true;
-                
-                if (profile.two_factor_enabled) {
-                    document.getElementById('loginForm').style.display = 'none';
-                    document.getElementById('twoFactorForm').style.display = 'block';
-                } else {
-                    hideLoading();
-                    closeAdminModal();
-                    showNotification('Connexion administrateur réussie', 'success');
-                    enableAdminFeatures();
-                }
-                
-            } catch (error) {
-                hideLoading();
-                console.error('Erreur de connexion:', error);
-                showNotification(error.message || 'Erreur de connexion', 'error');
-            }
-        }
-
-        async function verifyTwoFactor() {
-            const code = document.getElementById('twoFactorCode').value;
-            
-            if (!code || code.length !== 6) {
-                showNotification('Veuillez saisir un code à 6 chiffres', 'warning');
-                return;
-            }
-            
-            showNotification('Vérification 2FA à implémenter', 'info');
-            
-            hideLoading();
-            closeAdminModal();
-            showNotification('Connexion administrateur réussie avec 2FA', 'success');
-            enableAdminFeatures();
-        }
-
-        function enableAdminFeatures() {
-            console.log('Fonctionnalités admin activées');
-            
-            const toolbar = document.querySelector('.toolbar');
-            const adminButton = document.createElement('button');
-            adminButton.className = 'tool-btn';
-            adminButton.title = 'Panneau Admin';
-            adminButton.innerHTML = '<i class="fas fa-cog"></i>';
-            adminButton.onclick = function() {
-                showNotification('Panneau admin à implémenter', 'info');
-            };
-            toolbar.appendChild(adminButton);
-        }
-
-        // Gestionnaire global pour fermer les modales
-        window.onclick = function(event) {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
         };
 
-        // Fonctions globales exposées pour les événements onclick dans le HTML
-        window.checkAdminAccess = checkAdminAccess;
-        window.closeAdminModal = closeAdminModal;
-        window.loginAdmin = loginAdmin;
-        window.verifyTwoFactor = verifyTwoFactor;
-        window.openPrintModal = openPrintModal;
-        window.closePrintModal = closePrintModal;
-        window.processPrint = processPrint;
-        window.selectSearchResult = selectSearchResult;
+        window.closeAdminModal = function() {
+            const modal = document.getElementById('adminModal');
+            if (modal) modal.remove();
+        };
 
-        console.log('✅ Application MonVillage initialisée avec succès');
-        
-        // Message de bienvenue après initialisation
-        setTimeout(() => {
-            showNotification('Bienvenue dans MonVillage - Cartographie des Villages du Cameroun', 'success', 1000);
-        }, 1000);
+        function enableAdminFeatures(profile) {
+            const adminAccess = document.querySelector('.admin-access');
+            adminAccess.innerHTML = `<i class="fas fa-user-shield"></i><span>${profile.name}</span>`;
+            
+            showNotification(`Bienvenue ${profile.name}. Mode admin activé.`, 'success');
+        }
+
+        // =================================================================
+        // INITIALISATION PRINCIPALE
+        // =================================================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 Initialisation du DOM');
+            initializeSupabase();
+            initializeMap();
+            initializeNativeMeasurementTools();
+            initializeEventListeners();
+            loadInitialData();
+        });
+
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        console.log('✅ MonVillage initialisé - Version Finale');
+        console.log('🎮 Raccourcis: Ctrl+D (distance), Ctrl+S (surface), Escape (annuler)');
     </script>
 </body>
 </html>
