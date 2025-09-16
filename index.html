@@ -632,18 +632,29 @@
 
                         layer.bindPopup(`
                             <div style="font-family: inherit;">
+                    console.log('Tentative de connexion:', { email, password });
+                    console.log('Identifiants attendus:', CONFIG.adminCredentials);
+                    
                                 <h4 style="color: #8B008B; margin-bottom: 8px;">
                                     <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
                                 </h4>
                                 <p><strong>Type:</strong> Arrondissement</p>
                                 <p><strong>Superficie:</strong> ${areaText}</p>
-                            </div>
+                    // Vérification insensible à la casse et aux espaces
+                    const emailMatch = email.toLowerCase() === CONFIG.adminCredentials.email.toLowerCase();
+                    const passwordMatch = password === CONFIG.adminCredentials.password;
+                    
+                    console.log('Vérifications:', { emailMatch, passwordMatch });
+                    
+                    if (emailMatch && passwordMatch) {
                         `);
 
                         layer.on('click', function() {
                             layer.openPopup();
+                        console.log('Connexion admin réussie');
                         });
                     } else {
+                        console.log('Échec de connexion - identifiants incorrects');
                         console.warn('Pas de géométrie pour arrondissement:', arrondissement.nom_arrondissement);
                     }
                 });
