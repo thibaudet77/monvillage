@@ -483,14 +483,102 @@
                 return;
             }
             try {
+                // Vérifier la configuration Supabase
+                if (!CONFIG.supabase.url || !CONFIG.supabase.anonKey) {
+                    console.warn('⚠️ Configuration Supabase manquante, utilisation des données de démonstration');
+                    loadDemoData();
+                    return;
+                }
+
+                // Vérifier la connectivité Supabase
+                const healthCheck = await fetch(`${CONFIG.supabase.url}/rest/v1/`, {
+                    method: 'HEAD',
+                    headers: {
+                        'apikey': CONFIG.supabase.anonKey,
+                        'Authorization': `Bearer ${CONFIG.supabase.anonKey}`
+                    }
+                }).catch(() => null);
+
+                if (!healthCheck || !healthCheck.ok) {
+                    console.warn('⚠️ Impossible de se connecter à Supabase, utilisation des données de démonstration');
+                    loadDemoData();
+                    return;
+                }
+
                 await loadRegions();
                 await loadDepartements();
                 await loadArrondissements();
                 console.log('✅ Données chargées avec succès');
             } catch (error) {
                 console.error('❌ Erreur chargement:', error);
-                showNotification('Erreur de chargement des données', 'error');
+                console.warn('🔄 Basculement vers les données de démonstration...');
+                loadDemoData();
             }
+        }
+
+        // Fonction de fallback avec données de démonstration
+        function loadDemoData() {
+            console.log('📋 Chargement des données de démonstration...');
+            
+            // Données de démonstration pour les villages
+            const demoVillages = [
+                {
+                    id: 'demo-1',
+                    village_name: 'Yaoundé',
+                    chief_name: 'Chef Démonstration',
+                    population: 50000,
+                    centroid: { coordinates: [11.5174, 3.8480] },
+                    arrondissement_name: 'Yaoundé I',
+                    departement_name: 'Mfoundi',
+                    region_name: 'Centre'
+                },
+                {
+                    id: 'demo-2',
+                    village_name: 'Douala',
+                    chief_name: 'Chef Exemple',
+                    population: 80000,
+                    centroid: { coordinates: [9.7043, 4.0511] },
+                    arrondissement_name: 'Douala I',
+                    departement_name: 'Wouri',
+                    region_name: 'Littoral'
+                }
+            ];
+
+            // Ajouter les marqueurs de démonstration
+            demoVillages.forEach(village => {
+                const [lng, lat] = village.centroid.coordinates;
+                const marker = L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        className: 'village-marker',
+                        html: '<div class="village-dot"></div>',
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6]
+                    })
+                });
+
+                const popupContent = `
+                    <div class="village-popup">
+                        <h3>${village.village_name}</h3>
+                        <p><strong>Chef:</strong> ${village.chief_name}</p>
+                        <p><strong>Population:</strong> ${village.population?.toLocaleString() || 'N/A'}</p>
+                        <p><strong>Arrondissement:</strong> ${village.arrondissement_name}</p>
+                        <p><strong>Département:</strong> ${village.departement_name}</p>
+                        <p><strong>Région:</strong> ${village.region_name}</p>
+                        <div class="demo-badge">📋 Données de démonstration</div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                villageMarkers.addLayer(marker);
+            });
+
+            // Ajouter la couche à la carte
+            map.addLayer(villageMarkers);
+            
+            // Afficher une notification
+            showNotification('Mode démonstration activé - Configurez Supabase pour les vraies données', 'warning');
+            
+            console.log('✅ Données de démonstration chargées');
         }
 
         async function loadRegions() {
@@ -632,29 +720,18 @@
 
                         layer.bindPopup(`
                             <div style="font-family: inherit;">
-                    console.log('Tentative de connexion:', { email, password });
-                    console.log('Identifiants attendus:', CONFIG.adminCredentials);
-                    
                                 <h4 style="color: #8B008B; margin-bottom: 8px;">
                                     <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
                                 </h4>
                                 <p><strong>Type:</strong> Arrondissement</p>
                                 <p><strong>Superficie:</strong> ${areaText}</p>
-                    // Vérification insensible à la casse et aux espaces
-                    const emailMatch = email.toLowerCase() === CONFIG.adminCredentials.email.toLowerCase();
-                    const passwordMatch = password === CONFIG.adminCredentials.password;
-                    
-                    console.log('Vérifications:', { emailMatch, passwordMatch });
-                    
-                    if (emailMatch && passwordMatch) {
+                            </div>
                         `);
 
                         layer.on('click', function() {
                             layer.openPopup();
-                        console.log('Connexion admin réussie');
                         });
                     } else {
-                        console.log('Échec de connexion - identifiants incorrects');
                         console.warn('Pas de géométrie pour arrondissement:', arrondissement.nom_arrondissement);
                     }
                 });
