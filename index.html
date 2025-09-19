@@ -5,8 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MonVillage - Cartographie des Villages du Cameroun</title>
     
-    <!-- Leaflet CSS uniquement -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin="" />
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin="" defer></script>
+    
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    
+    <!-- Leaflet Draw JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" defer></script>
+    
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -596,16 +612,21 @@
         // CONFIGURATION ET VARIABLES GLOBALES
         // =================================================================
         
+        // Configuration
         const CONFIG = {
             supabase: {
-                url: 'https://hrlufnjhwhgddxkpyzst.supabase.co',
-                anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8'
+                url: 'https://your-project.supabase.co',
+                anonKey: 'your-anon-key-here'
             },
             mapbox: {
-                accessToken: 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg'
+                accessToken: 'pk.your-mapbox-token-here'
             },
             flutterwave: {
-                publicKey: 'FLWPUBK_TEST-1a5444355646149fcac53a4adf561674-X'
+                publicKey: 'FLWPUBK-your-key-here'
+            },
+            adminCredentials: {
+                email: 'admin@monvillage.cm',
+                password: 'admin123'
             },
             map: { center: [4.1485, 9.504], zoom: 7 },
             print: {
@@ -618,6 +639,20 @@
                 }
             }
         };
+
+        // Vérification de l'environnement
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        
+        // Configuration spécifique à la production
+        if (isProduction) {
+            console.log('🚀 Mode production détecté');
+            // Désactiver les logs de debug en production
+            const originalLog = console.log;
+            console.log = (...args) => {
+                if (args[0] && args[0].includes('🐛')) return;
+                originalLog.apply(console, args);
+            };
+        }
 
         let map, supabase;
         let mapLayers = { regions: null, departements: null, arrondissements: null, villages: null, poi: null, geonames: null };
@@ -1074,43 +1109,80 @@
             }
         }
 
-        function initializeMap() {
-            console.log('🗺️ Initialisation de la carte avec optimisations');
-            
-            map = L.map('map', { 
-                center: CONFIG.map.center, 
-                zoom: CONFIG.map.zoom, 
-                zoomControl: false,
-                // Optimisations de performance
-                preferCanvas: true,
-                renderer: L.canvas({ padding: 0.5 })
-            });
-            
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
+        // Initialisation de la carte
+        function initMap() {
+            try {
+                console.log('🗺️ Initialisation de la carte...');
+                
+                // Vérifier que Leaflet est chargé
+                if (typeof L === 'undefined') {
+                    console.error('❌ Leaflet non chargé');
+                    setTimeout(initMap, 1000);
+                    return;
+                }
+                
+                map = L.map('map', {
+                    center: [7.3697, 12.3547],
+                    zoom: 6,
+                    zoomControl: false,
+                    renderer: L.canvas(),
+                    preferCanvas: true,
+                    attributionControl: true
+                });
 
-            baseLayers.standard = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: '© Mapbox © OpenStreetMap',
-                id: 'mapbox/streets-v11',
-                accessToken: CONFIG.mapbox.accessToken,
-                maxZoom: 18,
-                // Optimisations tuiles
-                updateWhenIdle: true,
-                updateWhenZooming: false
-            });
+                console.log('✅ Carte créée');
 
-            baseLayers.satellite = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-                attribution: '© Google',
-                maxZoom: 20,
-                updateWhenIdle: true,
-                updateWhenZooming: false
-            });
+                // Contrôles de zoom personnalisés
+                L.control.zoom({
+                    position: 'topright'
+                }).addTo(map);
 
-            baseLayers.standard.addTo(map);
-            
-            // Événement de zoom pour chargement conditionnel
-            map.on('zoomend', loadLayersByZoom);
-            
-            console.log('✅ Carte initialisée avec optimisations de performance');
+                // Couches de base avec fallback
+                let baseLayer;
+                
+                if (CONFIG.mapbox.accessToken && CONFIG.mapbox.accessToken !== 'pk.your-mapbox-token-here') {
+                    console.log('🗺️ Chargement Mapbox...');
+                    baseLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${CONFIG.mapbox.accessToken}`, {
+                        attribution: '© Mapbox © OpenStreetMap',
+                        tileSize: 512,
+                        zoomOffset: -1,
+                        crossOrigin: true,
+                        maxZoom: 18
+                    });
+                } else {
+                    console.log('🗺️ Fallback OpenStreetMap...');
+                    baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors',
+                        maxZoom: 18,
+                        crossOrigin: true
+                    });
+                }
+
+                baseLayer.addTo(map);
+                
+                // Attendre que la carte soit prête
+                map.whenReady(() => {
+                    console.log('✅ Carte prête');
+                    setTimeout(() => {
+                        map.invalidateSize();
+                        console.log('✅ Taille de carte invalidée');
+                    }, 100);
+                });
+
+                // Initialiser les couches
+                initLayers();
+
+                console.log('✅ Carte initialisée');
+            } catch (error) {
+                console.error('❌ Erreur initialisation carte:', error);
+                showNotification('Erreur de chargement de la carte', 'error');
+                
+                // Retry après délai
+                setTimeout(() => {
+                    console.log('🔄 Nouvelle tentative d\'initialisation...');
+                    initMap();
+                }, 2000);
+            }
         }
 
         function initializeNativeMeasurementTools() {
@@ -1126,29 +1198,94 @@
         // CHARGEMENT DES DONNÉES ULTRA-OPTIMISÉ
         // =================================================================
 
+        // Chargement des données initiales
         async function loadInitialData() {
-            console.log('📊 Chargement ultra-rapide des données...');
-            if (!supabase) {
-                showNotification('Mode démo - pas de données', 'warning');
-                return;
-            }
-            
             try {
-                // Chargement parallèle au lieu de séquentiel
-                showNotification('Chargement des couches...', 'info');
+                console.log('📊 Chargement des données...');
                 
+                // Vérifier la configuration Supabase
+                if (!CONFIG.supabase.url || CONFIG.supabase.url === 'https://your-project.supabase.co') {
+                    console.warn('⚠️ Supabase non configuré, mode démo activé');
+                    loadDemoData();
+                    return;
+                }
+
+                // Test de connectivité Supabase
+                try {
+                    const healthCheck = await fetch(`${CONFIG.supabase.url}/rest/v1/`, {
+                        method: 'HEAD',
+                        headers: {
+                            'apikey': CONFIG.supabase.anonKey,
+                            'Authorization': `Bearer ${CONFIG.supabase.anonKey}`
+                        }
+                    });
+                    
+                    if (!healthCheck.ok) {
+                        throw new Error('Supabase non accessible');
+                    }
+                    console.log('✅ Supabase accessible');
+                } catch (error) {
+                    console.warn('⚠️ Supabase inaccessible:', error.message);
+                    loadDemoData();
+                    return;
+                }
+
+                // Charger les données depuis Supabase
                 await Promise.all([
-                    loadRegionsOptimized(),
-                    loadDepartementsOptimized(),
-                    loadArrondissementsOptimized()
+                    loadRegions(),
+                    loadDepartements(),
+                    loadArrondissements(),
+                    loadVillages()
                 ]);
-                
-                showNotification('Données chargées rapidement', 'success', 2000);
-                console.log('✅ Toutes les données chargées en parallèle');
+
+                console.log('✅ Données chargées');
             } catch (error) {
                 console.error('❌ Erreur chargement:', error);
-                showNotification('Erreur de chargement des données', 'error');
+                console.log('🔄 Basculement vers les données de démonstration...');
+                loadDemoData();
             }
+        }
+
+        // Données de démonstration
+        function loadDemoData() {
+            console.log('🎭 Chargement des données de démonstration...');
+            
+            // Villages de démonstration
+            const demoVillages = [
+                {
+                    id: 'demo-1',
+                    village_name: 'Yaoundé Centre',
+                    chief_name: 'Chef Démo',
+                    population: 50000,
+                    centroid: { coordinates: [11.5174, 3.8480] }
+                },
+                {
+                    id: 'demo-2', 
+                    village_name: 'Douala Akwa',
+                    chief_name: 'Chef Démo 2',
+                    population: 75000,
+                    centroid: { coordinates: [9.7043, 4.0511] }
+                }
+            ];
+            
+            // Ajouter les marqueurs de démonstration
+            demoVillages.forEach(village => {
+                if (village.centroid && village.centroid.coordinates) {
+                    const [lng, lat] = village.centroid.coordinates;
+                    const marker = L.marker([lat, lng]).addTo(villagesLayer);
+                    marker.bindPopup(`
+                        <div class="popup-content">
+                            <h3>${village.village_name}</h3>
+                            <p><strong>Chef:</strong> ${village.chief_name}</p>
+                            <p><strong>Population:</strong> ${village.population?.toLocaleString() || 'N/A'}</p>
+                            <p><em>Données de démonstration</em></p>
+                        </div>
+                    `);
+                }
+            });
+            
+            showNotification('Mode démonstration activé', 'info');
+            console.log('✅ Données de démonstration chargées');
         }
 
         async function loadRegionsOptimized() {
@@ -2281,23 +2418,82 @@
         // INITIALISATION PRINCIPALE
         // =================================================================
 
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📋 Initialisation MonVillage avec système d\'impression avancé');
+        // Initialisation de l'application
+        function initApp() {
+            console.log('🚀 Initialisation MonVillage...');
+            
+            // Vérifier que tous les scripts sont chargés
+            if (typeof L === 'undefined') {
+                console.log('⏳ Attente du chargement de Leaflet...');
+                setTimeout(initApp, 500);
+                return;
+            }
+            
+            if (typeof supabase === 'undefined' && window.supabase) {
+                supabase = window.supabase;
+            }
             
             try {
-                initializeSupabase();
-                initializeMap();
-                initializeNativeMeasurementTools();
-                initializeEventListeners();
-                loadInitialData();
+                // Initialiser Supabase
+                initSupabase();
+                
+                // Initialiser la carte
+                setTimeout(() => {
+                    initMap();
+                }, 100);
+                
+                // Charger les données
+                setTimeout(() => {
+                    loadInitialData();
+                }, 500);
+                
+                // Initialiser les événements
+                initEventListeners();
                 
                 console.log('✅ MonVillage initialisé avec succès');
-                showNotification('MonVillage chargé - Système d\'impression disponible', 'success');
-                
+                showNotification('MonVillage chargé avec succès', 'success');
             } catch (error) {
-                console.error('❌ Erreur lors de l\'initialisation:', error);
-                showNotification('Erreur lors du chargement de l\'application', 'error');
+                console.error('❌ Erreur initialisation:', error);
+                showNotification('Erreur d\'initialisation de l\'application', 'error');
             }
+        }
+        
+        // Démarrage de l'application
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+        
+        // Fallback si les scripts ne se chargent pas
+        setTimeout(() => {
+            if (typeof L === 'undefined') {
+                console.error('❌ Leaflet non chargé après 5 secondes');
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5f5f5; font-family: Arial, sans-serif;">
+                        <div style="text-align: center; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <h2 style="color: #e74c3c; margin-bottom: 1rem;">⚠️ Erreur de Chargement</h2>
+                            <p>Les ressources cartographiques n'ont pas pu être chargées.</p>
+                            <p>Veuillez vérifier votre connexion internet et actualiser la page.</p>
+                            <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                🔄 Actualiser
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }, 5000);
+        
+        // Gestion des erreurs globales
+        window.addEventListener('error', (event) => {
+            console.error('❌ Erreur globale:', event.error);
+            if (event.error.message.includes('L is not defined')) {
+                console.error('❌ Problème de chargement Leaflet détecté');
+            }
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('❌ Promise rejetée:', event.reason);
         });
 
         // Gestion du redimensionnement
