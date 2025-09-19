@@ -1476,6 +1476,334 @@
             showNotification('Toutes les mesures effacées', 'info');
         }
 
+<<<<<<< HEAD
+=======
+        // =================================================================
+        // FONCTIONS D'INITIALISATION
+        // =================================================================
+
+        function initializeSupabase() {
+            try {
+                supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
+                console.log('✅ Supabase initialisé');
+            } catch (error) {
+                console.error('❌ Erreur Supabase:', error);
+                showNotification('Mode hors ligne - données démo', 'warning');
+            }
+        }
+
+        function initializeMap() {
+            console.log('🗺️ Initialisation de la carte');
+            
+            map = L.map('map', { 
+                center: CONFIG.map.center, 
+                zoom: CONFIG.map.zoom, 
+                zoomControl: false 
+            });
+            
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            baseLayers.standard = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                attribution: '© Mapbox © OpenStreetMap',
+                id: 'mapbox/streets-v11',
+                accessToken: CONFIG.mapbox.accessToken,
+                maxZoom: 18
+            });
+
+            baseLayers.satellite = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                attribution: '© Google',
+                maxZoom: 20
+            });
+
+            baseLayers.standard.addTo(map);
+            console.log('✅ Carte initialisée');
+        }
+
+        function initializeNativeMeasurementTools() {
+            console.log('📏 Initialisation des outils de mesure natifs');
+            
+            measurementLayer = new L.FeatureGroup();
+            map.addLayer(measurementLayer);
+            
+            console.log('✅ Outils de mesure prêts');
+        }
+
+        // =================================================================
+        // FONCTIONS DE CHARGEMENT DES DONNÉES
+        // =================================================================
+
+        async function loadInitialData() {
+            console.log('📊 Chargement des données...');
+            if (!supabase) {
+                showNotification('Mode démo - pas de données', 'warning');
+                return;
+            }
+            try {
+                // Vérifier la configuration Supabase
+                if (!CONFIG.supabase.url || !CONFIG.supabase.anonKey) {
+                    console.warn('⚠️ Configuration Supabase manquante, utilisation des données de démonstration');
+                    loadDemoData();
+                    return;
+                }
+
+                // Vérifier la connectivité Supabase
+                const healthCheck = await fetch(`${CONFIG.supabase.url}/rest/v1/`, {
+                    method: 'HEAD',
+                    headers: {
+                        'apikey': CONFIG.supabase.anonKey,
+                        'Authorization': `Bearer ${CONFIG.supabase.anonKey}`
+                    }
+                }).catch(() => null);
+
+                if (!healthCheck || !healthCheck.ok) {
+                    console.warn('⚠️ Impossible de se connecter à Supabase, utilisation des données de démonstration');
+                    loadDemoData();
+                    return;
+                }
+
+                await loadRegions();
+                await loadDepartements();
+                await loadArrondissements();
+                console.log('✅ Données chargées avec succès');
+            } catch (error) {
+                console.error('❌ Erreur chargement:', error);
+                console.warn('🔄 Basculement vers les données de démonstration...');
+                loadDemoData();
+            }
+        }
+
+        // Fonction de fallback avec données de démonstration
+        function loadDemoData() {
+            console.log('📋 Chargement des données de démonstration...');
+            
+            // Données de démonstration pour les villages
+            const demoVillages = [
+                {
+                    id: 'demo-1',
+                    village_name: 'Yaoundé',
+                    chief_name: 'Chef Démonstration',
+                    population: 50000,
+                    centroid: { coordinates: [11.5174, 3.8480] },
+                    arrondissement_name: 'Yaoundé I',
+                    departement_name: 'Mfoundi',
+                    region_name: 'Centre'
+                },
+                {
+                    id: 'demo-2',
+                    village_name: 'Douala',
+                    chief_name: 'Chef Exemple',
+                    population: 80000,
+                    centroid: { coordinates: [9.7043, 4.0511] },
+                    arrondissement_name: 'Douala I',
+                    departement_name: 'Wouri',
+                    region_name: 'Littoral'
+                }
+            ];
+
+            // Ajouter les marqueurs de démonstration
+            demoVillages.forEach(village => {
+                const [lng, lat] = village.centroid.coordinates;
+                const marker = L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        className: 'village-marker',
+                        html: '<div class="village-dot"></div>',
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6]
+                    })
+                });
+
+                const popupContent = `
+                    <div class="village-popup">
+                        <h3>${village.village_name}</h3>
+                        <p><strong>Chef:</strong> ${village.chief_name}</p>
+                        <p><strong>Population:</strong> ${village.population?.toLocaleString() || 'N/A'}</p>
+                        <p><strong>Arrondissement:</strong> ${village.arrondissement_name}</p>
+                        <p><strong>Département:</strong> ${village.departement_name}</p>
+                        <p><strong>Région:</strong> ${village.region_name}</p>
+                        <div class="demo-badge">📋 Données de démonstration</div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                villageMarkers.addLayer(marker);
+            });
+
+            // Ajouter la couche à la carte
+            map.addLayer(villageMarkers);
+            
+            // Afficher une notification
+            showNotification('Mode démonstration activé - Configurez Supabase pour les vraies données', 'warning');
+            
+            console.log('✅ Données de démonstration chargées');
+        }
+
+        async function loadRegions() {
+            try {
+                const { data, error } = await supabase.from('regions').select('*');
+                if (error) throw error;
+                if (!data || data.length === 0) return;
+
+                mapLayers.regions = L.layerGroup().addTo(map);
+                
+                data.forEach(region => {
+                    if (region.geom) {
+                        const geometry = parseGeometry(region.geom);
+                        if (!geometry) return;
+
+                        const layer = L.geoJSON(geometry, {
+                            style: { 
+                                fillColor: 'transparent', 
+                                color: '#d62728', 
+                                weight: 3, 
+                                opacity: 1, 
+                                fillOpacity: 0 
+                            }
+                        }).addTo(mapLayers.regions);
+
+                        console.log('Calcul superficie région:', region.nom_region);
+                        const area = calculateAreaFromGeometry(geometry);
+                        const areaText = typeof area === 'number' ? formatArea(area) : area;
+                        console.log('Superficie région calculée:', areaText);
+
+                        layer.bindPopup(`
+                            <div style="font-family: inherit;">
+                                <h4 style="color: #d62728; margin-bottom: 8px;">
+                                    <i class="fas fa-map"></i> ${region.nom_region}
+                                </h4>
+                                <p><strong>Type:</strong> Région</p>
+                                <p><strong>Superficie:</strong> ${areaText}</p>
+                            </div>
+                        `);
+
+                        layer.on('click', function() {
+                            layer.openPopup();
+                        });
+                    }
+                });
+                
+                console.log(`✅ ${data.length} régions chargées avec superficies`);
+            } catch (error) {
+                console.error('Erreur régions:', error);
+                throw error;
+            }
+        }
+
+        async function loadDepartements() {
+            try {
+                const { data, error } = await supabase.from('departements').select('*');
+                if (error) throw error;
+                if (!data || data.length === 0) return;
+
+                mapLayers.departements = L.layerGroup().addTo(map);
+                
+                data.forEach(departement => {
+                    if (departement.geom) {
+                        const geometry = parseGeometry(departement.geom);
+                        if (!geometry) return;
+
+                        const layer = L.geoJSON(geometry, {
+                            style: { 
+                                fillColor: 'transparent', 
+                                color: '#000000', 
+                                weight: 2, 
+                                opacity: 1, 
+                                fillOpacity: 0 
+                            }
+                        }).addTo(mapLayers.departements);
+
+                        console.log('Calcul superficie département:', departement.nom_departement);
+                        const area = calculateAreaFromGeometry(geometry);
+                        const areaText = typeof area === 'number' ? formatArea(area) : area;
+                        console.log('Superficie département calculée:', areaText);
+
+                        layer.bindPopup(`
+                            <div style="font-family: inherit;">
+                                <h4 style="color: #000000; margin-bottom: 8px;">
+                                    <i class="fas fa-map"></i> ${departement.nom_departement}
+                                </h4>
+                                <p><strong>Type:</strong> Département</p>
+                                <p><strong>Superficie:</strong> ${areaText}</p>
+                            </div>
+                        `);
+
+                        layer.on('click', function() {
+                            layer.openPopup();
+                        });
+                    }
+                });
+                
+                console.log(`✅ ${data.length} départements chargés avec superficies`);
+            } catch (error) {
+                console.error('Erreur départements:', error);
+                throw error;
+            }
+        }
+
+        async function loadArrondissements() {
+            try {
+                const { data, error } = await supabase.from('arrondissements').select('*');
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    console.log('⚠️ Aucun arrondissement trouvé dans la base de données');
+                    return;
+                }
+
+                mapLayers.arrondissements = L.layerGroup().addTo(map);
+                
+                data.forEach(arrondissement => {
+                    if (arrondissement.geom) {
+                        const geometry = parseGeometry(arrondissement.geom);
+                        if (!geometry) {
+                            console.warn('Géométrie invalide pour arrondissement:', arrondissement.nom_arrondissement);
+                            return;
+                        }
+
+                        const layer = L.geoJSON(geometry, {
+                            style: { 
+                                fillColor: 'transparent', 
+                                color: '#8B008B', 
+                                weight: 2, 
+                                opacity: 0.8,
+                                fillOpacity: 0, 
+                                dashArray: '8, 8'
+                            }
+                        }).addTo(mapLayers.arrondissements);
+
+                        console.log('Calcul superficie arrondissement:', arrondissement.nom_arrondissement);
+                        const area = calculateAreaFromGeometry(geometry);
+                        const areaText = typeof area === 'number' ? formatArea(area) : area;
+                        console.log('Superficie arrondissement calculée:', areaText);
+
+                        layer.bindPopup(`
+                            <div style="font-family: inherit;">
+                                <h4 style="color: #8B008B; margin-bottom: 8px;">
+                                    <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
+                                </h4>
+                                <p><strong>Type:</strong> Arrondissement</p>
+                                <p><strong>Superficie:</strong> ${areaText}</p>
+                            </div>
+                        `);
+
+                        layer.on('click', function() {
+                            layer.openPopup();
+                        });
+                    } else {
+                        console.warn('Pas de géométrie pour arrondissement:', arrondissement.nom_arrondissement);
+                    }
+                });
+                
+                console.log(`✅ ${data.length} arrondissements chargés avec superficies`);
+            } catch (error) {
+                console.error('Erreur arrondissements:', error);
+                throw error;
+            }
+        }
+
+        // =================================================================
+        // OUTILS DE MESURE
+        // =================================================================
+
+>>>>>>> a7416f73c1b712a49b4f6ce8368de7d78f1a0337
         function startDistanceMeasurement() {
             clearActiveMeasurements();
             
