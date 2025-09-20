@@ -85,7 +85,6 @@
         .print-modal-body { padding: 30px; }
         
         .print-config { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-        .print-options { }
         .print-preview { background: #f8f9fa; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
         .form-group { margin-bottom: 20px; }
@@ -739,23 +738,34 @@
                     tx_ref: txRef,
                     amount: printConfig.price,
                     currency: "XAF",
-                    payment_options: "card, mobilemoney, ussd",
+                    
+                    // CHANGEMENT 1: Réorganiser l'ordre pour prioriser Mobile Money
+                    payment_options: "mobilemoney, card, ussd",
+                    
                     customer: {
                         email: "client@monvillage.cm",
-                        phone_number: "+237000000000",
+                        phone_number: "+237000000000", // Vous pourriez demander le vrai numéro
                         name: "Client MonVillage"
                     },
+                    
                     customizations: {
                         title: "MonVillage - Exportation de Carte",
-                        description: `Exportation ${printConfig.format} - ${printConfig.outputFormat.toUpperCase()}`,
+                        // CHANGEMENT 2: Description plus claire sur les options Mobile Money
+                        description: `Exportation ${printConfig.format} - Orange Money, MTN MoMo disponibles`,
                         logo: "https://via.placeholder.com/150x50?text=MonVillage"
                     },
+                    
+                    // CHANGEMENT 3: Améliorer la gestion du callback
                     callback: function(data) {
-                        console.log('✅ Paiement réussi:', data);
-                        handlePaymentSuccess(data, txRef);
+                        console.log('Paiement réussi:', data);
+                        console.log('Type de paiement utilisé:', data.payment_type);
+                        
+                        // Passer le type de paiement spécifique
+                        handlePaymentSuccess(data, txRef, data.payment_type);
                     },
+                    
                     onclose: function() {
-                        console.log('❌ Paiement fermé par l\'utilisateur');
+                        console.log('Paiement fermé par l\'utilisateur');
                         handlePaymentCancel();
                     }
                 });
@@ -769,52 +779,57 @@
             }
         }
 
-        async function handlePaymentSuccess(paymentData, txRef) {
-            console.log('🎉 Paiement confirmé, génération de la carte');
-            
-            try {
-                // Enregistrer le paiement dans la base de données
-                if (supabase) {
-                    const { error } = await supabase.from('payments').insert({
-                        transaction_id: txRef,
-                        amount: printConfig.price,
-                        currency: 'XAF',
-                        status: 'success',
-                        payment_method: 'flutterwave',
-                        flutterwave_tx_ref: txRef,
-                        flutterwave_tx_id: paymentData.transaction_id,
-                        print_format: printConfig.format,
-                        print_title: printConfig.title,
-                        map_bounds: JSON.stringify(map.getBounds())
-                    });
-                    
-                    if (error) {
-                        console.error('Erreur enregistrement paiement:', error);
-                    } else {
-                        console.log('✅ Paiement enregistré en base');
-                    }
+        async function handlePaymentSuccess(paymentData, txRef, paymentType = 'flutterwave') {
+        console.log(`Paiement confirmé via ${paymentType}`, paymentData);
+        
+        // Messages personnalisés selon le type de paiement
+        let successMessage = 'Paiement réussi';
+        if (paymentType === 'mobilemoney') {
+            successMessage = 'Paiement Mobile Money réussi';
+        } else if (paymentType === 'card') {
+            successMessage = 'Paiement par carte réussi';
+        } else if (paymentType === 'ussd') {
+            successMessage = 'Paiement USSD réussi';
+        }
+        
+        try {
+            // Enregistrer le paiement dans la base de données
+            if (supabase) {
+                const { error } = await supabase.from('payments').insert({
+                    transaction_id: txRef,
+                    amount: printConfig.price,
+                    currency: 'XAF',
+                    status: 'success',
+                    payment_method: 'flutterwave',
+                    payment_type: paymentType, // Nouveau champ pour le type spécifique
+                    flutterwave_tx_ref: txRef,
+                    flutterwave_tx_id: paymentData.transaction_id,
+                    print_format: printConfig.format,
+                    print_title: printConfig.title,
+                    map_bounds: JSON.stringify(map.getBounds())
+                });
+                
+                if (error) {
+                    console.error('Erreur enregistrement paiement:', error);
+                } else {
+                    console.log('Paiement enregistré en base');
                 }
-                
-                // Fermer le modal de paiement
-                document.getElementById('paymentModal').classList.remove('active');
-                
-                // Démarrer la génération
-                await generateMapExport();
-                
-            } catch (error) {
-                console.error('Erreur post-paiement:', error);
-                showNotification('Paiement réussi mais erreur lors de la génération', 'warning');
             }
-        }
-
-        function handlePaymentCancel() {
-            console.log('❌ Paiement annulé');
             
-            document.getElementById('paymentSpinner').style.display = 'none';
-            document.getElementById('confirmPayment').disabled = false;
+            // Fermer le modal de paiement
+            document.getElementById('paymentModal').classList.remove('active');
             
-            showNotification('Paiement annulé', 'warning');
+            // Message de succès personnalisé
+            showNotification(successMessage, 'success');
+            
+            // Démarrer la génération
+            await generateMapExport();
+            
+        } catch (error) {
+            console.error('Erreur post-paiement:', error);
+            showNotification('Paiement réussi mais erreur lors de la génération', 'warning');
         }
+    }
 
         async function generateMapExport() {
             console.log('🗺️ Génération de l\'exportation en cours...');
@@ -1733,31 +1748,10 @@
         }
 
         // ADMINISTRATION
-        window.checkAdminAccess = function() {
-            const modal = document.createElement('div');
-            modal.innerHTML = `
-                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;">
-                    <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">
-                        <h3 style="margin-bottom: 20px; color: #2c5530;">Accès Administrateur</h3>
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
-                            <input type="email" id="adminEmail" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" placeholder="admin@monvillage.cm" required>
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Mot de passe:</label>
-                            <input type="password" id="adminPassword" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
-                        </div>
-                        <div style="text-align: center;">
-                            <button onclick="processAdminLogin()" style="background: #4a7c59; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-right: 10px; cursor: pointer;">Se connecter</button>
-                            <button onclick="closeAdminModal()" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Annuler</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            modal.id = 'adminModal';
-            document.body.appendChild(modal);
-        };
-
+                window.checkAdminAccess = function() {
+                        // Redirection directe vers la page de connexion
+                        window.location.href = 'login.html';
+                    };
         window.closeAdminModal = function() {
             const modal = document.getElementById('adminModal');
             if (modal) {

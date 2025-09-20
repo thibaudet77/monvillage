@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Admin - MonVillage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 24px;
+        }
+        
+        .login-title {
+            font-size: 24px;
+            color: #2c5530;
+            margin-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #4a7c59;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .back-link {
+            text-align: center;
+        }
+        
+        .back-link a {
+            color: #4a7c59;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .alert-error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #a00;
+        }
+        
+        .alert-success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #060;
+        }
+        
+        .demo-credentials {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .demo-credentials h4 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <h1 class="login-title">Administration</h1>
+            <p class="login-subtitle">Accès à l'interface d'administration MonVillage</p>
+        </div>
+        
+        <div id="alertContainer"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope"></i> Email
+                </label>
+                <input type="email" id="email" class="form-input" required 
+                       placeholder="votre.email@exemple.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i> Mot de passe
+                </label>
+                <input type="password" id="password" class="form-input" required 
+                       placeholder="Votre mot de passe">
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Se connecter
+            </button>
+        </form>
+        
+        <div class="back-link">
+            <a href="index.html">
+                <i class="fas fa-arrow-left"></i> Retour à l'application
+            </a>
+        </div>
+    </div>
+    
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://hrlufnjhwhgddxkpyzst.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8';
+        
+        // Initialiser Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        function showAlert(message, type = 'error') {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `
+                <div class="alert alert-${type}">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+        
+        async function checkAdminPermissions(userId) {
+            try {
+                const { data, error } = await supabase
+                    .from('admin_profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .eq('is_active', true)
+                    .single();
+                
+                if (error) {
+                    console.error('Erreur vérification admin:', error);
+                    return false;
+                }
+                
+                return data !== null;
+            } catch (error) {
+                console.error('Erreur vérification permissions:', error);
+                return false;
+            }
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            // Disable button during login
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+            
+            try {
+                // Authentification avec Supabase
+                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (authError) {
+                    throw new Error(authError.message);
+                }
+                
+                if (!authData.user) {
+                    throw new Error('Erreur d\'authentification');
+                }
+                
+                console.log('Utilisateur authentifié:', authData.user);
+                
+                // Vérifier les permissions administrateur
+                const isAdmin = await checkAdminPermissions(authData.user.id);
+                
+                if (!isAdmin) {
+                    // Déconnecter l'utilisateur s'il n'est pas admin
+                    await supabase.auth.signOut();
+                    throw new Error('Accès non autorisé. Vous devez être administrateur.');
+                }
+                
+                showAlert('Connexion réussie ! Redirection...', 'success');
+                
+                // Stocker les informations de session
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                sessionStorage.setItem('adminEmail', authData.user.email);
+                sessionStorage.setItem('adminUserId', authData.user.id);
+                
+                // Redirection vers l'interface d'administration
+                setTimeout(() => {
+                    window.location.href = 'admin.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Erreur de connexion:', error);
+                showAlert(error.message || 'Erreur lors de la connexion');
+                
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+            }
+        });
+        
+        // Vérifier si l'utilisateur est déjà connecté (optionnel - commenté pour forcer la saisie)
+        document.addEventListener('DOMContentLoaded', async function() {
+            // La vérification automatique est désactivée - l'utilisateur doit toujours saisir ses identifiants
+            console.log('Page de connexion chargée - saisie manuelle requise');
+        });
+    </script>
+</body>
+</html>
