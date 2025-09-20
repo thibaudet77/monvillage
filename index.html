@@ -5,24 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MonVillage - Cartographie des Villages du Cameroun</title>
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
-          crossorigin="" />
-    
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
-            crossorigin="" defer></script>
-    
-    <!-- Leaflet Draw CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
-    
-    <!-- Leaflet Draw JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" defer></script>
-    
-    <!-- Supabase -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
+    <!-- Leaflet CSS uniquement -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -378,7 +362,7 @@
                             <div class="preview-container" id="previewContainer">
                                 <div class="preview-header" id="previewTitle">Carte des Villages - MonVillage</div>
                                 <div class="preview-map">
-                                    <div class="preview-north-arrow" id="previewNorthArrow">⬆</div>
+                                    <div class="preview-north-arrow" id="previewNorthArrow">↑</div>
                                     <div class="preview-scale" id="previewScale">1:50,000</div>
                                     <div style="color: #666; font-size: 12px;">Aperçu de la carte</div>
                                 </div>
@@ -456,177 +440,17 @@
     <script>
         console.log('🚀 MonVillage - Initialisation complète avec système d\'impression');
         
-        // =================================================================
-        // GÉOLOCALISATION
-        // =================================================================
-
-        function locateUser() {
-            console.log('📍 Demande de géolocalisation utilisateur');
-            
-            const button = document.getElementById('locateUser');
-            
-            if (isLocating) {
-                // Arrêter la localisation en cours
-                stopLocationTracking();
-                return;
-            }
-
-            // Si déjà localisé, désactiver la localisation
-            if (userLocationMarker && !isLocating) {
-                clearUserLocation();
-                showNotification('Localisation désactivée', 'info', 2000);
-                return;
-            }
-
-            if (!navigator.geolocation) {
-                showNotification('Géolocalisation non supportée par ce navigateur', 'error');
-                return;
-            }
-
-            // Commencer la localisation
-            isLocating = true;
-            button.classList.add('locating');
-            showNotification('Recherche de votre position...', 'info');
-
-            const options = {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 60000
-            };
-
-            navigator.geolocation.getCurrentPosition(
-                onLocationSuccess,
-                onLocationError,
-                options
-            );
-        }
-
-        function onLocationSuccess(position) {
-            console.log('✅ Position trouvée:', position.coords);
-            
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const accuracy = position.coords.accuracy;
-
-            // Supprimer les marqueurs précédents
-            if (userLocationMarker) {
-                map.removeLayer(userLocationMarker);
-            }
-            if (userLocationAccuracy) {
-                map.removeLayer(userLocationAccuracy);
-            }
-
-            // Ajouter le cercle de précision
-            userLocationAccuracy = L.circle([lat, lng], {
-                radius: accuracy,
-                className: 'user-location-accuracy'
-            }).addTo(map);
-
-            // Créer l'icône de position personnalisée
-            const locationIcon = L.divIcon({
-                className: 'user-location-marker',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-
-            // Ajouter le marqueur de position
-            userLocationMarker = L.marker([lat, lng], {
-                icon: locationIcon
-            }).addTo(map);
-
-            // Popup avec informations de position
-            userLocationMarker.bindPopup(`
-                <div style="font-family: inherit; text-align: center;">
-                    <h4 style="color: #007bff; margin-bottom: 8px;">
-                        <i class="fas fa-crosshairs"></i> Votre Position
-                    </h4>
-                    <p><strong>Latitude:</strong> ${lat.toFixed(6)}</p>
-                    <p><strong>Longitude:</strong> ${lng.toFixed(6)}</p>
-                    <p><strong>Précision:</strong> ±${Math.round(accuracy)}m</p>
-                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                        <i class="fas fa-clock"></i> ${new Date().toLocaleTimeString('fr-FR')}
-                    </p>
-                </div>
-            `);
-
-            // Centrer la carte sur la position
-            map.setView([lat, lng], Math.max(map.getZoom(), 15));
-
-            // Mettre le bouton en état "localisé"
-            const button = document.getElementById('locateUser');
-            button.classList.remove('locating');
-            button.classList.add('located');
-            isLocating = false;
-            
-            showNotification(`Position trouvée avec précision de ±${Math.round(accuracy)}m`, 'success');
-            
-            // Ouvrir automatiquement le popup
-            setTimeout(() => {
-                userLocationMarker.openPopup();
-            }, 500);
-        }
-
-        function onLocationError(error) {
-            console.error('❌ Erreur de géolocalisation:', error);
-            
-            let message = 'Impossible de déterminer votre position';
-            
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    message = 'Autorisation de géolocalisation refusée';
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    message = 'Position non disponible';
-                    break;
-                case error.TIMEOUT:
-                    message = 'Délai de géolocalisation dépassé';
-                    break;
-            }
-            
-            showNotification(message, 'error');
-            stopLocationTracking();
-        }
-
-        function stopLocationTracking() {
-            isLocating = false;
-            const button = document.getElementById('locateUser');
-            button.classList.remove('locating');
-            // Ne pas supprimer la classe 'located' pour garder l'indicateur visuel
-        }
-
-        function clearUserLocation() {
-            if (userLocationMarker) {
-                map.removeLayer(userLocationMarker);
-                userLocationMarker = null;
-            }
-            if (userLocationAccuracy) {
-                map.removeLayer(userLocationAccuracy);
-                userLocationAccuracy = null;
-            }
-            
-            // Remettre le bouton à l'état normal
-            const button = document.getElementById('locateUser');
-            button.classList.remove('locating', 'located');
-            isLocating = false;
-        }
         // CONFIGURATION ET VARIABLES GLOBALES
-        // =================================================================
-        
-        // Configuration
         const CONFIG = {
             supabase: {
-                url: 'https://your-project.supabase.co',
-                anonKey: 'your-anon-key-here'
+                url: 'https://hrlufnjhwhgddxkpyzst.supabase.co',
+                anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8'
             },
             mapbox: {
-                accessToken: 'pk.your-mapbox-token-here'
+                accessToken: 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg'
             },
             flutterwave: {
-                publicKey: 'FLWPUBK-your-key-here'
-            },
-            adminCredentials: {
-                email: 'admin@monvillage.cm',
-                password: 'admin123'
+                publicKey: 'FLWPUBK_TEST-1a5444355646149fcac53a4adf561674-X'
             },
             map: { center: [4.1485, 9.504], zoom: 7 },
             print: {
@@ -639,20 +463,6 @@
                 }
             }
         };
-
-        // Vérification de l'environnement
-        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-        
-        // Configuration spécifique à la production
-        if (isProduction) {
-            console.log('🚀 Mode production détecté');
-            // Désactiver les logs de debug en production
-            const originalLog = console.log;
-            console.log = (...args) => {
-                if (args[0] && args[0].includes('🐛')) return;
-                originalLog.apply(console, args);
-            };
-        }
 
         let map, supabase;
         let mapLayers = { regions: null, departements: null, arrondissements: null, villages: null, poi: null, geonames: null };
@@ -686,10 +496,7 @@
         let userLocationAccuracy = null;
         let isLocating = false;
 
-        // =================================================================
-        // FONCTIONS UTILITAIRES (existantes)
-        // =================================================================
-
+        // FONCTIONS UTILITAIRES
         function parseGeometry(geom) {
             if (!geom) return null;
             try {
@@ -810,10 +617,7 @@
             }
         }
 
-        // =================================================================
-        // FONCTIONS D'IMPRESSION - NOUVELLES
-        // =================================================================
-
+        // FONCTIONS D'IMPRESSION
         function openPrintModal() {
             console.log('🖨️ Ouverture du modal d\'impression');
             
@@ -919,7 +723,7 @@
         }
 
         async function processPayment() {
-            console.log('🔄 Traitement du paiement Flutterwave');
+            console.log('📄 Traitement du paiement Flutterwave');
             
             try {
                 // Afficher le spinner
@@ -1095,10 +899,145 @@
             console.log(`📥 Téléchargement simulé: ${fileName}`);
         }
 
-        // =================================================================
-        // FONCTIONS D'INITIALISATION (existantes)
-        // =================================================================
+        // GÉOLOCALISATION
+        function locateUser() {
+            console.log('📍 Demande de géolocalisation utilisateur');
+            
+            const button = document.getElementById('locateUser');
+            
+            if (isLocating) {
+                stopLocationTracking();
+                return;
+            }
 
+            if (userLocationMarker && !isLocating) {
+                clearUserLocation();
+                showNotification('Localisation désactivée', 'info', 2000);
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                showNotification('Géolocalisation non supportée par ce navigateur', 'error');
+                return;
+            }
+
+            isLocating = true;
+            button.classList.add('locating');
+            showNotification('Recherche de votre position...', 'info');
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 60000
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                onLocationSuccess,
+                onLocationError,
+                options
+            );
+        }
+
+        function onLocationSuccess(position) {
+            console.log('✅ Position trouvée:', position.coords);
+            
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+            }
+            if (userLocationAccuracy) {
+                map.removeLayer(userLocationAccuracy);
+            }
+
+            userLocationAccuracy = L.circle([lat, lng], {
+                radius: accuracy,
+                className: 'user-location-accuracy'
+            }).addTo(map);
+
+            const locationIcon = L.divIcon({
+                className: 'user-location-marker',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+
+            userLocationMarker = L.marker([lat, lng], {
+                icon: locationIcon
+            }).addTo(map);
+
+            userLocationMarker.bindPopup(`
+                <div style="font-family: inherit; text-align: center;">
+                    <h4 style="color: #007bff; margin-bottom: 8px;">
+                        <i class="fas fa-crosshairs"></i> Votre Position
+                    </h4>
+                    <p><strong>Latitude:</strong> ${lat.toFixed(6)}</p>
+                    <p><strong>Longitude:</strong> ${lng.toFixed(6)}</p>
+                    <p><strong>Précision:</strong> ±${Math.round(accuracy)}m</p>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                        <i class="fas fa-clock"></i> ${new Date().toLocaleTimeString('fr-FR')}
+                    </p>
+                </div>
+            `);
+
+            map.setView([lat, lng], Math.max(map.getZoom(), 15));
+
+            const button = document.getElementById('locateUser');
+            button.classList.remove('locating');
+            button.classList.add('located');
+            isLocating = false;
+            
+            showNotification(`Position trouvée avec précision de ±${Math.round(accuracy)}m`, 'success');
+            
+            setTimeout(() => {
+                userLocationMarker.openPopup();
+            }, 500);
+        }
+
+        function onLocationError(error) {
+            console.error('❌ Erreur de géolocalisation:', error);
+            
+            let message = 'Impossible de déterminer votre position';
+            
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Autorisation de géolocalisation refusée';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Position non disponible';
+                    break;
+              case error.TIMEOUT:
+                    message = 'Délai de géolocalisation dépassé';
+                    break;
+            }
+            
+            showNotification(message, 'error');
+            stopLocationTracking();
+        }
+
+        function stopLocationTracking() {
+            isLocating = false;
+            const button = document.getElementById('locateUser');
+            button.classList.remove('locating');
+        }
+
+        function clearUserLocation() {
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+                userLocationMarker = null;
+            }
+            if (userLocationAccuracy) {
+                map.removeLayer(userLocationAccuracy);
+                userLocationAccuracy = null;
+            }
+            
+            const button = document.getElementById('locateUser');
+            button.classList.remove('locating', 'located');
+            isLocating = false;
+        }
+
+        // FONCTIONS D'INITIALISATION
         function initializeSupabase() {
             try {
                 supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
@@ -1109,80 +1048,43 @@
             }
         }
 
-        // Initialisation de la carte
-        function initMap() {
-            try {
-                console.log('🗺️ Initialisation de la carte...');
-                
-                // Vérifier que Leaflet est chargé
-                if (typeof L === 'undefined') {
-                    console.error('❌ Leaflet non chargé');
-                    setTimeout(initMap, 1000);
-                    return;
-                }
-                
-                map = L.map('map', {
-                    center: [7.3697, 12.3547],
-                    zoom: 6,
-                    zoomControl: false,
-                    renderer: L.canvas(),
-                    preferCanvas: true,
-                    attributionControl: true
-                });
+        function initializeMap() {
+            console.log('🗺️ Initialisation de la carte avec optimisations');
+            
+            map = L.map('map', { 
+                center: CONFIG.map.center, 
+                zoom: CONFIG.map.zoom, 
+                zoomControl: false,
+                preferCanvas: true,
+                renderer: L.canvas({ padding: 0.5 })
+            });
+            
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-                console.log('✅ Carte créée');
+            // Couche Mapbox standard
+            baseLayers.standard = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                attribution: '© Mapbox © OpenStreetMap',
+                id: 'mapbox/streets-v11',
+                accessToken: CONFIG.mapbox.accessToken,
+                maxZoom: 18,
+                updateWhenIdle: true,
+                updateWhenZooming: false
+            });
 
-                // Contrôles de zoom personnalisés
-                L.control.zoom({
-                    position: 'topright'
-                }).addTo(map);
+            // Couche satellite alternative (ArcGIS plus stable que Google)
+            baseLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '© Esri',
+                maxZoom: 20,
+                updateWhenIdle: true,
+                updateWhenZooming: false
+            });
 
-                // Couches de base avec fallback
-                let baseLayer;
-                
-                if (CONFIG.mapbox.accessToken && CONFIG.mapbox.accessToken !== 'pk.your-mapbox-token-here') {
-                    console.log('🗺️ Chargement Mapbox...');
-                    baseLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${CONFIG.mapbox.accessToken}`, {
-                        attribution: '© Mapbox © OpenStreetMap',
-                        tileSize: 512,
-                        zoomOffset: -1,
-                        crossOrigin: true,
-                        maxZoom: 18
-                    });
-                } else {
-                    console.log('🗺️ Fallback OpenStreetMap...');
-                    baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '© OpenStreetMap contributors',
-                        maxZoom: 18,
-                        crossOrigin: true
-                    });
-                }
-
-                baseLayer.addTo(map);
-                
-                // Attendre que la carte soit prête
-                map.whenReady(() => {
-                    console.log('✅ Carte prête');
-                    setTimeout(() => {
-                        map.invalidateSize();
-                        console.log('✅ Taille de carte invalidée');
-                    }, 100);
-                });
-
-                // Initialiser les couches
-                initLayers();
-
-                console.log('✅ Carte initialisée');
-            } catch (error) {
-                console.error('❌ Erreur initialisation carte:', error);
-                showNotification('Erreur de chargement de la carte', 'error');
-                
-                // Retry après délai
-                setTimeout(() => {
-                    console.log('🔄 Nouvelle tentative d\'initialisation...');
-                    initMap();
-                }, 2000);
-            }
+            baseLayers.standard.addTo(map);
+            
+            // Événement de zoom pour chargement conditionnel
+            map.on('zoomend', loadLayersByZoom);
+            
+            console.log('✅ Carte initialisée avec optimisations de performance');
         }
 
         function initializeNativeMeasurementTools() {
@@ -1194,103 +1096,33 @@
             console.log('✅ Outils de mesure prêts');
         }
 
-        // =================================================================
         // CHARGEMENT DES DONNÉES ULTRA-OPTIMISÉ
-        // =================================================================
-
-        // Chargement des données initiales
         async function loadInitialData() {
+            console.log('📊 Chargement ultra-rapide des données...');
+            if (!supabase) {
+                showNotification('Mode démo - pas de données', 'warning');
+                return;
+            }
+            
             try {
-                console.log('📊 Chargement des données...');
+                showNotification('Chargement des couches...', 'info');
                 
-                // Vérifier la configuration Supabase
-                if (!CONFIG.supabase.url || CONFIG.supabase.url === 'https://your-project.supabase.co') {
-                    console.warn('⚠️ Supabase non configuré, mode démo activé');
-                    loadDemoData();
-                    return;
-                }
-
-                // Test de connectivité Supabase
-                try {
-                    const healthCheck = await fetch(`${CONFIG.supabase.url}/rest/v1/`, {
-                        method: 'HEAD',
-                        headers: {
-                            'apikey': CONFIG.supabase.anonKey,
-                            'Authorization': `Bearer ${CONFIG.supabase.anonKey}`
-                        }
-                    });
-                    
-                    if (!healthCheck.ok) {
-                        throw new Error('Supabase non accessible');
-                    }
-                    console.log('✅ Supabase accessible');
-                } catch (error) {
-                    console.warn('⚠️ Supabase inaccessible:', error.message);
-                    loadDemoData();
-                    return;
-                }
-
-                // Charger les données depuis Supabase
                 await Promise.all([
-                    loadRegions(),
-                    loadDepartements(),
-                    loadArrondissements(),
-                    loadVillages()
+                    loadRegionsOptimized(),
+                    loadDepartementsOptimized(),
+                    loadArrondissementsOptimized()
                 ]);
-
-                console.log('✅ Données chargées');
+                
+                showNotification('Données chargées rapidement', 'success', 2000);
+                console.log('✅ Toutes les données chargées en parallèle');
             } catch (error) {
                 console.error('❌ Erreur chargement:', error);
-                console.log('🔄 Basculement vers les données de démonstration...');
-                loadDemoData();
+                showNotification('Erreur de chargement des données', 'error');
             }
-        }
-
-        // Données de démonstration
-        function loadDemoData() {
-            console.log('🎭 Chargement des données de démonstration...');
-            
-            // Villages de démonstration
-            const demoVillages = [
-                {
-                    id: 'demo-1',
-                    village_name: 'Yaoundé Centre',
-                    chief_name: 'Chef Démo',
-                    population: 50000,
-                    centroid: { coordinates: [11.5174, 3.8480] }
-                },
-                {
-                    id: 'demo-2', 
-                    village_name: 'Douala Akwa',
-                    chief_name: 'Chef Démo 2',
-                    population: 75000,
-                    centroid: { coordinates: [9.7043, 4.0511] }
-                }
-            ];
-            
-            // Ajouter les marqueurs de démonstration
-            demoVillages.forEach(village => {
-                if (village.centroid && village.centroid.coordinates) {
-                    const [lng, lat] = village.centroid.coordinates;
-                    const marker = L.marker([lat, lng]).addTo(villagesLayer);
-                    marker.bindPopup(`
-                        <div class="popup-content">
-                            <h3>${village.village_name}</h3>
-                            <p><strong>Chef:</strong> ${village.chief_name}</p>
-                            <p><strong>Population:</strong> ${village.population?.toLocaleString() || 'N/A'}</p>
-                            <p><em>Données de démonstration</em></p>
-                        </div>
-                    `);
-                }
-            });
-            
-            showNotification('Mode démonstration activé', 'info');
-            console.log('✅ Données de démonstration chargées');
         }
 
         async function loadRegionsOptimized() {
             try {
-                // Chargement complet sans limite
                 const { data, error } = await supabase
                     .from('regions')
                     .select('id_region, nom_region, geom');
@@ -1316,7 +1148,6 @@
                             interactive: true
                         }).addTo(mapLayers.regions);
 
-                        // Calcul immédiat de la superficie
                         const area = calculateAreaFromGeometry(geometry);
                         const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
 
@@ -1349,7 +1180,6 @@
 
         async function loadDepartementsOptimized() {
             try {
-                // Chargement complet sans limite
                 const { data, error } = await supabase
                     .from('departements')
                     .select('id_departement, nom_departement, geom');
@@ -1375,7 +1205,6 @@
                             interactive: true
                         }).addTo(mapLayers.departements);
 
-                        // Calcul immédiat de la superficie
                         const area = calculateAreaFromGeometry(geometry);
                         const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
 
@@ -1408,7 +1237,6 @@
 
         async function loadArrondissementsOptimized() {
             try {
-                // Chargement complet SANS LIMITE pour avoir tous les arrondissements
                 const { data, error } = await supabase
                     .from('arrondissements')
                     .select('id_arrondissement, nom_arrondissement, geom');
@@ -1435,7 +1263,6 @@
                             interactive: true
                         }).addTo(mapLayers.arrondissements);
 
-                        // Calcul immédiat de la superficie
                         const area = calculateAreaFromGeometry(geometry);
                         const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
 
@@ -1467,34 +1294,10 @@
             }
         }
 
-        // Calcul de superficie à la demande uniquement
-        function calculateAreaOnDemand(element, geometry) {
-            if (element.dataset.calculated) return;
-            
-            element.textContent = 'Calcul...';
-            
-            setTimeout(() => {
-                const area = calculateAreaFromGeometry(geometry);
-                const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
-                element.textContent = areaText;
-                element.dataset.calculated = 'true';
-            }, 10);
-        }
-
-        // Gestionnaire pour calcul de superficie à la demande
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('calc-area') && !e.target.dataset.calculated) {
-                const geometry = JSON.parse(e.target.dataset.geom);
-                calculateAreaOnDemand(e.target, geometry);
-            }
-        });
-
-        // Fonction de chargement conditionnel ultra-simplifiée
         function loadLayersByZoom() {
             const zoom = map.getZoom();
             
             if (zoom < 6) {
-                // Masquer départements et arrondissements
                 if (mapLayers.departements && map.hasLayer(mapLayers.departements)) {
                     map.removeLayer(mapLayers.departements);
                 }
@@ -1502,7 +1305,6 @@
                     map.removeLayer(mapLayers.arrondissements);
                 }
             } else if (zoom < 9) {
-                // Afficher départements, masquer arrondissements
                 if (mapLayers.departements && !map.hasLayer(mapLayers.departements)) {
                     map.addLayer(mapLayers.departements);
                 }
@@ -1510,7 +1312,6 @@
                     map.removeLayer(mapLayers.arrondissements);
                 }
             } else {
-                // Afficher toutes les couches
                 if (mapLayers.departements && !map.hasLayer(mapLayers.departements)) {
                     map.addLayer(mapLayers.departements);
                 }
@@ -1520,13 +1321,8 @@
             }
         }
 
-        // =================================================================
         // OUTILS DE MESURE
-        // =================================================================
-
         function disableAdministrativeLayers() {
-            console.log('Désactivation temporaire des popups administratives');
-            
             if (mapLayers.regions) {
                 mapLayers.regions.eachLayer(layer => {
                     layer.off('click');
@@ -1545,8 +1341,6 @@
         }
 
         function enableAdministrativeLayers() {
-            console.log('Réactivation des popups administratives');
-            
             if (mapLayers.regions) {
                 mapLayers.regions.eachLayer(layer => {
                     layer.on('click', function() {
@@ -1605,9 +1399,6 @@
                 map.removeLayer(tempPolygon);
                 tempPolygon = null;
             }
-            
-            // Optionnel: Effacer aussi la position utilisateur
-            // clearUserLocation();
             
             map.closePopup();
             showNotification('Toutes les mesures effacées', 'info');
@@ -1822,10 +1613,7 @@
             }).addTo(map);
         }
 
-        // =================================================================
-        // AUTRES FONCTIONS (existantes abrégées)
-        // =================================================================
-
+        // AUTRES FONCTIONS
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -1865,40 +1653,23 @@
             }
         }
 
-        // =================================================================
         // GESTION DES ÉVÉNEMENTS
-        // =================================================================
-
         function initializeEventListeners() {
-            console.log('🎯 Initialisation des événements avec impression');
-            
-            // Événements existants
             document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
             document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
             document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
             document.getElementById('zoomHome').addEventListener('click', () => map.setView(CONFIG.map.center, CONFIG.map.zoom));
             document.getElementById('toggleSatellite').addEventListener('click', toggleSatelliteView);
-            
-            // NOUVEAU: Événement de géolocalisation
             document.getElementById('locateUser').addEventListener('click', locateUser);
-            
             document.getElementById('measureDistance').addEventListener('click', startDistanceMeasurement);
             document.getElementById('measureArea').addEventListener('click', startAreaMeasurement);
             document.getElementById('clearMeasurements').addEventListener('click', clearAllMeasurements);
-            
-            // NOUVEAU: Événement d'impression
             document.getElementById('printMap').addEventListener('click', openPrintModal);
-
-            // Événements du modal d'impression
             document.getElementById('closePrintModal').addEventListener('click', closePrintModal);
             document.getElementById('cancelPrint').addEventListener('click', closePrintModal);
             document.getElementById('proceedToPay').addEventListener('click', proceedToPayment);
-
-            // Événements du modal de paiement
             document.getElementById('cancelPayment').addEventListener('click', cancelPayment);
             document.getElementById('confirmPayment').addEventListener('click', processPayment);
-
-            // Événements de configuration d'impression
             document.getElementById('mapTitle').addEventListener('input', updatePrintPreview);
             document.getElementById('outputFormat').addEventListener('change', updatePrintPreview);
             document.getElementById('mapScale').addEventListener('input', updatePrintPreview);
@@ -1907,7 +1678,6 @@
             document.getElementById('showLegend').addEventListener('change', updatePrintPreview);
             document.getElementById('showCoordinates').addEventListener('change', updatePrintPreview);
 
-            // Sélection des formats
             document.querySelectorAll('.format-option').forEach(option => {
                 option.addEventListener('click', function() {
                     const format = this.dataset.format;
@@ -1916,7 +1686,6 @@
                 });
             });
 
-            // Presets d'échelle
             document.querySelectorAll('.scale-preset').forEach(preset => {
                 preset.addEventListener('click', function() {
                     const scale = this.dataset.scale;
@@ -1924,7 +1693,6 @@
                 });
             });
 
-            // Contrôles des couches
             document.querySelectorAll('.layer-toggle').forEach(toggle => {
                 toggle.addEventListener('click', function() {
                     this.classList.toggle('active');
@@ -1939,7 +1707,6 @@
                 });
             });
 
-            // Raccourcis clavier
             document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.key === 'd') {
                     e.preventDefault();
@@ -1954,7 +1721,6 @@
                     e.preventDefault();
                     locateUser();
                 } else if (e.key === 'Escape') {
-                    // Fermer les modaux ouverts
                     if (document.getElementById('printModal').classList.contains('active')) {
                         closePrintModal();
                     } else if (document.getElementById('paymentModal').classList.contains('active')) {
@@ -1964,21 +1730,15 @@
                     }
                 }
             });
-            
-            console.log('✅ Événements d\'impression initialisés');
         }
 
-        // =================================================================
-        // ADMINISTRATION (existante)
-        // =================================================================
-
+        // ADMINISTRATION
         window.checkAdminAccess = function() {
             const modal = document.createElement('div');
             modal.innerHTML = `
                 <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;">
                     <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">
                         <h3 style="margin-bottom: 20px; color: #2c5530;">Accès Administrateur</h3>
-                        <div id="loginError" style="display: none; background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px;"></div>
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
                             <input type="email" id="adminEmail" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" placeholder="admin@monvillage.cm" required>
@@ -1987,12 +1747,8 @@
                             <label style="display: block; margin-bottom: 5px; font-weight: bold;">Mot de passe:</label>
                             <input type="password" id="adminPassword" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
                         </div>
-                        <div id="loginSpinner" style="display: none; text-align: center; margin: 20px 0;">
-                            <div style="border: 4px solid #f3f3f3; border-top: 4px solid #4a7c59; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                            <p style="margin-top: 10px; color: #666;">Connexion en cours...</p>
-                        </div>
                         <div style="text-align: center;">
-                            <button id="loginButton" onclick="processRealAdminLogin()" style="background: #4a7c59; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-right: 10px; cursor: pointer;">Se connecter</button>
+                            <button onclick="processAdminLogin()" style="background: #4a7c59; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-right: 10px; cursor: pointer;">Se connecter</button>
                             <button onclick="closeAdminModal()" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Annuler</button>
                         </div>
                     </div>
@@ -2007,496 +1763,30 @@
             if (modal) {
                 modal.remove();
             }
-            // Nettoyer aussi les autres modaux potentiels
-            const dashboardModal = document.getElementById('dashboardModal');
-            if (dashboardModal) {
-                dashboardModal.remove();
-            }
         };
 
-        window.processRealAdminLogin = async function() {
-            const email = document.getElementById('adminEmail').value.trim();
-            const password = document.getElementById('adminPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            const spinner = document.getElementById('loginSpinner');
-            const loginButton = document.getElementById('loginButton');
-            
-            if (!email || !password) {
-                showError('Veuillez saisir email et mot de passe');
-                return;
-            }
-
-            // Afficher le spinner
-            spinner.style.display = 'block';
-            loginButton.disabled = true;
-            errorDiv.style.display = 'none';
-
-            console.log('Tentative de connexion avec email:', email);
-
-            try {
-                // Tentative de connexion via Supabase Auth
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                console.log('Résultat auth:', { data, error });
-
-                if (error) {
-                    console.error('Erreur auth:', error);
-                    throw error;
-                }
-
-                console.log('Utilisateur connecté:', data.user.id);
-
-                // Vérifier si l'utilisateur est admin avec plus de débuggage
-                const { data: adminProfile, error: profileError } = await supabase
-                    .from('admin_profiles')
-                    .select('*')
-                    .eq('id', data.user.id)
-                    .eq('is_active', true)
-                    .single();
-
-                console.log('Recherche profil admin pour ID:', data.user.id);
-                console.log('Résultat profil:', { adminProfile, profileError });
-
-                if (profileError) {
-                    console.error('Erreur profil:', profileError);
-                    
-                    // Si l'erreur est "No rows found", essayer sans le .single()
-                    if (profileError.code === 'PGRST116') {
-                        const { data: allProfiles, error: allError } = await supabase
-                            .from('admin_profiles')
-                            .select('*')
-                            .eq('id', data.user.id);
-                        
-                        console.log('Tous les profils pour cet ID:', allProfiles);
-                        
-                        if (allError || !allProfiles || allProfiles.length === 0) {
-                            throw new Error('Aucun profil administrateur trouvé pour cet utilisateur');
-                        }
-                        
-                        if (allProfiles[0].is_active !== true) {
-                            throw new Error('Profil administrateur désactivé');
-                        }
-                        
-                        // Utiliser le premier profil trouvé
-                        adminProfile = allProfiles[0];
-                    } else {
-                        throw new Error('Erreur lors de la vérification du profil administrateur');
-                    }
-                }
-
-                if (!adminProfile) {
-                    throw new Error('Accès non autorisé - Profil administrateur requis');
-                }
-
-                // Connexion réussie
-                console.log('Connexion admin réussie:', adminProfile);
-                showNotification(`Bienvenue ${adminProfile.full_name}. Accès administrateur activé.`, 'success');
-                enableRealAdminFeatures(adminProfile, data.user);
-                closeAdminModal();
-
-                // Mettre à jour les statistiques de connexion
-                await updateLoginStats(adminProfile.id);
-
-            } catch (error) {
-                console.error('Erreur connexion admin complète:', error);
-                let message = 'Erreur de connexion';
-                
-                if (error.message.includes('Invalid login credentials')) {
-                    message = 'Email ou mot de passe incorrect';
-                } else if (error.message.includes('Email not confirmed')) {
-                    message = 'Veuillez confirmer votre email';
-                } else if (error.message.includes('non autorisé') || error.message.includes('Aucun profil')) {
-                    message = error.message;
-                } else if (error.message.includes('désactivé')) {
-                    message = 'Compte administrateur désactivé';
-                } else {
-                    message = `Erreur: ${error.message}`;
-                }
-                
-                showError(message);
-            } finally {
-                spinner.style.display = 'none';
-                loginButton.disabled = false;
-            }
-
-            function showError(message) {
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
-                console.error('Erreur affichée:', message);
-            }
+        window.processAdminLogin = function() {
+            showNotification('Système d\'administration en développement', 'info');
+            closeAdminModal();
         };
 
-        async function updateLoginStats(adminId) {
-            try {
-                await supabase
-                    .from('admin_profiles')
-                    .update({
-                        last_login: new Date().toISOString(),
-                        login_count: supabase.raw('login_count + 1')
-                    })
-                    .eq('id', adminId);
-            } catch (error) {
-                console.warn('Erreur mise à jour stats connexion:', error);
-            }
-        }
-
-        function enableRealAdminFeatures(adminProfile, user) {
-            const adminAccess = document.querySelector('.admin-access');
-            adminAccess.innerHTML = `<i class="fas fa-user-shield"></i><span>${adminProfile.full_name}</span>`;
-            adminAccess.onclick = showAdminDashboard;
-            
-            // Stocker les informations admin dans la session
-            window.adminUser = {
-                profile: adminProfile,
-                user: user,
-                isAuthenticated: true
-            };
-        }
-
-        function showAdminDashboard() {
-            if (!window.adminUser || !window.adminUser.isAuthenticated) {
-                checkAdminAccess();
-                return;
-            }
-
-            const modal = document.createElement('div');
-            modal.innerHTML = `
-                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;">
-                    <div style="background: white; padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="color: #2c5530; margin: 0;">Dashboard Administrateur</h3>
-                            <button onclick="closeDashboard()" style="background: none; border: none; font-size: 20px; cursor: pointer;">×</button>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
-                                <h4 style="color: #4a7c59; margin: 0 0 10px 0;">Profil Admin</h4>
-                                <p style="margin: 5px 0;"><strong>Nom:</strong> ${window.adminUser.profile.full_name}</p>
-                                <p style="margin: 5px 0;"><strong>Rôle:</strong> ${window.adminUser.profile.role}</p>
-                                <p style="margin: 5px 0;"><strong>Connexions:</strong> ${window.adminUser.profile.login_count || 0}</p>
-                            </div>
-                            
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
-                                <h4 style="color: #4a7c59; margin: 0 0 10px 0;">Actions</h4>
-                                <button onclick="viewPayments()" style="background: #4a7c59; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin: 5px; cursor: pointer;">Voir Paiements</button>
-                                <button onclick="adminLogout()" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin: 5px; cursor: pointer;">Déconnexion</button>
-                            </div>
-                        </div>
-                        
-                        <div id="dashboardContent" style="min-height: 200px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                            <p style="text-align: center; color: #666;">Sélectionnez une action ci-dessus</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            modal.id = 'dashboardModal';
-            document.body.appendChild(modal);
-
-            // Fonctions du dashboard
-            window.closeDashboard = function() {
-                document.getElementById('dashboardModal').remove();
-            };
-
-            window.viewPayments = async function() {
-                const content = document.getElementById('dashboardContent');
-                content.innerHTML = '<p style="text-align: center;">Chargement des paiements...</p>';
-                
-                try {
-                    const { data: payments, error } = await supabase
-                        .from('payments')
-                        .select('*')
-                        .order('created_at', { ascending: false })
-                        .limit(10);
-
-                    if (error) throw error;
-
-                    let html = '<h4>Derniers Paiements</h4>';
-                    if (payments && payments.length > 0) {
-                        html += '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse;">';
-                        html += '<tr style="background: #e9ecef;"><th style="padding: 8px; border: 1px solid #ddd;">Date</th><th style="padding: 8px; border: 1px solid #ddd;">Format</th><th style="padding: 8px; border: 1px solid #ddd;">Montant</th><th style="padding: 8px; border: 1px solid #ddd;">Statut</th></tr>';
-                        
-                        payments.forEach(payment => {
-                            html += `<tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${new Date(payment.created_at).toLocaleDateString('fr-FR')}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${payment.print_format || 'N/A'}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${payment.amount} ${payment.currency}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;"><span style="padding: 2px 6px; border-radius: 3px; background: ${payment.status === 'success' ? '#d4edda' : '#f8d7da'}; color: ${payment.status === 'success' ? '#155724' : '#721c24'};">${payment.status}</span></td>
-                            </tr>`;
-                        });
-                        html += '</table></div>';
-                    } else {
-                        html += '<p>Aucun paiement trouvé</p>';
-                    }
-                    
-                    content.innerHTML = html;
-                } catch (error) {
-                    content.innerHTML = `<p style="color: red;">Erreur: ${error.message}</p>`;
-                }
-            };
-
-            window.adminLogout = async function() {
-                try {
-                    await supabase.auth.signOut();
-                    window.adminUser = null;
-                    
-                    const adminAccess = document.querySelector('.admin-access');
-                    adminAccess.innerHTML = `<i class="fas fa-cog"></i><span>Admin</span>`;
-                    adminAccess.onclick = checkAdminAccess;
-                    
-                    closeDashboard();
-                    showNotification('Déconnexion admin réussie', 'info');
-                } catch (error) {
-                    console.error('Erreur déconnexion:', error);
-                    showNotification('Erreur lors de la déconnexion', 'error');
-                }
-            };
-        }
-
-        // =================================================================
-        // FONCTIONS DE GÉNÉRATION D'EXPORTATION AVANCÉES
-        // =================================================================
-
-        async function generateMapFile(exportData) {
-            // Cette fonction sera appelée en production pour générer le fichier réel
-            console.log('🔧 Génération du fichier carte (fonction de production)');
-            
-            try {
-                // En production, cette fonction ferait appel à une API backend
-                // qui utiliserait des bibliothèques comme:
-                // - Puppeteer pour capture HTML/CSS vers PDF/PNG
-                // - JSPDF pour génération PDF programmatique  
-                // - Canvas API pour rendu personnalisé
-                // - MapProxy ou similaire pour export haute résolution
-                
-                const response = await fetch('/api/generate-map', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(exportData)
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Erreur lors de la génération');
-                }
-                
-                const blob = await response.blob();
-                return blob;
-                
-            } catch (error) {
-                console.error('Erreur génération:', error);
-                throw error;
-            }
-        }
-
-        function getMapLayers() {
-            // Récupérer les couches actives pour l'export
-            const layers = [];
-            
-            if (map.hasLayer(baseLayers.standard)) {
-                layers.push({
-                    type: 'basemap',
-                    name: 'standard',
-                    url: baseLayers.standard._url
-                });
-            }
-            
-            if (map.hasLayer(baseLayers.satellite)) {
-                layers.push({
-                    type: 'basemap', 
-                    name: 'satellite',
-                    url: baseLayers.satellite._url
-                });
-            }
-            
-            // Ajouter les couches de données si actives
-            Object.keys(mapLayers).forEach(layerKey => {
-                if (mapLayers[layerKey] && map.hasLayer(mapLayers[layerKey])) {
-                    layers.push({
-                        type: 'data',
-                        name: layerKey,
-                        data: getLayerData(layerKey)
-                    });
-                }
-            });
-            
-            return layers;
-        }
-
-        function getLayerData(layerKey) {
-            // Extraire les données GeoJSON des couches pour l'export
-            if (!mapLayers[layerKey]) return null;
-            
-            const features = [];
-            mapLayers[layerKey].eachLayer(layer => {
-                if (layer.feature) {
-                    features.push(layer.feature);
-                } else if (layer.toGeoJSON) {
-                    features.push(layer.toGeoJSON());
-                }
-            });
-            
-            return {
-                type: 'FeatureCollection',
-                features: features
-            };
-        }
-
-        function calculateMapExtent() {
-            // Calculer l'étendue de la carte pour l'export
-            const bounds = map.getBounds();
-            const zoom = map.getZoom();
-            const center = map.getCenter();
-            
-            // Calculer la résolution en fonction de l'échelle demandée
-            const scale = printConfig.scale;
-            const dpi = 300; // DPI pour impression haute qualité
-            
-            // Calcul de la résolution (mètres par pixel)
-            const resolution = scale / (dpi * 39.37); // 39.37 inches per meter
-            
-            return {
-                bounds: bounds,
-                center: center,
-                zoom: zoom,
-                scale: scale,
-                resolution: resolution,
-                dpi: dpi
-            };
-        }
-
-        function generateMapMetadata() {
-            // Générer les métadonnées pour l'export
-            const now = new Date();
-            const extent = calculateMapExtent();
-            
-            return {
-                title: printConfig.title,
-                subtitle: `Échelle 1:${printConfig.scale.toLocaleString()}`,
-                date: now.toLocaleDateString('fr-FR'),
-                time: now.toLocaleTimeString('fr-FR'),
-                format: printConfig.format,
-                outputType: printConfig.outputFormat,
-                extent: extent,
-                projection: 'WGS84 (EPSG:4326)',
-                source: 'MonVillage - Cartographie du Cameroun',
-                contact: 'monvillage.cm@gmail.com',
-                website: 'https://monvillage.cm',
-                copyright: '© 2024 MonVillage',
-                activeLayers: getActiveLayers(),
-                options: {
-                    showNorthArrow: printConfig.showNorthArrow,
-                    showScale: printConfig.showScale,
-                    showLegend: printConfig.showLegend,
-                    showCoordinates: printConfig.showCoordinates
-                }
-            };
-        }
-
-        // =================================================================
-        // GESTION DES ERREURS ET RETRY
-        // =================================================================
-
-        async function retryOperation(operation, maxRetries = 3, delay = 1000) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    
-                    console.log(`Tentative ${i + 1} échouée, retry dans ${delay}ms`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    delay *= 2; // Backoff exponentiel
-                }
-            }
-        }
-
-        // =================================================================
         // INITIALISATION PRINCIPALE
-        // =================================================================
-
-        // Initialisation de l'application
-        function initApp() {
-            console.log('🚀 Initialisation MonVillage...');
-            
-            // Vérifier que tous les scripts sont chargés
-            if (typeof L === 'undefined') {
-                console.log('⏳ Attente du chargement de Leaflet...');
-                setTimeout(initApp, 500);
-                return;
-            }
-            
-            if (typeof supabase === 'undefined' && window.supabase) {
-                supabase = window.supabase;
-            }
-            
+        document.addEventListener('DOMContentLoaded', function() {
             try {
-                // Initialiser Supabase
-                initSupabase();
+                initializeSupabase();
+                initializeMap();
+                initializeNativeMeasurementTools();
+                initializeEventListeners();
+                loadInitialData();
                 
-                // Initialiser la carte
-                setTimeout(() => {
-                    initMap();
-                }, 100);
-                
-                // Charger les données
-                setTimeout(() => {
-                    loadInitialData();
-                }, 500);
-                
-                // Initialiser les événements
-                initEventListeners();
-                
-                console.log('✅ MonVillage initialisé avec succès');
                 showNotification('MonVillage chargé avec succès', 'success');
+                
             } catch (error) {
-                console.error('❌ Erreur initialisation:', error);
-                showNotification('Erreur d\'initialisation de l\'application', 'error');
+                console.error('Erreur lors de l\'initialisation:', error);
+                showNotification('Erreur lors du chargement de l\'application', 'error');
             }
-        }
-        
-        // Démarrage de l'application
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
-        
-        // Fallback si les scripts ne se chargent pas
-        setTimeout(() => {
-            if (typeof L === 'undefined') {
-                console.error('❌ Leaflet non chargé après 5 secondes');
-                document.body.innerHTML = `
-                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5f5f5; font-family: Arial, sans-serif;">
-                        <div style="text-align: center; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <h2 style="color: #e74c3c; margin-bottom: 1rem;">⚠️ Erreur de Chargement</h2>
-                            <p>Les ressources cartographiques n'ont pas pu être chargées.</p>
-                            <p>Veuillez vérifier votre connexion internet et actualiser la page.</p>
-                            <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                🔄 Actualiser
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-        }, 5000);
-        
-        // Gestion des erreurs globales
-        window.addEventListener('error', (event) => {
-            console.error('❌ Erreur globale:', event.error);
-            if (event.error.message.includes('L is not defined')) {
-                console.error('❌ Problème de chargement Leaflet détecté');
-            }
-        });
-        
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('❌ Promise rejetée:', event.reason);
         });
 
-        // Gestion du redimensionnement
         window.addEventListener('resize', function() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -2507,79 +1797,10 @@
                 document.body.style.overflow = '';
             }
             
-            // Invalider la taille de la carte pour le redimensionnement
             if (map) {
                 setTimeout(() => map.invalidateSize(), 100);
             }
         });
-
-        // Gestion de la déconnexion/fermeture
-        window.addEventListener('beforeunload', function(e) {
-            // Nettoyer les ressources si nécessaire
-            if (measurementLayer) {
-                measurementLayer.clearLayers();
-            }
-        });
-
-        // =================================================================
-        // FONCTIONS UTILITAIRES SUPPLÉMENTAIRES
-        // =================================================================
-
-        function formatPrice(price) {
-            return `${price.toLocaleString()} XAF`;
-        }
-
-        function validatePrintConfig() {
-            const errors = [];
-            
-            if (!printConfig.title || printConfig.title.trim().length === 0) {
-                errors.push('Le titre de la carte est requis');
-            }
-            
-            if (printConfig.scale < 1000 || printConfig.scale > 10000000) {
-                errors.push('L\'échelle doit être entre 1:1,000 et 1:10,000,000');
-            }
-            
-            if (!CONFIG.print.formats[printConfig.format]) {
-                errors.push('Format de papier invalide');
-            }
-            
-            return errors;
-        }
-
-        function showPrintErrors(errors) {
-            if (errors.length > 0) {
-                const errorMessage = 'Erreurs de configuration:\n' + errors.join('\n');
-                showNotification(errorMessage, 'error', 6000);
-                return false;
-            }
-            return true;
-        }
-
-        // Test de la configuration Flutterwave
-        function testFlutterwaveConfig() {
-            if (!CONFIG.flutterwave.publicKey) {
-                console.warn('⚠️  Clé publique Flutterwave manquante');
-                return false;
-            }
-            
-            if (typeof FlutterwaveCheckout === 'undefined') {
-                console.warn('⚠️  SDK Flutterwave non chargé');
-                return false;
-            }
-            
-            console.log('✅ Configuration Flutterwave OK');
-            return true;
-        }
-
-        // Initialisation des tests de configuration
-        setTimeout(() => {
-            testFlutterwaveConfig();
-        }, 2000);
-
-        console.log('🎯 MonVillage - Système d\'impression complet initialisé');
-        console.log('📋 Raccourcis: Ctrl+D (distance), Ctrl+S (surface), Ctrl+P (impression), Escape (fermer)');
-        console.log('💰 Tarifs: A4(500), A3(1000), A2(2000), A1(4000), A0(6000) XAF');
     </script>
 </body>
 </html>
