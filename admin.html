@@ -40,7 +40,7 @@
 
         /* Cards */
         .admin-card { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; overflow: hidden; }
-        .card-header { background: #f8f9fa; padding: 20px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: between; align-items: center; }
+        .card-header { background: #f8f9fa; padding: 20px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
         .card-title { font-size: 20px; font-weight: bold; color: #2c5530; margin: 0; }
         .card-body { padding: 20px; }
 
@@ -72,6 +72,10 @@
         .method-btn { padding: 10px 20px; border: 2px solid #e0e0e0; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
         .method-btn.active { border-color: #4a7c59; background: #4a7c59; color: white; }
 
+        /* Format buttons */
+        .format-btn { padding: 8px 16px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; transition: all 0.2s; margin-right: 10px; }
+        .format-btn.active { border-color: #4a7c59; background: #4a7c59; color: white; }
+
         /* File Upload */
         .file-upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; }
         .file-upload-area:hover, .file-upload-area.dragover { border-color: #4a7c59; background: #f8fffe; }
@@ -101,6 +105,51 @@
         .poi-type { padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
         .poi-type.selected { border-color: #4a7c59; background: #4a7c59; color: white; }
         .poi-icon { font-size: 24px; margin-bottom: 8px; }
+
+        /* Description Form Styles */
+        .description-section-header { 
+            color: #4a7c59; 
+            border-bottom: 2px solid #e0e0e0; 
+            padding-bottom: 8px; 
+            margin-bottom: 15px; 
+            margin-top: 25px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .description-subsection {
+            background: #f8f9fa;
+            border-left: 4px solid #4a7c59;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .toggle-description-btn {
+            background: #e9ecef;
+            border: 2px solid #dee2e6;
+            color: #495057;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        
+        .toggle-description-btn:hover {
+            background: #f8f9fa;
+            border-color: #4a7c59;
+            color: #4a7c59;
+        }
+        
+        .toggle-description-btn.active {
+            background: #4a7c59;
+            border-color: #4a7c59;
+            color: white;
+        }
 
         /* Responsive */
         @media (max-width: 768px) {
@@ -172,8 +221,8 @@
                             <div style="font-size: 32px; font-weight: bold; color: #155724;" id="geonamesCount">-</div>
                         </div>
                         <div style="text-align: center; padding: 20px; background: #cce7ff; border-radius: 8px;">
-                            <h3 style="color: #004085; margin-bottom: 10px;">Photos</h3>
-                            <div style="font-size: 32px; font-weight: bold; color: #004085;" id="photosCount">-</div>
+                            <h3 style="color: #004085; margin-bottom: 10px;">Descriptions</h3>
+                            <div style="font-size: 32px; font-weight: bold; color: #004085;" id="descriptionsCount">-</div>
                         </div>
                     </div>
                 </div>
@@ -323,8 +372,168 @@
                             <div id="villagePhotosPreview" class="photo-grid"></div>
                         </div>
 
-                        <div style="text-align: center; margin-top: 30px;">
-                            <button type="submit" class="btn btn-primary">
+                        <!-- Description détaillée du village -->
+                        <div class="form-group" style="border-top: 2px solid #e9ecef; padding-top: 30px; margin-top: 30px;">
+                            <label class="form-label" style="font-size: 18px;">
+                                <i class="fas fa-book"></i> Description détaillée du village
+                                <small style="font-weight: normal; color: #666; display: block; margin-top: 5px;">
+                                    (Optionnel - Ces informations seront affichées dans la fiche complète du village)
+                                </small>
+                            </label>
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                                <button type="button" class="toggle-description-btn" onclick="toggleDescriptionForm()" id="toggleDescBtn">
+                                    <i class="fas fa-plus"></i> Ajouter une description détaillée
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Formulaire de description (caché par défaut) -->
+                        <div id="descriptionForm" style="display: none;">
+                            <div class="admin-card" style="margin-bottom: 20px; border: 2px solid #4a7c59;">
+                                <div class="card-header" style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); color: white;">
+                                    <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                                        <i class="fas fa-scroll"></i> Description complète du village
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <!-- 1. Présentation générale -->
+                                    <div class="description-section-header">
+                                        <i class="fas fa-home"></i> 1. Présentation générale
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Histoire ou origine du nom</label>
+                                        <textarea class="form-textarea" id="histoireOrigine" rows="3" placeholder="Racontez l'histoire du village, l'origine de son nom..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Description des limites</label>
+                                        <textarea class="form-textarea" id="descriptionLimites" rows="2" placeholder="Décrivez les limites géographiques du village..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Importance dans la région</label>
+                                        <textarea class="form-textarea" id="importanceRegion" rows="2" placeholder="Quelle est l'importance de ce village dans la région..."></textarea>
+                                    </div>
+
+                                    <!-- 2. Culture & Traditions -->
+                                    <div class="description-section-header">
+                                        <i class="fas fa-drum"></i> 2. Culture & Traditions
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Danses, musiques, rites</label>
+                                        <textarea class="form-textarea" id="dansesMusiquesRites" rows="3" placeholder="Décrivez les danses traditionnelles, musiques, rites du village..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Gastronomie locale</label>
+                                        <textarea class="form-textarea" id="gastronomieLocale" rows="2" placeholder="Plats typiques, spécialités culinaires..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Fêtes traditionnelles</label>
+                                        <textarea class="form-textarea" id="fetesTraditionnelles" rows="2" placeholder="Fêtes, célébrations, événements annuels..."></textarea>
+                                    </div>
+
+                                    <!-- 3. Population -->
+                                    <div class="description-section-header">
+                                        <i class="fas fa-users"></i> 3. Population
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Structure démographique</label>
+                                        <textarea class="form-textarea" id="structureDemographique" rows="2" placeholder="Répartition par âge, sexe, niveaux d'éducation..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Groupes ethniques</label>
+                                        <textarea class="form-textarea" id="groupesEthniques" rows="2" placeholder="Groupes ethniques présents dans le village..."></textarea>
+                                    </div>
+
+                                    <!-- 4. Économie locale -->
+                                    <div class="description-section-header">
+                                        <i class="fas fa-coins"></i> 4. Économie locale
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Activités génératrices de revenus</label>
+                                        <textarea class="form-textarea" id="activitesGeneratrices" rows="3" placeholder="Agriculture, élevage, commerce, artisanat..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Produits typiques du terroir</label>
+                                        <textarea class="form-textarea" id="produitsTerroir" rows="2" placeholder="Produits agricoles, artisanaux spécifiques au village..."></textarea>
+                                    </div>
+
+                                    <!-- 5. Infrastructures -->
+                                    <div class="description-section-header">
+                                        <i class="fas fa-building"></i> 5. Infrastructures
+                                    </div>
+                                    
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label class="form-label">Écoles</label>
+                                            <textarea class="form-textarea" id="infrastructuresScolaires" rows="2" placeholder="Écoles primaires, secondaires, centres de formation..."></textarea>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label">Centres de santé</label>
+                                            <textarea class="form-textarea" id="infrastructuresSante" rows="2" placeholder="Centres de santé, dispensaires, hôpitaux..."></textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Routes et transport</label>
+                                        <textarea class="form-textarea" id="infrastructuresRoutes" rows="2" placeholder="État des routes, moyens de transport..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Accès à l'électricité/eau</label>
+                                        <textarea class="form-textarea" id="accesElecticiteEau" rows="2" placeholder="Électrification, points d'eau, puits, sources..."></textarea>
+                                    </div>
+
+                                    <!-- 6. Tourisme & Attractions -->
+                                    <div class="description-section-header">
+                                        <i class="fas fa-mountain"></i> 6. Tourisme & Attractions
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Sites naturels</label>
+                                        <textarea class="form-textarea" id="sitesNaturels" rows="3" placeholder="Rivières, montagnes, forêts, cascades, grottes..."></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Sites culturels</label>
+                                        <textarea class="form-textarea" id="sitesCulturels" rows="3" placeholder="Chefferie, monuments, musées, sites historiques..."></textarea>
+                                    </div>
+
+                                    <!-- 7. Personnalités -->
+                                    <div class="description-section-header">
+                                        <i class="fas fa-star"></i> 7. Personnalités
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Personnalités originaires du village</label>
+                                        <textarea class="form-textarea" id="personnalitesOriginaires" rows="3" placeholder="Personnalités célèbres, dirigeants, artistes, intellectuels originaires du village..."></textarea>
+                                    </div>
+
+                                    <!-- Options de publication -->
+                                    <div class="form-group" style="background: #e8f5e8; padding: 15px; border-radius: 8px; border: 2px solid #4a7c59;">
+                                        <label style="display: flex; align-items: center; gap: 10px; font-weight: bold; color: #2c5530;">
+                                            <input type="checkbox" id="publishDescription" style="transform: scale(1.2);">
+                                            <i class="fas fa-globe"></i> Publier cette description (visible au public)
+                                        </label>
+                                        <small style="color: #666; margin-left: 30px; display: block; margin-top: 5px;">
+                                            Si coché, la description sera visible dans la fiche publique du village
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                            <button type="submit" class="btn btn-primary" style="font-size: 16px; padding: 15px 30px;">
                                 <i class="fas fa-save"></i> Enregistrer le Village
                             </button>
                         </div>
@@ -573,56 +782,7 @@
         let selectedPOIPosition = null;
         let selectedGeonamePosition = null;
         let currentGeomFormat = 'wkt';
-
-        function selectGeomFormat(format) {
-            currentGeomFormat = format;
-            
-            // Mettre à jour les boutons
-            document.querySelectorAll('.format-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Afficher/masquer les sections appropriées
-            if (format === 'wkt') {
-                document.getElementById('wktSection').style.display = 'block';
-                document.getElementById('geojsonSection').style.display = 'none';
-            } else {
-                document.getElementById('wktSection').style.display = 'none';
-                document.getElementById('geojsonSection').style.display = 'block';
-            }
-        }
-
-        function parseGeometryInput(input, format) {
-            try {
-                if (format === 'wkt') {
-                    // Pour WKT, on retourne directement la chaîne
-                    return input.trim();
-                } else if (format === 'geojson') {
-                    // Pour GeoJSON, on parse et on convertit en WKT
-                    const geojson = JSON.parse(input);
-                    
-                    if (!geojson.type || !geojson.coordinates) {
-                        throw new Error('Format GeoJSON invalide');
-                    }
-                    
-                    if (geojson.type === 'Polygon') {
-                        const coords = geojson.coordinates[0].map(coord => `${coord[0]} ${coord[1]}`).join(', ');
-                        return `POLYGON((${coords}))`;
-                    } else if (geojson.type === 'MultiPolygon') {
-                        const polygons = geojson.coordinates.map(polygon => {
-                            const coords = polygon[0].map(coord => `${coord[0]} ${coord[1]}`).join(', ');
-                            return `((${coords}))`;
-                        }).join(', ');
-                        return `MULTIPOLYGON(${polygons})`;
-                    } else {
-                        throw new Error('Type de géométrie GeoJSON non supporté. Utilisez Polygon ou MultiPolygon.');
-                    }
-                }
-            } catch (error) {
-                throw new Error(`Erreur de parsing ${format.toUpperCase()}: ${error.message}`);
-            }
-        }
+        let currentGeomMethod = 'upload';
         let currentPOIMethod = 'upload';
         let currentGeonameMethod = 'upload';
         let chiefPhotoFile = null;
@@ -631,7 +791,7 @@
         let poiMarker = null;
         let geonameMarker = null;
 
-        // Types de POI (avec chefferies ajoutées)
+        // Types de POI
         const POI_TYPES = {
             'school': { label: 'École', icon: 'fa-school', color: '#4CAF50' },
             'hospital': { label: 'Hôpital', icon: 'fa-hospital', color: '#F44336' },
@@ -658,21 +818,16 @@
         }
 
         function showSection(sectionName) {
-            // Masquer toutes les sections
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
             });
-            
-            // Masquer tous les onglets actifs
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            // Afficher la section sélectionnée
             document.getElementById(sectionName).classList.add('active');
             event.target.classList.add('active');
             
-            // Charger les données selon la section
             switch(sectionName) {
                 case 'dashboard':
                     loadDashboardStats();
@@ -689,10 +844,8 @@
             }
         }
 
-        // Fonctions d'authentification
         function logout() {
             if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-                // Rediriger vers la page principale
                 window.location.href = 'index.html';
             }
         }
@@ -700,20 +853,185 @@
         // Fonctions de chargement des données
         async function loadDashboardStats() {
             try {
-                const [villages, poi, geonames, photos] = await Promise.all([
+                const [villages, poi, geonames, descriptions] = await Promise.all([
                     supabase.from('villages').select('id', { count: 'exact', head: true }),
                     supabase.from('poi').select('id', { count: 'exact', head: true }),
                     supabase.from('geonames').select('id', { count: 'exact', head: true }),
-                    supabase.from('village_photos').select('id', { count: 'exact', head: true })
+                    supabase.from('village_descriptions').select('id', { count: 'exact', head: true })
                 ]);
 
                 document.getElementById('villageCount').textContent = villages.count || 0;
                 document.getElementById('poiCount').textContent = poi.count || 0;
                 document.getElementById('geonamesCount').textContent = geonames.count || 0;
-                document.getElementById('photosCount').textContent = photos.count || 0;
+                document.getElementById('descriptionsCount').textContent = descriptions.count || 0;
             } catch (error) {
                 console.error('Erreur chargement statistiques:', error);
                 showNotification('Erreur lors du chargement des statistiques', 'error');
+            }
+        }
+
+        // Fonctions pour la gestion de la description
+        function toggleDescriptionForm() {
+            const form = document.getElementById('descriptionForm');
+            const button = document.getElementById('toggleDescBtn');
+            
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                button.innerHTML = '<i class="fas fa-minus"></i> Masquer la description';
+                button.classList.add('active');
+            } else {
+                form.style.display = 'none';
+                button.innerHTML = '<i class="fas fa-plus"></i> Ajouter une description détaillée';
+                button.classList.remove('active');
+            }
+        }
+
+        function collectDescriptionData() {
+            return {
+                histoire_origine: document.getElementById('histoireOrigine').value.trim() || null,
+                description_limites: document.getElementById('descriptionLimites').value.trim() || null,
+                importance_region: document.getElementById('importanceRegion').value.trim() || null,
+                danses_musiques_rites: document.getElementById('dansesMusiquesRites').value.trim() || null,
+                gastronomie_locale: document.getElementById('gastronomieLocale').value.trim() || null,
+                fetes_traditionnelles: document.getElementById('fetesTraditionnelles').value.trim() || null,
+                structure_demographique: document.getElementById('structureDemographique').value.trim() || null,
+                groupes_ethniques: document.getElementById('groupesEthniques').value.trim() || null,
+                activites_generatrices: document.getElementById('activitesGeneratrices').value.trim() || null,
+                produits_terroir: document.getElementById('produitsTerroir').value.trim() || null,
+                infrastructures_scolaires: document.getElementById('infrastructuresScolaires').value.trim() || null,
+                infrastructures_sante: document.getElementById('infrastructuresSante').value.trim() || null,
+                infrastructures_routes: document.getElementById('infrastructuresRoutes').value.trim() || null,
+                acces_electricite_eau: document.getElementById('accesElecticiteEau').value.trim() || null,
+                sites_naturels: document.getElementById('sitesNaturels').value.trim() || null,
+                sites_culturels: document.getElementById('sitesCulturels').value.trim() || null,
+                personnalites_originaires: document.getElementById('personnalitesOriginaires').value.trim() || null,
+                is_published: document.getElementById('publishDescription').checked
+            };
+        }
+
+        function resetDescriptionForm() {
+            const form = document.getElementById('descriptionForm');
+            const button = document.getElementById('toggleDescBtn');
+            
+            const fields = [
+                'histoireOrigine', 'descriptionLimites', 'importanceRegion',
+                'dansesMusiquesRites', 'gastronomieLocale', 'fetesTraditionnelles',
+                'structureDemographique', 'groupesEthniques', 'activitesGeneratrices',
+                'produitsTerroir', 'infrastructuresScolaires', 'infrastructuresSante',
+                'infrastructuresRoutes', 'accesElecticiteEau', 'sitesNaturels',
+                'sitesCulturels', 'personnalitesOriginaires'
+            ];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.value = '';
+            });
+            
+            document.getElementById('publishDescription').checked = false;
+            
+            form.style.display = 'none';
+            button.innerHTML = '<i class="fas fa-plus"></i> Ajouter une description détaillée';
+            button.classList.remove('active');
+        }
+
+        async function saveVillageDescription(villageId, descriptionData) {
+            if (!villageId || !descriptionData) return null;
+            
+            const hasContent = Object.values(descriptionData).some(value => 
+                value !== null && value !== false && value !== ''
+            );
+            
+            if (!hasContent) {
+                console.log('Aucune description à sauvegarder');
+                return null;
+            }
+            
+            try {
+                const dataToSave = {
+                    village_id: villageId,
+                    ...descriptionData
+                };
+                
+                const { data: existing, error: checkError } = await supabase
+                    .from('village_descriptions')
+                    .select('id')
+                    .eq('village_id', villageId)
+                    .single();
+                
+                if (checkError && checkError.code !== 'PGRST116') {
+                    throw checkError;
+                }
+                
+                let result;
+                if (existing) {
+                    const { data, error } = await supabase
+                        .from('village_descriptions')
+                        .update(dataToSave)
+                        .eq('village_id', villageId)
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    result = data;
+                    console.log('Description mise à jour');
+                } else {
+                    const { data, error } = await supabase
+                        .from('village_descriptions')
+                        .insert([dataToSave])
+                        .select()
+                        .single();
+                    
+                    if (error) throw error;
+                    result = data;
+                    console.log('Description créée');
+                }
+                
+                return result;
+                
+            } catch (error) {
+                console.error('Erreur sauvegarde description:', error);
+                throw error;
+            }
+        }
+
+        // Fonctions Villages
+        function showAddVillageForm() {
+            document.getElementById('addVillageForm').style.display = 'block';
+            loadArrondissements();
+            
+            if (!adminMap) {
+                setTimeout(() => {
+                    initializeAdminMap();
+                }, 100);
+            }
+        }
+
+        function hideAddVillageForm() {
+            document.getElementById('addVillageForm').style.display = 'none';
+            resetVillageForm();
+        }
+
+        function resetVillageForm() {
+            document.getElementById('villageForm').reset();
+            currentGeometry = null;
+            currentGeomFormat = 'wkt';
+            chiefPhotoFile = null;
+            villagePhotoFiles = [];
+            document.getElementById('chiefPhotoPreview').innerHTML = '';
+            document.getElementById('villagePhotosPreview').innerHTML = '';
+            
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.format-btn[onclick="selectGeomFormat(\'wkt\')"]').classList.add('active');
+            
+            document.getElementById('wktSection').style.display = 'block';
+            document.getElementById('geojsonSection').style.display = 'none';
+            
+            resetDescriptionForm();
+            
+            if (drawnItems) {
+                drawnItems.clearLayers();
             }
         }
 
@@ -740,7 +1058,7 @@
         async function loadVillagesList() {
             try {
                 const { data, error } = await supabase
-                    .from('villages_complete_extended')
+                    .from('villages_with_full_info')
                     .select('*')
                     .order('village_name');
 
@@ -761,7 +1079,7 @@
                                 <th>Arrondissement</th>
                                 <th>Superficie</th>
                                 <th>Population</th>
-                                <th>Photos</th>
+                                <th>Description</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -770,10 +1088,15 @@
                                 <tr>
                                     <td><strong>${village.village_name}</strong></td>
                                     <td>${village.chief_name || 'Non renseigné'}</td>
-                                    <td>${village.arrondissement_name}</td>
+                                    <td>${village.nom_arrondissement}</td>
                                     <td>${village.area_hectares ? (village.area_hectares).toFixed(2) + ' ha' : 'Non calculé'}</td>
                                     <td>${village.population || 'Non renseigné'}</td>
-                                    <td>${village.photos_count} photo(s)</td>
+                                    <td>
+                                        ${village.description_published ? 
+                                            '<span style="color: #28a745;"><i class="fas fa-check-circle"></i> Publiée</span>' : 
+                                            '<span style="color: #dc3545;"><i class="fas fa-times-circle"></i> Non publiée</span>'
+                                        }
+                                    </td>
                                     <td>
                                         <button class="btn btn-secondary" onclick="editVillage('${village.id}')" style="padding: 5px 10px; margin-right: 5px;">
                                             <i class="fas fa-edit"></i>
@@ -793,163 +1116,61 @@
             }
         }
 
-        async function loadPOIList() {
-            try {
-                const { data, error } = await supabase
-                    .from('poi_with_location')
-                    .select('*')
-                    .order('name');
-
-                if (error) throw error;
-
-                const container = document.getElementById('poiList');
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Aucun POI enregistré</p>';
-                    return;
-                }
-
-                container.innerHTML = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nom</th>
-                                <th>Type</th>
-                                <th>Village</th>
-                                <th>Arrondissement</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.map(poi => `
-                                <tr>
-                                    <td><strong>${poi.name}</strong></td>
-                                    <td>
-                                        <i class="fas ${POI_TYPES[poi.type]?.icon || 'fa-map-pin'}" style="color: ${POI_TYPES[poi.type]?.color || '#666'}; margin-right: 5px;"></i>
-                                        ${poi.type_label || poi.type}
-                                    </td>
-                                    <td>${poi.village_name || 'Non associé'}</td>
-                                    <td>${poi.arrondissement_name || 'Non localisé'}</td>
-                                    <td>
-                                        <button class="btn btn-secondary" onclick="editPOI('${poi.id}')" style="padding: 5px 10px; margin-right: 5px;">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-danger" onclick="deletePOI('${poi.id}')" style="padding: 5px 10px;">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-            } catch (error) {
-                console.error('Erreur chargement POI:', error);
-                showNotification('Erreur lors du chargement des POI', 'error');
-            }
-        }
-
-        async function loadGeonamesList() {
-            try {
-                const { data, error } = await supabase
-                    .from('geonames')
-                    .select('*')
-                    .order('nom');
-
-                if (error) throw error;
-
-                const container = document.getElementById('geonamesList');
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Aucun géonyme enregistré</p>';
-                    return;
-                }
-
-                container.innerHTML = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nom</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.map(geoname => `
-                                <tr>
-                                    <td><strong>${geoname.nom}</strong></td>
-                                    <td>${geoname.type}</td>
-                                    <td>${geoname.description || 'Aucune description'}</td>
-                                    <td>
-                                        <button class="btn btn-secondary" onclick="editGeoname('${geoname.id}')" style="padding: 5px 10px; margin-right: 5px;">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-danger" onclick="deleteGeoname('${geoname.id}')" style="padding: 5px 10px;">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-            } catch (error) {
-                console.error('Erreur chargement géonymes:', error);
-                showNotification('Erreur lors du chargement des géonymes', 'error');
-            }
-        }
-
-        // Fonctions Villages
-        function showAddVillageForm() {
-            document.getElementById('addVillageForm').style.display = 'block';
-            loadArrondissements();
+        // Fonctions géométrie
+        function selectGeomFormat(format) {
+            currentGeomFormat = format;
             
-            // Initialiser la carte si elle n'existe pas
-            if (!adminMap) {
-                setTimeout(() => {
-                    initializeAdminMap();
-                }, 100);
-            }
-        }
-
-        function hideAddVillageForm() {
-            document.getElementById('addVillageForm').style.display = 'none';
-            resetVillageForm();
-        }
-
-        function resetVillageForm() {
-            document.getElementById('villageForm').reset();
-            currentGeometry = null;
-            currentGeomFormat = 'wkt';
-            chiefPhotoFile = null;
-            villagePhotoFiles = [];
-            document.getElementById('chiefPhotoPreview').innerHTML = '';
-            document.getElementById('villagePhotosPreview').innerHTML = '';
-            
-            // Réinitialiser les boutons de format
             document.querySelectorAll('.format-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            document.querySelector('.format-btn[onclick="selectGeomFormat(\'wkt\')"]').classList.add('active');
+            event.target.classList.add('active');
             
-            // Réinitialiser l'affichage des sections
-            document.getElementById('wktSection').style.display = 'block';
-            document.getElementById('geojsonSection').style.display = 'none';
-            
-            if (drawnItems) {
-                drawnItems.clearLayers();
+            if (format === 'wkt') {
+                document.getElementById('wktSection').style.display = 'block';
+                document.getElementById('geojsonSection').style.display = 'none';
+            } else {
+                document.getElementById('wktSection').style.display = 'none';
+                document.getElementById('geojsonSection').style.display = 'block';
+            }
+        }
+
+        function parseGeometryInput(input, format) {
+            try {
+                if (format === 'wkt') {
+                    return input.trim();
+                } else if (format === 'geojson') {
+                    const geojson = JSON.parse(input);
+                    
+                    if (!geojson.type || !geojson.coordinates) {
+                        throw new Error('Format GeoJSON invalide');
+                    }
+                    
+                    if (geojson.type === 'Polygon') {
+                        const coords = geojson.coordinates[0].map(coord => `${coord[0]} ${coord[1]}`).join(', ');
+                        return `POLYGON((${coords}))`;
+                    } else if (geojson.type === 'MultiPolygon') {
+                        const polygons = geojson.coordinates.map(polygon => {
+                            const coords = polygon[0].map(coord => `${coord[0]} ${coord[1]}`).join(', ');
+                            return `((${coords}))`;
+                        }).join(', ');
+                        return `MULTIPOLYGON(${polygons})`;
+                    } else {
+                        throw new Error('Type de géométrie GeoJSON non supporté. Utilisez Polygon ou MultiPolygon.');
+                    }
+                }
+            } catch (error) {
+                throw new Error(`Erreur de parsing ${format.toUpperCase()}: ${error.message}`);
             }
         }
 
         function selectGeomMethod(method) {
             currentGeomMethod = method;
             
-            // Mettre à jour les boutons
             document.querySelectorAll('#addVillageForm .method-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            // Afficher/masquer les sections appropriées
             if (method === 'upload') {
                 document.getElementById('uploadGeomSection').style.display = 'block';
                 document.getElementById('drawGeomSection').style.display = 'none';
@@ -957,7 +1178,6 @@
                 document.getElementById('uploadGeomSection').style.display = 'none';
                 document.getElementById('drawGeomSection').style.display = 'block';
                 
-                // Initialiser la carte si nécessaire
                 if (!adminMap) {
                     setTimeout(() => {
                         initializeAdminMap();
@@ -971,7 +1191,6 @@
             
             adminMap = L.map('adminMap').setView([4.1485, 9.504], 7);
             
-            // Fond de carte
             L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
                 attribution: '© Mapbox © OpenStreetMap',
                 id: 'mapbox/streets-v11',
@@ -979,7 +1198,6 @@
                 maxZoom: 18
             }).addTo(adminMap);
             
-            // Initialiser les contrôles de dessin
             drawnItems = new L.FeatureGroup();
             adminMap.addLayer(drawnItems);
             
@@ -1001,7 +1219,6 @@
                 var layer = e.layer;
                 drawnItems.addLayer(layer);
                 
-                // Convertir en format WKT
                 const coords = layer.getLatLngs()[0].map(point => `${point.lng} ${point.lat}`).join(', ');
                 currentGeometry = `POLYGON((${coords}))`;
                 
@@ -1093,11 +1310,9 @@
         function removeVillagePhoto(index) {
             villagePhotoFiles.splice(index, 1);
             
-            // Recréer l'input file
             const input = document.getElementById('villagePhotos');
             input.value = '';
             
-            // Recharger l'aperçu
             const preview = document.getElementById('villagePhotosPreview');
             preview.innerHTML = '';
             
@@ -1116,230 +1331,50 @@
             });
         }
 
-        // Fonctions POI
-        function showAddPOIForm() {
-            document.getElementById('addPOIForm').style.display = 'block';
-            loadVillagesForPOI();
-            generatePOITypes();
-            
-            // Initialiser la carte POI si nécessaire
-            setTimeout(() => {
-                if (!poiMap) {
-                    initializePOIMap();
-                }
-            }, 100);
-        }
-
-        function hideAddPOIForm() {
-            document.getElementById('addPOIForm').style.display = 'none';
-            resetPOIForm();
-        }
-
-        function resetPOIForm() {
-            document.getElementById('poiForm').reset();
-            selectedPOIType = null;
-            selectedPOIPosition = null;
-            document.getElementById('selectedPOIPosition').textContent = 'Aucune';
-            
-            // Réinitialiser les types POI
-            document.querySelectorAll('.poi-type').forEach(type => {
-                type.classList.remove('selected');
-            });
-            
-            if (poiMarker && poiMap) {
-                poiMap.removeLayer(poiMarker);
-                poiMarker = null;
-            }
-        }
-
-        async function loadVillagesForPOI() {
+        // Fonction d'upload des photos
+        async function uploadPhoto(file, fileName) {
             try {
-                const { data, error } = await supabase
-                    .from('villages')
-                    .select('id, village_name')
-                    .eq('is_active', true)
-                    .order('village_name');
-
+                if (!file || !file.type.startsWith('image/')) {
+                    throw new Error('Fichier image requis');
+                }
+                
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                if (file.size > maxSize) {
+                    throw new Error('La taille du fichier ne doit pas dépasser 5MB');
+                }
+                
+                const timestamp = Date.now();
+                const randomStr = Math.random().toString(36).substring(2, 8);
+                const extension = file.name.split('.').pop().toLowerCase();
+                const uniqueFileName = `${fileName}_${timestamp}_${randomStr}.${extension}`;
+                
+                const { data, error } = await supabase.storage
+                    .from('village-photos')
+                    .upload(uniqueFileName, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+                
                 if (error) throw error;
-
-                const select = document.getElementById('poiVillage');
-                select.innerHTML = '<option value="">Aucun village spécifique</option>';
                 
-                data.forEach(village => {
-                    select.innerHTML += `<option value="${village.id}">${village.village_name}</option>`;
-                });
+                const { data: { publicUrl } } = supabase.storage
+                    .from('village-photos')
+                    .getPublicUrl(uniqueFileName);
+                
+                return publicUrl;
+                
             } catch (error) {
-                console.error('Erreur chargement villages pour POI:', error);
+                console.error('Erreur upload photo:', error);
+                showNotification(`Erreur upload photo: ${error.message}`, 'error');
+                return null;
             }
         }
 
-        function generatePOITypes() {
-            const container = document.getElementById('poiTypes');
-            container.innerHTML = '';
-            
-            Object.entries(POI_TYPES).forEach(([key, type]) => {
-                const typeDiv = document.createElement('div');
-                typeDiv.className = 'poi-type';
-                typeDiv.onclick = () => selectPOIType(key);
-                typeDiv.innerHTML = `
-                    <div class="poi-icon">
-                        <i class="fas ${type.icon}" style="color: ${type.color};"></i>
-                    </div>
-                    <div>${type.label}</div>
-                `;
-                container.appendChild(typeDiv);
-            });
-        }
-
-        function selectPOIType(type) {
-            selectedPOIType = type;
-            
-            // Mettre à jour la sélection visuelle
-            document.querySelectorAll('.poi-type').forEach(typeEl => {
-                typeEl.classList.remove('selected');
-            });
-            event.target.closest('.poi-type').classList.add('selected');
-        }
-
-        function selectPOIMethod(method) {
-            currentPOIMethod = method;
-            
-            // Mettre à jour les boutons
-            document.querySelectorAll('#addPOIForm .method-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Afficher/masquer les sections appropriées
-            if (method === 'upload') {
-                document.getElementById('uploadPOISection').style.display = 'block';
-                document.getElementById('clickPOISection').style.display = 'none';
-            } else {
-                document.getElementById('uploadPOISection').style.display = 'none';
-                document.getElementById('clickPOISection').style.display = 'block';
-                
-                if (!poiMap) {
-                    setTimeout(() => {
-                        initializePOIMap();
-                    }, 100);
-                }
-            }
-        }
-
-        function initializePOIMap() {
-            if (poiMap) return;
-            
-            poiMap = L.map('poiMap').setView([4.1485, 9.504], 7);
-            
-            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: '© Mapbox © OpenStreetMap',
-                id: 'mapbox/streets-v11',
-                accessToken: CONFIG.mapbox.accessToken,
-                maxZoom: 18
-            }).addTo(poiMap);
-            
-            poiMap.on('click', function(e) {
-                // Supprimer le marqueur précédent
-                if (poiMarker) {
-                    poiMap.removeLayer(poiMarker);
-                }
-                
-                // Ajouter un nouveau marqueur
-                poiMarker = L.marker(e.latlng).addTo(poiMap);
-                selectedPOIPosition = e.latlng;
-                
-                // Mettre à jour l'affichage
-                document.getElementById('selectedPOIPosition').textContent = 
-                    `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
-            });
-        }
-
-        // Fonctions Géonymes
-        function showAddGeonameForm() {
-            document.getElementById('addGeonameForm').style.display = 'block';
-            
-            setTimeout(() => {
-                if (!geonameMap) {
-                    initializeGeonameMap();
-                }
-            }, 100);
-        }
-
-        function hideAddGeonameForm() {
-            document.getElementById('addGeonameForm').style.display = 'none';
-            resetGeonameForm();
-        }
-
-        function resetGeonameForm() {
-            document.getElementById('geonameForm').reset();
-            selectedGeonamePosition = null;
-            document.getElementById('selectedGeonamePosition').textContent = 'Aucune';
-            
-            if (geonameMarker && geonameMap) {
-                geonameMap.removeLayer(geonameMarker);
-                geonameMarker = null;
-            }
-        }
-
-        function selectGeonameMethod(method) {
-            currentGeonameMethod = method;
-            
-            // Mettre à jour les boutons
-            document.querySelectorAll('#addGeonameForm .method-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Afficher/masquer les sections appropriées
-            if (method === 'upload') {
-                document.getElementById('uploadGeonameSection').style.display = 'block';
-                document.getElementById('clickGeonameSection').style.display = 'none';
-            } else {
-                document.getElementById('uploadGeonameSection').style.display = 'none';
-                document.getElementById('clickGeonameSection').style.display = 'block';
-                
-                if (!geonameMap) {
-                    setTimeout(() => {
-                        initializeGeonameMap();
-                    }, 100);
-                }
-            }
-        }
-
-        function initializeGeonameMap() {
-            if (geonameMap) return;
-            
-            geonameMap = L.map('geonameMap').setView([4.1485, 9.504], 7);
-            
-            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: '© Mapbox © OpenStreetMap',
-                id: 'mapbox/streets-v11',
-                accessToken: CONFIG.mapbox.accessToken,
-                maxZoom: 18
-            }).addTo(geonameMap);
-            
-            geonameMap.on('click', function(e) {
-                // Supprimer le marqueur précédent
-                if (geonameMarker) {
-                    geonameMap.removeLayer(geonameMarker);
-                }
-                
-                // Ajouter un nouveau marqueur
-                geonameMarker = L.marker(e.latlng).addTo(geonameMap);
-                selectedGeonamePosition = e.latlng;
-                
-                // Mettre à jour l'affichage
-                document.getElementById('selectedGeonamePosition').textContent = 
-                    `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
-            });
-        }
-
-        // Fonctions de soumission des formulaires
+        // Soumission du formulaire village
         document.getElementById('villageForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             try {
-                // Validation
                 const villageName = document.getElementById('villageName').value.trim();
                 const arrondissement = document.getElementById('villageArrondissement').value;
                 
@@ -1348,7 +1383,6 @@
                     return;
                 }
                 
-                // Récupérer la géométrie
                 let geometry;
                 if (currentGeomMethod === 'upload') {
                     const input = currentGeomFormat === 'wkt' 
@@ -1360,12 +1394,7 @@
                         return;
                     }
                     
-                    try {
-                        geometry = parseGeometryInput(input, currentGeomFormat);
-                    } catch (error) {
-                        showNotification(error.message, 'error');
-                        return;
-                    }
+                    geometry = parseGeometryInput(input, currentGeomFormat);
                 } else {
                     if (!currentGeometry) {
                         showNotification('Veuillez dessiner le polygone du village', 'error');
@@ -1374,7 +1403,6 @@
                     geometry = currentGeometry;
                 }
                 
-                // Préparer les données du village
                 const villageData = {
                     village_name: villageName,
                     id_arrondissement: parseInt(arrondissement),
@@ -1387,7 +1415,6 @@
                     is_active: true
                 };
                 
-                // Insérer le village
                 const { data: village, error: villageError } = await supabase
                     .from('villages')
                     .insert([villageData])
@@ -1396,10 +1423,9 @@
                 
                 if (villageError) throw villageError;
                 
-                // Upload des photos si présentes
                 const villageId = village.id;
                 
-                // Photo du chef
+                // Upload photo du chef
                 if (chiefPhotoFile) {
                     const photoUrl = await uploadPhoto(chiefPhotoFile, `chief_${villageId}_${Date.now()}`);
                     if (photoUrl) {
@@ -1410,7 +1436,7 @@
                     }
                 }
                 
-                // Photos du village
+                // Upload photos du village
                 for (let i = 0; i < villagePhotoFiles.length; i++) {
                     const file = villagePhotoFiles[i];
                     const photoUrl = await uploadPhoto(file, `village_${villageId}_${i + 1}_${Date.now()}`);
@@ -1427,6 +1453,14 @@
                     }
                 }
                 
+                // Sauvegarder la description
+                const descriptionData = collectDescriptionData();
+                try {
+                    await saveVillageDescription(villageId, descriptionData);
+                } catch (descError) {
+                    console.warn('Erreur sauvegarde description:', descError);
+                }
+                
                 showNotification('Village ajouté avec succès', 'success');
                 hideAddVillageForm();
                 loadVillagesList();
@@ -1437,193 +1471,23 @@
             }
         });
 
-        document.getElementById('poiForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            try {
-                // Validation
-                const poiName = document.getElementById('poiName').value.trim();
-                
-                if (!poiName || !selectedPOIType) {
-                    showNotification('Veuillez remplir le nom et sélectionner un type', 'error');
-                    return;
-                }
-                
-                // Récupérer la position
-                let lat, lng;
-                if (currentPOIMethod === 'upload') {
-                    lat = parseFloat(document.getElementById('poiLatitude').value);
-                    lng = parseFloat(document.getElementById('poiLongitude').value);
-                    
-                    if (!lat || !lng) {
-                        showNotification('Veuillez saisir des coordonnées valides', 'error');
-                        return;
-                    }
-                } else {
-                    if (!selectedPOIPosition) {
-                        showNotification('Veuillez cliquer sur la carte pour positionner le POI', 'error');
-                        return;
-                    }
-                    lat = selectedPOIPosition.lat;
-                    lng = selectedPOIPosition.lng;
-                }
-                
-                // Préparer les données du POI
-                const poiData = {
-                    name: poiName,
-                    type: selectedPOIType,
-                    description: document.getElementById('poiDescription').value.trim() || null,
-                    village_id: document.getElementById('poiVillage').value || null,
-                    geom: `POINT(${lng} ${lat})`,
-                    is_active: true
-                };
-                
-                // Insérer le POI
-                const { error } = await supabase
-                    .from('poi')
-                    .insert([poiData]);
-                
-                if (error) throw error;
-                
-                showNotification('POI ajouté avec succès', 'success');
-                hideAddPOIForm();
-                loadPOIList();
-                
-            } catch (error) {
-                console.error('Erreur ajout POI:', error);
-                showNotification('Erreur lors de l\'ajout du POI: ' + error.message, 'error');
-            }
-        });
-
-        document.getElementById('geonameForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            try {
-                // Validation
-                const geonameName = document.getElementById('geonameName').value.trim();
-                const geonameType = document.getElementById('geonameType').value;
-                
-                if (!geonameName || !geonameType) {
-                    showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                    return;
-                }
-                
-                // Récupérer la position
-                let lat, lng;
-                if (currentGeonameMethod === 'upload') {
-                    lat = parseFloat(document.getElementById('geonameLatitude').value);
-                    lng = parseFloat(document.getElementById('geonameLongitude').value);
-                    
-                    if (!lat || !lng) {
-                        showNotification('Veuillez saisir des coordonnées valides', 'error');
-                        return;
-                    }
-                } else {
-                    if (!selectedGeonamePosition) {
-                        showNotification('Veuillez cliquer sur la carte pour positionner le géonyme', 'error');
-                        return;
-                    }
-                    lat = selectedGeonamePosition.lat;
-                    lng = selectedGeonamePosition.lng;
-                }
-                
-                // Préparer les données du géonyme
-                const geonameData = {
-                    nom: geonameName,
-                    type: geonameType,
-                    description: document.getElementById('geonameDescription').value.trim() || null,
-                    geom: `POINT(${lng} ${lat})`,
-                    is_active: true
-                };
-                
-                // Insérer le géonyme
-                const { error } = await supabase
-                    .from('geonames')
-                    .insert([geonameData]);
-                
-                if (error) throw error;
-                
-                showNotification('Géonyme ajouté avec succès', 'success');
-                hideAddGeonameForm();
-                loadGeonamesList();
-                
-            } catch (error) {
-                console.error('Erreur ajout géonyme:', error);
-                showNotification('Erreur lors de l\'ajout du géonyme: ' + error.message, 'error');
-            }
-        });
-
-        // Fonction d'upload des photos avec Supabase Storage
-        async function uploadPhoto(file, fileName) {
-            try {
-                // Valider le fichier
-                if (!file || !file.type.startsWith('image/')) {
-                    throw new Error('Fichier image requis');
-                }
-                
-                // Vérifier la taille (max 5MB)
-                const maxSize = 5 * 1024 * 1024; // 5MB
-                if (file.size > maxSize) {
-                    throw new Error('La taille du fichier ne doit pas dépasser 5MB');
-                }
-                
-                // Générer un nom de fichier unique
-                const timestamp = Date.now();
-                const randomStr = Math.random().toString(36).substring(2, 8);
-                const extension = file.name.split('.').pop().toLowerCase();
-                const uniqueFileName = `${fileName}_${timestamp}_${randomStr}.${extension}`;
-                
-                console.log(`Upload de ${uniqueFileName} vers village-photos...`);
-                
-                // Upload vers Supabase Storage
-                const { data, error } = await supabase.storage
-                    .from('village-photos')
-                    .upload(uniqueFileName, file, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-                
-                if (error) {
-                    console.error('Erreur upload Supabase:', error);
-                    throw error;
-                }
-                
-                // Obtenir l'URL publique
-                const { data: { publicUrl } } = supabase.storage
-                    .from('village-photos')
-                    .getPublicUrl(uniqueFileName);
-                
-                console.log(`Photo uploadée avec succès: ${publicUrl}`);
-                return publicUrl;
-                
-            } catch (error) {
-                console.error('Erreur upload photo:', error);
-                showNotification(`Erreur upload photo: ${error.message}`, 'error');
-                return null;
-            }
+        // Fonctions placeholders pour POI et Geonames
+        function showAddPOIForm() { 
+            showNotification('Fonctionnalité POI en développement', 'info'); 
+        }
+        function hideAddPOIForm() { }
+        function showAddGeonameForm() { 
+            showNotification('Fonctionnalité Géonymes en développement', 'info'); 
+        }
+        function hideAddGeonameForm() { }
+        function loadPOIList() { 
+            document.getElementById('poiList').innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Fonctionnalité en développement</p>'; 
+        }
+        function loadGeonamesList() { 
+            document.getElementById('geonamesList').innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Fonctionnalité en développement</p>'; 
         }
 
-        // Fonction pour supprimer une photo du storage
-        async function deletePhoto(photoUrl) {
-            try {
-                // Extraire le nom du fichier de l'URL
-                const fileName = photoUrl.split('/').pop();
-                
-                const { error } = await supabase.storage
-                    .from('village-photos')
-                    .remove([fileName]);
-                
-                if (error) {
-                    console.error('Erreur suppression photo:', error);
-                } else {
-                    console.log(`Photo supprimée: ${fileName}`);
-                }
-            } catch (error) {
-                console.error('Erreur suppression photo:', error);
-            }
-        }
-
-        // Fonctions d'édition et suppression (placeholders)
+        // Fonctions d'édition et suppression
         window.editVillage = function(villageId) {
             showNotification('Fonction d\'édition en développement', 'info');
         };
@@ -1647,61 +1511,11 @@
             }
         };
 
-        window.editPOI = function(poiId) {
-            showNotification('Fonction d\'édition en développement', 'info');
-        };
-
-        window.deletePOI = async function(poiId) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer ce POI ?')) return;
-            
-            try {
-                const { error } = await supabase
-                    .from('poi')
-                    .update({ is_active: false })
-                    .eq('id', poiId);
-                
-                if (error) throw error;
-                
-                showNotification('POI supprimé avec succès', 'success');
-                loadPOIList();
-            } catch (error) {
-                console.error('Erreur suppression POI:', error);
-                showNotification('Erreur lors de la suppression', 'error');
-            }
-        };
-
-        window.editGeoname = function(geonameId) {
-            showNotification('Fonction d\'édition en développement', 'info');
-        };
-
-        window.deleteGeoname = async function(geonameId) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer ce géonyme ?')) return;
-            
-            try {
-                const { error } = await supabase
-                    .from('geonames')
-                    .update({ is_active: false })
-                    .eq('id', geonameId);
-                
-                if (error) throw error;
-                
-                showNotification('Géonyme supprimé avec succès', 'success');
-                loadGeonamesList();
-            } catch (error) {
-                console.error('Erreur suppression géonyme:', error);
-                showNotification('Erreur lors de la suppression', 'error');
-            }
-        };
-
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialiser Supabase
             supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
-            
-            // Charger les données du tableau de bord
             loadDashboardStats();
-            
-            console.log('Interface d\'administration initialisée');
+            console.log('Interface d\'administration initialisée avec descriptions détaillées');
         });
 
         // Rendre les fonctions globales accessibles
@@ -1715,13 +1529,11 @@
         window.clearDrawing = clearDrawing;
         window.removeChiefPhoto = removeChiefPhoto;
         window.removeVillagePhoto = removeVillagePhoto;
+        window.toggleDescriptionForm = toggleDescriptionForm;
         window.showAddPOIForm = showAddPOIForm;
         window.hideAddPOIForm = hideAddPOIForm;
-        window.selectPOIType = selectPOIType;
-        window.selectPOIMethod = selectPOIMethod;
         window.showAddGeonameForm = showAddGeonameForm;
         window.hideAddGeonameForm = hideAddGeonameForm;
-        window.selectGeonameMethod = selectGeonameMethod;
     </script>
 </body>
 </html>
