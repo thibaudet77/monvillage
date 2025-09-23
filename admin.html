@@ -62,19 +62,61 @@
         .btn-danger:hover { background: #c82333; }
         .btn-success { background: #28a745; color: white; }
         .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-info:hover { background: #138496; }
+
+        /* Action buttons (small) */
+        .btn-sm { padding: 8px 12px; font-size: 12px; min-width: auto; }
+
+        /* Tables */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        .data-table th { background: #f8f9fa; font-weight: 600; position: sticky; top: 0; }
+        .data-table tbody tr:hover { background: #f8f9fa; }
+        .data-table .actions { display: flex; gap: 5px; }
+
+        /* Search and Filter */
+        .controls-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .search-container { position: relative; flex: 1; max-width: 400px; }
+        .search-input { padding: 10px 40px 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; width: 100%; }
+        .search-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #666; }
+        .filter-container { display: flex; gap: 10px; align-items: center; }
+
+        /* Notifications */
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 8px; color: white; z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; max-width: 400px; }
+        .notification.show { transform: translateX(0); }
+        .notification.success { background: #28a745; }
+        .notification.error { background: #dc3545; }
+        .notification.warning { background: #ffc107; color: #333; }
+        .notification.info { background: #17a2b8; }
+
+        /* Pagination */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
+        .page-btn { padding: 8px 12px; border: 1px solid #dee2e6; background: white; cursor: pointer; border-radius: 4px; }
+        .page-btn:hover, .page-btn.active { background: #4a7c59; color: white; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Modal Styles */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; }
+        .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+        .modal { background: white; border-radius: 10px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: between; align-items: center; }
+        .modal-title { margin: 0; color: #2c5530; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; }
+        .modal-body { padding: 20px; }
+
+        /* Status badges */
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-published { background: #cce7ff; color: #004085; }
+        .status-draft { background: #fff3cd; color: #856404; }
 
         /* Map Container */
         .map-container { height: 400px; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 20px; }
         #adminMap { width: 100%; height: 100%; }
-
-        /* Geometry Input Methods */
-        .geom-method-selector { display: flex; gap: 10px; margin-bottom: 20px; }
-        .method-btn { padding: 10px 20px; border: 2px solid #e0e0e0; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .method-btn.active { border-color: #4a7c59; background: #4a7c59; color: white; }
-
-        /* Format buttons */
-        .format-btn { padding: 8px 16px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; transition: all 0.2s; margin-right: 10px; }
-        .format-btn.active { border-color: #4a7c59; background: #4a7c59; color: white; }
 
         /* File Upload */
         .file-upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; }
@@ -87,76 +129,15 @@
         .photo-preview { width: 100%; height: 100%; object-fit: cover; }
         .photo-remove { position: absolute; top: 5px; right: 5px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 12px; }
 
-        /* Tables */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
-        .data-table th { background: #f8f9fa; font-weight: 600; }
-        .data-table tbody tr:hover { background: #f8f9fa; }
-
-        /* Notifications */
-        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 8px; color: white; z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; }
-        .notification.show { transform: translateX(0); }
-        .notification.success { background: #28a745; }
-        .notification.error { background: #dc3545; }
-        .notification.warning { background: #ffc107; color: #333; }
-
-        /* POI Type Selector */
-        .poi-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-        .poi-type { padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .poi-type.selected { border-color: #4a7c59; background: #4a7c59; color: white; }
-        .poi-icon { font-size: 24px; margin-bottom: 8px; }
-
-        /* Description Form Styles */
-        .description-section-header { 
-            color: #4a7c59; 
-            border-bottom: 2px solid #e0e0e0; 
-            padding-bottom: 8px; 
-            margin-bottom: 15px; 
-            margin-top: 25px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .description-subsection {
-            background: #f8f9fa;
-            border-left: 4px solid #4a7c59;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .toggle-description-btn {
-            background: #e9ecef;
-            border: 2px solid #dee2e6;
-            color: #495057;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-        }
-        
-        .toggle-description-btn:hover {
-            background: #f8f9fa;
-            border-color: #4a7c59;
-            color: #4a7c59;
-        }
-        
-        .toggle-description-btn.active {
-            background: #4a7c59;
-            border-color: #4a7c59;
-            color: white;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .admin-content { padding: 10px; }
             .form-grid { grid-template-columns: 1fr; gap: 10px; }
             .nav-container { flex-direction: column; }
             .nav-tab { padding: 10px 15px; }
+            .controls-bar { flex-direction: column; align-items: stretch; }
+            .data-table { font-size: 12px; }
+            .data-table th, .data-table td { padding: 8px; }
         }
     </style>
 </head>
@@ -186,11 +167,14 @@
             <div class="nav-tab" onclick="showSection('villages')">
                 <i class="fas fa-map-marker-alt"></i> Villages
             </div>
+            <div class="nav-tab" onclick="showSection('descriptions')">
+                <i class="fas fa-file-text"></i> Descriptions
+            </div>
+            <div class="nav-tab" onclick="showSection('photos')">
+                <i class="fas fa-images"></i> Photos
+            </div>
             <div class="nav-tab" onclick="showSection('poi')">
                 <i class="fas fa-map-pin"></i> Points d'intérêt
-            </div>
-            <div class="nav-tab" onclick="showSection('geonames')">
-                <i class="fas fa-tags"></i> Géonymes
             </div>
             <div class="nav-tab" onclick="showSection('users')">
                 <i class="fas fa-users"></i> Utilisateurs
@@ -205,24 +189,31 @@
             <div class="admin-card">
                 <div class="card-header">
                     <h2 class="card-title">Statistiques générales</h2>
+                    <button class="btn btn-primary" onclick="refreshDashboard()">
+                        <i class="fas fa-sync"></i> Actualiser
+                    </button>
                 </div>
                 <div class="card-body">
                     <div class="form-grid">
                         <div style="text-align: center; padding: 20px; background: #e8f5e8; border-radius: 8px;">
                             <h3 style="color: #4a7c59; margin-bottom: 10px;">Villages</h3>
                             <div style="font-size: 32px; font-weight: bold; color: #2c5530;" id="villageCount">-</div>
+                            <small>Villages actifs</small>
                         </div>
                         <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px;">
                             <h3 style="color: #856404; margin-bottom: 10px;">Points d'intérêt</h3>
                             <div style="font-size: 32px; font-weight: bold; color: #856404;" id="poiCount">-</div>
+                            <small>POI enregistrés</small>
                         </div>
                         <div style="text-align: center; padding: 20px; background: #d4edda; border-radius: 8px;">
-                            <h3 style="color: #155724; margin-bottom: 10px;">Géonymes</h3>
-                            <div style="font-size: 32px; font-weight: bold; color: #155724;" id="geonamesCount">-</div>
+                            <h3 style="color: #155724; margin-bottom: 10px;">Descriptions</h3>
+                            <div style="font-size: 32px; font-weight: bold; color: #155724;" id="descriptionsCount">-</div>
+                            <small>Descriptions publiées</small>
                         </div>
                         <div style="text-align: center; padding: 20px; background: #cce7ff; border-radius: 8px;">
-                            <h3 style="color: #004085; margin-bottom: 10px;">Descriptions</h3>
-                            <div style="font-size: 32px; font-weight: bold; color: #004085;" id="descriptionsCount">-</div>
+                            <h3 style="color: #004085; margin-bottom: 10px;">Photos</h3>
+                            <div style="font-size: 32px; font-weight: bold; color: #004085;" id="photosCount">-</div>
+                            <small>Photos uploadées</small>
                         </div>
                     </div>
                 </div>
@@ -239,305 +230,131 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    <div id="villagesList">
-                        <!-- Liste des villages -->
+                    <div class="controls-bar">
+                        <div class="search-container">
+                            <input type="text" class="search-input" id="villageSearchInput" placeholder="Rechercher un village...">
+                            <button class="search-btn" onclick="searchVillages()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filter-container">
+                            <select id="arrondissementFilter" class="form-select" style="width: auto;" onchange="filterVillages()">
+                                <option value="">Tous les arrondissements</option>
+                            </select>
+                            <select id="statusFilter" class="form-select" style="width: auto;" onchange="filterVillages()">
+                                <option value="">Tous les statuts</option>
+                                <option value="1">Actifs</option>
+                                <option value="0">Inactifs</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="villagesTableContainer">
+                        <table class="data-table" id="villagesTable">
+                            <thead>
+                                <tr>
+                                    <th>Village</th>
+                                    <th>Chef</th>
+                                    <th>Arrondissement</th>
+                                    <th>Superficie</th>
+                                    <th>Population</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="villagesTableBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 40px;">
+                                        <i class="fas fa-spinner fa-spin"></i> Chargement...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="pagination" id="villagesPagination"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Descriptions Section -->
+        <section id="descriptions" class="content-section">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h2 class="card-title">Descriptions des Villages</h2>
+                </div>
+                <div class="card-body">
+                    <div class="controls-bar">
+                        <div class="search-container">
+                            <input type="text" class="search-input" id="descriptionSearchInput" placeholder="Rechercher par village...">
+                            <button class="search-btn" onclick="searchDescriptions()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filter-container">
+                            <select id="publishStatusFilter" class="form-select" style="width: auto;" onchange="filterDescriptions()">
+                                <option value="">Tous les statuts</option>
+                                <option value="1">Publiées</option>
+                                <option value="0">Brouillons</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="descriptionsTableContainer">
+                        <table class="data-table" id="descriptionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Village</th>
+                                    <th>Arrondissement</th>
+                                    <th>Statut</th>
+                                    <th>Dernière MAJ</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="descriptionsTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 40px;">
+                                        <i class="fas fa-spinner fa-spin"></i> Chargement...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Form Add Village (Hidden) -->
-            <div id="addVillageForm" class="admin-card" style="display: none;">
+        <!-- Photos Section -->
+        <section id="photos" class="content-section">
+            <div class="admin-card">
                 <div class="card-header">
-                    <h2 class="card-title">Ajouter un Village</h2>
-                    <button class="btn btn-secondary" onclick="hideAddVillageForm()">
-                        <i class="fas fa-times"></i> Annuler
+                    <h2 class="card-title">Gestion des Photos</h2>
+                    <button class="btn btn-primary" onclick="showUploadPhotosModal()">
+                        <i class="fas fa-upload"></i> Uploader des Photos
                     </button>
                 </div>
                 <div class="card-body">
-                    <form id="villageForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label class="form-label">Nom du village *</label>
-                                <input type="text" class="form-input" id="villageName" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Arrondissement *</label>
-                                <select class="form-select" id="villageArrondissement" required>
-                                    <option value="">Sélectionner...</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label class="form-label">Nom du chef</label>
-                                <input type="text" class="form-input" id="chiefName">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Date de prise de service</label>
-                                <input type="date" class="form-input" id="chiefStartDate">
-                            </div>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-input" id="villageEmail">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Téléphone</label>
-                                <input type="tel" class="form-input" id="villageTelephone">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Population estimée</label>
-                            <input type="number" class="form-input" id="villagePopulation" min="0">
-                        </div>
-
-                        <!-- Geometry Input Method -->
-                        <div class="form-group">
-                            <label class="form-label">Méthode de saisie de la géométrie *</label>
-                            <div class="geom-method-selector">
-                                <button type="button" class="method-btn active" onclick="selectGeomMethod('upload')">
-                                    <i class="fas fa-upload"></i> Upload SQL
-                                </button>
-                                <button type="button" class="method-btn" onclick="selectGeomMethod('draw')">
-                                    <i class="fas fa-draw-polygon"></i> Dessiner
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Upload Geometry -->
-                        <div id="uploadGeomSection" class="form-group">
-                            <div class="form-group">
-                                <label class="form-label">Format de géométrie *</label>
-                                <div class="geom-format-selector" style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                    <button type="button" class="format-btn active" onclick="selectGeomFormat('wkt')">
-                                        WKT
-                                    </button>
-                                    <button type="button" class="format-btn" onclick="selectGeomFormat('geojson')">
-                                        GeoJSON
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div id="wktSection">
-                                <label class="form-label">Géométrie WKT *</label>
-                                <textarea class="form-textarea" id="villageGeometryWKT" placeholder="MULTIPOLYGON(((lng lat, lng lat, ...)))" rows="4"></textarea>
-                                <small style="color: #666;">Format: MULTIPOLYGON ou POLYGON en WKT</small>
-                            </div>
-                            
-                            <div id="geojsonSection" style="display: none;">
-                                <label class="form-label">Géométrie GeoJSON *</label>
-                                <textarea class="form-textarea" id="villageGeometryGeoJSON" placeholder='{"type": "Polygon", "coordinates": [[[lng, lat], [lng, lat], ...]]}' rows="6"></textarea>
-                                <small style="color: #666;">Format: Objet Geometry GeoJSON (Polygon ou MultiPolygon)</small>
-                            </div>
-                        </div>
-
-                        <!-- Draw Geometry -->
-                        <div id="drawGeomSection" class="form-group" style="display: none;">
-                            <label class="form-label">Dessiner le polygone sur la carte</label>
-                            <div class="map-container">
-                                <div id="adminMap"></div>
-                            </div>
-                            <div style="margin-top: 10px;">
-                                <button type="button" class="btn btn-secondary" onclick="startDrawing()">
-                                    <i class="fas fa-edit"></i> Commencer le dessin
-                                </button>
-                                <button type="button" class="btn btn-danger" onclick="clearDrawing()">
-                                    <i class="fas fa-trash"></i> Effacer
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Photos Upload -->
-                        <div class="form-group">
-                            <label class="form-label">Photo du chef (optionnel)</label>
-                            <div class="file-upload-area" onclick="document.getElementById('chiefPhoto').click()">
-                                <i class="fas fa-camera" style="font-size: 24px; color: #666; margin-bottom: 10px;"></i>
-                                <p>Cliquer pour sélectionner la photo du chef</p>
-                                <input type="file" id="chiefPhoto" class="file-upload-input" accept="image/*" onchange="previewChiefPhoto(this)">
-                            </div>
-                            <div id="chiefPhotoPreview"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Photos du village (max 2)</label>
-                            <div class="file-upload-area" onclick="document.getElementById('villagePhotos').click()">
-                                <i class="fas fa-images" style="font-size: 24px; color: #666; margin-bottom: 10px;"></i>
-                                <p>Cliquer pour sélectionner les photos du village</p>
-                                <input type="file" id="villagePhotos" class="file-upload-input" accept="image/*" multiple onchange="previewVillagePhotos(this)">
-                            </div>
-                            <div id="villagePhotosPreview" class="photo-grid"></div>
-                        </div>
-
-                        <!-- Description détaillée du village -->
-                        <div class="form-group" style="border-top: 2px solid #e9ecef; padding-top: 30px; margin-top: 30px;">
-                            <label class="form-label" style="font-size: 18px;">
-                                <i class="fas fa-book"></i> Description détaillée du village
-                                <small style="font-weight: normal; color: #666; display: block; margin-top: 5px;">
-                                    (Optionnel - Ces informations seront affichées dans la fiche complète du village)
-                                </small>
-                            </label>
-                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                                <button type="button" class="toggle-description-btn" onclick="toggleDescriptionForm()" id="toggleDescBtn">
-                                    <i class="fas fa-plus"></i> Ajouter une description détaillée
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Formulaire de description (caché par défaut) -->
-                        <div id="descriptionForm" style="display: none;">
-                            <div class="admin-card" style="margin-bottom: 20px; border: 2px solid #4a7c59;">
-                                <div class="card-header" style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); color: white;">
-                                    <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
-                                        <i class="fas fa-scroll"></i> Description complète du village
-                                    </h3>
-                                </div>
-                                <div class="card-body">
-                                    <!-- 1. Présentation générale -->
-                                    <div class="description-section-header">
-                                        <i class="fas fa-home"></i> 1. Présentation générale
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Histoire ou origine du nom</label>
-                                        <textarea class="form-textarea" id="histoireOrigine" rows="3" placeholder="Racontez l'histoire du village, l'origine de son nom..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Description des limites</label>
-                                        <textarea class="form-textarea" id="descriptionLimites" rows="2" placeholder="Décrivez les limites géographiques du village..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Importance dans la région</label>
-                                        <textarea class="form-textarea" id="importanceRegion" rows="2" placeholder="Quelle est l'importance de ce village dans la région..."></textarea>
-                                    </div>
-
-                                    <!-- 2. Culture & Traditions -->
-                                    <div class="description-section-header">
-                                        <i class="fas fa-drum"></i> 2. Culture & Traditions
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Danses, musiques, rites</label>
-                                        <textarea class="form-textarea" id="dansesMusiquesRites" rows="3" placeholder="Décrivez les danses traditionnelles, musiques, rites du village..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Gastronomie locale</label>
-                                        <textarea class="form-textarea" id="gastronomieLocale" rows="2" placeholder="Plats typiques, spécialités culinaires..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Fêtes traditionnelles</label>
-                                        <textarea class="form-textarea" id="fetesTraditionnelles" rows="2" placeholder="Fêtes, célébrations, événements annuels..."></textarea>
-                                    </div>
-
-                                    <!-- 3. Population -->
-                                    <div class="description-section-header">
-                                        <i class="fas fa-users"></i> 3. Population
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Structure démographique</label>
-                                        <textarea class="form-textarea" id="structureDemographique" rows="2" placeholder="Répartition par âge, sexe, niveaux d'éducation..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Groupes ethniques</label>
-                                        <textarea class="form-textarea" id="groupesEthniques" rows="2" placeholder="Groupes ethniques présents dans le village..."></textarea>
-                                    </div>
-
-                                    <!-- 4. Économie locale -->
-                                    <div class="description-section-header">
-                                        <i class="fas fa-coins"></i> 4. Économie locale
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Activités génératrices de revenus</label>
-                                        <textarea class="form-textarea" id="activitesGeneratrices" rows="3" placeholder="Agriculture, élevage, commerce, artisanat..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Produits typiques du terroir</label>
-                                        <textarea class="form-textarea" id="produitsTerroir" rows="2" placeholder="Produits agricoles, artisanaux spécifiques au village..."></textarea>
-                                    </div>
-
-                                    <!-- 5. Infrastructures -->
-                                    <div class="description-section-header">
-                                        <i class="fas fa-building"></i> 5. Infrastructures
-                                    </div>
-                                    
-                                    <div class="form-grid">
-                                        <div class="form-group">
-                                            <label class="form-label">Écoles</label>
-                                            <textarea class="form-textarea" id="infrastructuresScolaires" rows="2" placeholder="Écoles primaires, secondaires, centres de formation..."></textarea>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label class="form-label">Centres de santé</label>
-                                            <textarea class="form-textarea" id="infrastructuresSante" rows="2" placeholder="Centres de santé, dispensaires, hôpitaux..."></textarea>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Routes et transport</label>
-                                        <textarea class="form-textarea" id="infrastructuresRoutes" rows="2" placeholder="État des routes, moyens de transport..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Accès à l'électricité/eau</label>
-                                        <textarea class="form-textarea" id="accesElecticiteEau" rows="2" placeholder="Électrification, points d'eau, puits, sources..."></textarea>
-                                    </div>
-
-                                    <!-- 6. Tourisme & Attractions -->
-                                    <div class="description-section-header">
-                                        <i class="fas fa-mountain"></i> 6. Tourisme & Attractions
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Sites naturels</label>
-                                        <textarea class="form-textarea" id="sitesNaturels" rows="3" placeholder="Rivières, montagnes, forêts, cascades, grottes..."></textarea>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Sites culturels</label>
-                                        <textarea class="form-textarea" id="sitesCulturels" rows="3" placeholder="Chefferie, monuments, musées, sites historiques..."></textarea>
-                                    </div>
-
-                                    <!-- 7. Personnalités -->
-                                    <div class="description-section-header">
-                                        <i class="fas fa-star"></i> 7. Personnalités
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Personnalités originaires du village</label>
-                                        <textarea class="form-textarea" id="personnalitesOriginaires" rows="3" placeholder="Personnalités célèbres, dirigeants, artistes, intellectuels originaires du village..."></textarea>
-                                    </div>
-
-                                    <!-- Options de publication -->
-                                    <div class="form-group" style="background: #e8f5e8; padding: 15px; border-radius: 8px; border: 2px solid #4a7c59;">
-                                        <label style="display: flex; align-items: center; gap: 10px; font-weight: bold; color: #2c5530;">
-                                            <input type="checkbox" id="publishDescription" style="transform: scale(1.2);">
-                                            <i class="fas fa-globe"></i> Publier cette description (visible au public)
-                                        </label>
-                                        <small style="color: #666; margin-left: 30px; display: block; margin-top: 5px;">
-                                            Si coché, la description sera visible dans la fiche publique du village
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-                            <button type="submit" class="btn btn-primary" style="font-size: 16px; padding: 15px 30px;">
-                                <i class="fas fa-save"></i> Enregistrer le Village
+                    <div class="controls-bar">
+                        <div class="search-container">
+                            <input type="text" class="search-input" id="photoSearchInput" placeholder="Rechercher par village...">
+                            <button class="search-btn" onclick="searchPhotos()">
+                                <i class="fas fa-search"></i>
                             </button>
                         </div>
-                    </form>
+                        <div class="filter-container">
+                            <select id="photoTypeFilter" class="form-select" style="width: auto;" onchange="filterPhotos()">
+                                <option value="">Tous les types</option>
+                                <option value="chief">Photos de chef</option>
+                                <option value="village">Photos de village</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="photo-grid" id="photosGrid">
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                            <i class="fas fa-spinner fa-spin"></i> Chargement...
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -546,193 +363,47 @@
         <section id="poi" class="content-section">
             <div class="admin-card">
                 <div class="card-header">
-                    <h2 class="card-title">Gestion des Points d'Intérêt</h2>
+                    <h2 class="card-title">Points d'Intérêt</h2>
                     <button class="btn btn-primary" onclick="showAddPOIForm()">
                         <i class="fas fa-plus"></i> Nouveau POI
                     </button>
                 </div>
                 <div class="card-body">
-                    <div id="poiList">
-                        <!-- Liste des POI -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Add POI (Hidden) -->
-            <div id="addPOIForm" class="admin-card" style="display: none;">
-                <div class="card-header">
-                    <h2 class="card-title">Ajouter un Point d'Intérêt</h2>
-                    <button class="btn btn-secondary" onclick="hideAddPOIForm()">
-                        <i class="fas fa-times"></i> Annuler
-                    </button>
-                </div>
-                <div class="card-body">
-                    <form id="poiForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label class="form-label">Nom du POI *</label>
-                                <input type="text" class="form-input" id="poiName" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Village associé</label>
-                                <select class="form-select" id="poiVillage">
-                                    <option value="">Aucun village spécifique</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Type de POI *</label>
-                            <div class="poi-types" id="poiTypes">
-                                <!-- Types de POI générés dynamiquement -->
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-textarea" id="poiDescription" rows="3"></textarea>
-                        </div>
-
-                        <!-- Position Input Method -->
-                        <div class="form-group">
-                            <label class="form-label">Méthode de positionnement *</label>
-                            <div class="geom-method-selector">
-                                <button type="button" class="method-btn active" onclick="selectPOIMethod('upload')">
-                                    <i class="fas fa-upload"></i> Coordonnées
-                                </button>
-                                <button type="button" class="method-btn" onclick="selectPOIMethod('click')">
-                                    <i class="fas fa-map-marker-alt"></i> Clic sur carte
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Upload Coordinates -->
-                        <div id="uploadPOISection" class="form-group">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label class="form-label">Latitude *</label>
-                                    <input type="number" class="form-input" id="poiLatitude" step="0.000001" placeholder="4.123456">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Longitude *</label>
-                                    <input type="number" class="form-input" id="poiLongitude" step="0.000001" placeholder="9.123456">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Click on Map -->
-                        <div id="clickPOISection" class="form-group" style="display: none;">
-                            <label class="form-label">Cliquer sur la carte pour placer le POI</label>
-                            <div class="map-container">
-                                <div id="poiMap"></div>
-                            </div>
-                            <p style="margin-top: 10px; color: #666;">Position sélectionnée: <span id="selectedPOIPosition">Aucune</span></p>
-                        </div>
-
-                        <div style="text-align: center; margin-top: 30px;">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Enregistrer le POI
+                    <div class="controls-bar">
+                        <div class="search-container">
+                            <input type="text" class="search-input" id="poiSearchInput" placeholder="Rechercher un POI...">
+                            <button class="search-btn" onclick="searchPOI()">
+                                <i class="fas fa-search"></i>
                             </button>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </section>
-
-        <!-- Geonames Section -->
-        <section id="geonames" class="content-section">
-            <div class="admin-card">
-                <div class="card-header">
-                    <h2 class="card-title">Gestion des Géonymes</h2>
-                    <button class="btn btn-primary" onclick="showAddGeonameForm()">
-                        <i class="fas fa-plus"></i> Nouveau Géonyme
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div id="geonamesList">
-                        <!-- Liste des géonymes -->
+                        <div class="filter-container">
+                            <select id="poiTypeFilter" class="form-select" style="width: auto;" onchange="filterPOI()">
+                                <option value="">Tous les types</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Form Add Geoname (Hidden) -->
-            <div id="addGeonameForm" class="admin-card" style="display: none;">
-                <div class="card-header">
-                    <h2 class="card-title">Ajouter un Géonyme</h2>
-                    <button class="btn btn-secondary" onclick="hideAddGeonameForm()">
-                        <i class="fas fa-times"></i> Annuler
-                    </button>
-                </div>
-                <div class="card-body">
-                    <form id="geonameForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label class="form-label">Nom du géonyme *</label>
-                                <input type="text" class="form-input" id="geonameName" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Type *</label>
-                                <select class="form-select" id="geonameType" required>
-                                    <option value="">Sélectionner...</option>
-                                    <option value="montagne">Montagne</option>
-                                    <option value="colline">Colline</option>
-                                    <option value="riviere">Rivière</option>
-                                    <option value="lac">Lac</option>
-                                    <option value="foret">Forêt</option>
-                                    <option value="plateau">Plateau</option>
-                                    <option value="vallee">Vallée</option>
-                                    <option value="autre">Autre</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-textarea" id="geonameDescription" rows="3"></textarea>
-                        </div>
-
-                        <!-- Position Input Method -->
-                        <div class="form-group">
-                            <label class="form-label">Méthode de positionnement *</label>
-                            <div class="geom-method-selector">
-                                <button type="button" class="method-btn active" onclick="selectGeonameMethod('upload')">
-                                    <i class="fas fa-upload"></i> Coordonnées
-                                </button>
-                                <button type="button" class="method-btn" onclick="selectGeonameMethod('click')">
-                                    <i class="fas fa-map-marker-alt"></i> Clic sur carte
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Upload Coordinates -->
-                        <div id="uploadGeonameSection" class="form-group">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label class="form-label">Latitude *</label>
-                                    <input type="number" class="form-input" id="geonameLatitude" step="0.000001" placeholder="4.123456">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Longitude *</label>
-                                    <input type="number" class="form-input" id="geonameLongitude" step="0.000001" placeholder="9.123456">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Click on Map -->
-                        <div id="clickGeonameSection" class="form-group" style="display: none;">
-                            <label class="form-label">Cliquer sur la carte pour placer le géonyme</label>
-                            <div class="map-container">
-                                <div id="geonameMap"></div>
-                            </div>
-                            <p style="margin-top: 10px; color: #666;">Position sélectionnée: <span id="selectedGeonamePosition">Aucune</span></p>
-                        </div>
-
-                        <div style="text-align: center; margin-top: 30px;">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Enregistrer le Géonyme
-                            </button>
-                        </div>
-                    </form>
+                    
+                    <div id="poiTableContainer">
+                        <table class="data-table" id="poiTable">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Type</th>
+                                    <th>Village</th>
+                                    <th>Coordonnées</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poiTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px;">
+                                        <i class="fas fa-spinner fa-spin"></i> Chargement...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
@@ -753,7 +424,107 @@
         </section>
     </main>
 
-    <!-- Notification -->
+    <!-- Edit Village Modal -->
+    <div id="editVillageModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Modifier le Village</h3>
+                <button class="modal-close" onclick="closeEditVillageModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editVillageForm">
+                    <input type="hidden" id="editVillageId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nom du village *</label>
+                            <input type="text" class="form-input" id="editVillageName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Arrondissement *</label>
+                            <select class="form-select" id="editVillageArrondissement" required>
+                                <option value="">Sélectionner...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nom du chef</label>
+                            <input type="text" class="form-input" id="editChiefName">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date de prise de service</label>
+                            <input type="date" class="form-input" id="editChiefStartDate">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="editVillageEmail">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Téléphone</label>
+                            <input type="tel" class="form-input" id="editVillageTelephone">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Population estimée</label>
+                        <input type="number" class="form-input" id="editVillagePopulation" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Statut</label>
+                        <select class="form-select" id="editVillageStatus">
+                            <option value="1">Actif</option>
+                            <option value="0">Inactif</option>
+                        </select>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 30px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditVillageModal()">
+                            Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Sauvegarder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmer la suppression</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545; margin-bottom: 15px;"></i>
+                    <h4>Êtes-vous sûr ?</h4>
+                    <p id="deleteMessage">Cette action est irréversible.</p>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button class="btn btn-secondary" onclick="closeDeleteModal()">
+                        Annuler
+                    </button>
+                    <button class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
     <div id="notification" class="notification"></div>
 
     <!-- Scripts -->
@@ -767,44 +538,16 @@
             supabase: {
                 url: 'https://hrlufnjhwhgddxkpyzst.supabase.co',
                 anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8'
-            },
-            mapbox: {
-                accessToken: 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg'
             }
         };
 
         // Variables globales
         let supabase;
-        let adminMap, poiMap, geonameMap;
-        let drawControl;
-        let drawnItems;
-        let currentGeometry = null;
-        let selectedPOIPosition = null;
-        let selectedGeonamePosition = null;
-        let currentGeomFormat = 'wkt';
-        let currentGeomMethod = 'upload';
-        let currentPOIMethod = 'upload';
-        let currentGeonameMethod = 'upload';
-        let chiefPhotoFile = null;
-        let villagePhotoFiles = [];
-        let selectedPOIType = null;
-        let poiMarker = null;
-        let geonameMarker = null;
-
-        // Types de POI
-        const POI_TYPES = {
-            'school': { label: 'École', icon: 'fa-school', color: '#4CAF50' },
-            'hospital': { label: 'Hôpital', icon: 'fa-hospital', color: '#F44336' },
-            'market': { label: 'Marché', icon: 'fa-store', color: '#FF9800' },
-            'church': { label: 'Église', icon: 'fa-church', color: '#9C27B0' },
-            'mosque': { label: 'Mosquée', icon: 'fa-mosque', color: '#009688' },
-            'government': { label: 'Administration', icon: 'fa-building', color: '#2196F3' },
-            'water': { label: 'Point d\'eau', icon: 'fa-tint', color: '#00BCD4' },
-            'transport': { label: 'Transport', icon: 'fa-bus', color: '#607D8B' },
-            'chefferie_1': { label: 'Chefferie 1er degré', icon: 'fa-crown', color: '#FFD700' },
-            'chefferie_2': { label: 'Chefferie 2ème degré', icon: 'fa-crown', color: '#FFA500' },
-            'chefferie_3': { label: 'Chefferie 3ème degré', icon: 'fa-crown', color: '#FF6347' }
-        };
+        let currentPage = 1;
+        let itemsPerPage = 20;
+        let currentFilter = {};
+        let currentSearch = '';
+        let deleteCallback = null;
 
         // Fonctions utilitaires
         function showNotification(message, type = 'success', duration = 4000) {
@@ -817,6 +560,18 @@
             }, duration);
         }
 
+        function formatDate(dateString) {
+            if (!dateString) return 'Non renseigné';
+            return new Date(dateString).toLocaleDateString('fr-FR');
+        }
+
+        function formatArea(hectares) {
+            if (!hectares || hectares === 0) return 'Non calculée';
+            if (hectares < 1) return `${(hectares * 10000).toFixed(0)} m²`;
+            return `${hectares.toFixed(2)} ha`;
+        }
+
+        // Navigation entre sections
         function showSection(sectionName) {
             document.querySelectorAll('.content-section').forEach(section => {
                 section.classList.remove('active');
@@ -833,206 +588,129 @@
                     loadDashboardStats();
                     break;
                 case 'villages':
-                    loadVillagesList();
+                    loadVillages();
+                    loadArrondissements();
+                    break;
+                case 'descriptions':
+                    loadDescriptions();
+                    break;
+                case 'photos':
+                    loadPhotos();
                     break;
                 case 'poi':
-                    loadPOIList();
-                    break;
-                case 'geonames':
-                    loadGeonamesList();
+                    loadPOI();
                     break;
             }
         }
 
-        function logout() {
-            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-                window.location.href = 'index.html';
-            }
-        }
-
-        // Fonctions de chargement des données
+        // Dashboard
         async function loadDashboardStats() {
             try {
-                const [villages, poi, geonames, descriptions] = await Promise.all([
-                    supabase.from('villages').select('id', { count: 'exact', head: true }),
-                    supabase.from('poi').select('id', { count: 'exact', head: true }),
-                    supabase.from('geonames').select('id', { count: 'exact', head: true }),
-                    supabase.from('village_descriptions').select('id', { count: 'exact', head: true })
+                const [villages, descriptions, photos, poi] = await Promise.all([
+                    supabase.from('villages').select('id', { count: 'exact', head: true }).eq('is_active', true),
+                    supabase.from('village_descriptions').select('id', { count: 'exact', head: true }).eq('is_published', true),
+                    supabase.from('village_photos').select('id', { count: 'exact', head: true }),
+                    supabase.from('poi').select('id', { count: 'exact', head: true }).eq('is_active', true)
                 ]);
 
                 document.getElementById('villageCount').textContent = villages.count || 0;
-                document.getElementById('poiCount').textContent = poi.count || 0;
-                document.getElementById('geonamesCount').textContent = geonames.count || 0;
                 document.getElementById('descriptionsCount').textContent = descriptions.count || 0;
+                document.getElementById('photosCount').textContent = photos.count || 0;
+                document.getElementById('poiCount').textContent = poi.count || 0;
             } catch (error) {
                 console.error('Erreur chargement statistiques:', error);
                 showNotification('Erreur lors du chargement des statistiques', 'error');
             }
         }
 
-        // Fonctions pour la gestion de la description
-        function toggleDescriptionForm() {
-            const form = document.getElementById('descriptionForm');
-            const button = document.getElementById('toggleDescBtn');
-            
-            if (form.style.display === 'none') {
-                form.style.display = 'block';
-                button.innerHTML = '<i class="fas fa-minus"></i> Masquer la description';
-                button.classList.add('active');
-            } else {
-                form.style.display = 'none';
-                button.innerHTML = '<i class="fas fa-plus"></i> Ajouter une description détaillée';
-                button.classList.remove('active');
-            }
+        function refreshDashboard() {
+            loadDashboardStats();
+            showNotification('Statistiques actualisées', 'info', 2000);
         }
 
-        function collectDescriptionData() {
-            return {
-                histoire_origine: document.getElementById('histoireOrigine').value.trim() || null,
-                description_limites: document.getElementById('descriptionLimites').value.trim() || null,
-                importance_region: document.getElementById('importanceRegion').value.trim() || null,
-                danses_musiques_rites: document.getElementById('dansesMusiquesRites').value.trim() || null,
-                gastronomie_locale: document.getElementById('gastronomieLocale').value.trim() || null,
-                fetes_traditionnelles: document.getElementById('fetesTraditionnelles').value.trim() || null,
-                structure_demographique: document.getElementById('structureDemographique').value.trim() || null,
-                groupes_ethniques: document.getElementById('groupesEthniques').value.trim() || null,
-                activites_generatrices: document.getElementById('activitesGeneratrices').value.trim() || null,
-                produits_terroir: document.getElementById('produitsTerroir').value.trim() || null,
-                infrastructures_scolaires: document.getElementById('infrastructuresScolaires').value.trim() || null,
-                infrastructures_sante: document.getElementById('infrastructuresSante').value.trim() || null,
-                infrastructures_routes: document.getElementById('infrastructuresRoutes').value.trim() || null,
-                acces_electricite_eau: document.getElementById('accesElecticiteEau').value.trim() || null,
-                sites_naturels: document.getElementById('sitesNaturels').value.trim() || null,
-                sites_culturels: document.getElementById('sitesCulturels').value.trim() || null,
-                personnalites_originaires: document.getElementById('personnalitesOriginaires').value.trim() || null,
-                is_published: document.getElementById('publishDescription').checked
-            };
-        }
-
-        function resetDescriptionForm() {
-            const form = document.getElementById('descriptionForm');
-            const button = document.getElementById('toggleDescBtn');
-            
-            const fields = [
-                'histoireOrigine', 'descriptionLimites', 'importanceRegion',
-                'dansesMusiquesRites', 'gastronomieLocale', 'fetesTraditionnelles',
-                'structureDemographique', 'groupesEthniques', 'activitesGeneratrices',
-                'produitsTerroir', 'infrastructuresScolaires', 'infrastructuresSante',
-                'infrastructuresRoutes', 'accesElecticiteEau', 'sitesNaturels',
-                'sitesCulturels', 'personnalitesOriginaires'
-            ];
-            
-            fields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (field) field.value = '';
-            });
-            
-            document.getElementById('publishDescription').checked = false;
-            
-            form.style.display = 'none';
-            button.innerHTML = '<i class="fas fa-plus"></i> Ajouter une description détaillée';
-            button.classList.remove('active');
-        }
-
-        async function saveVillageDescription(villageId, descriptionData) {
-            if (!villageId || !descriptionData) return null;
-            
-            const hasContent = Object.values(descriptionData).some(value => 
-                value !== null && value !== false && value !== ''
-            );
-            
-            if (!hasContent) {
-                console.log('Aucune description à sauvegarder');
-                return null;
-            }
-            
+        // Villages CRUD
+        async function loadVillages() {
             try {
-                const dataToSave = {
-                    village_id: villageId,
-                    ...descriptionData
-                };
-                
-                const { data: existing, error: checkError } = await supabase
-                    .from('village_descriptions')
-                    .select('id')
-                    .eq('village_id', villageId)
-                    .single();
-                
-                if (checkError && checkError.code !== 'PGRST116') {
-                    throw checkError;
+                const query = supabase
+                    .from('villages_complete_extended')
+                    .select('*')
+                    .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+
+                if (currentSearch) {
+                    query.ilike('village_name', `%${currentSearch}%`);
                 }
-                
-                let result;
-                if (existing) {
-                    const { data, error } = await supabase
-                        .from('village_descriptions')
-                        .update(dataToSave)
-                        .eq('village_id', villageId)
-                        .select()
-                        .single();
-                    
-                    if (error) throw error;
-                    result = data;
-                    console.log('Description mise à jour');
-                } else {
-                    const { data, error } = await supabase
-                        .from('village_descriptions')
-                        .insert([dataToSave])
-                        .select()
-                        .single();
-                    
-                    if (error) throw error;
-                    result = data;
-                    console.log('Description créée');
+
+                if (currentFilter.arrondissement) {
+                    query.eq('id_arrondissement', currentFilter.arrondissement);
                 }
-                
-                return result;
-                
+
+                if (currentFilter.status !== undefined && currentFilter.status !== '') {
+                    query.eq('is_active', currentFilter.status === '1');
+                }
+
+                const { data, error, count } = await query;
+
+                if (error) throw error;
+
+                displayVillages(data || []);
+                updatePagination('villagesPagination', count || 0);
             } catch (error) {
-                console.error('Erreur sauvegarde description:', error);
-                throw error;
+                console.error('Erreur chargement villages:', error);
+                showNotification('Erreur lors du chargement des villages', 'error');
             }
         }
 
-        // Fonctions Villages
-        function showAddVillageForm() {
-            document.getElementById('addVillageForm').style.display = 'block';
-            loadArrondissements();
+        function displayVillages(villages) {
+            const tbody = document.getElementById('villagesTableBody');
             
-            if (!adminMap) {
-                setTimeout(() => {
-                    initializeAdminMap();
-                }, 100);
+            if (!villages.length) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">Aucun village trouvé</td></tr>';
+                return;
             }
+
+            tbody.innerHTML = villages.map(village => `
+                <tr>
+                    <td>
+                        <strong>${village.village_name}</strong>
+                        ${village.photos_count > 0 ? '<i class="fas fa-camera" style="color: #28a745; margin-left: 5px;" title="Photos disponibles"></i>' : ''}
+                    </td>
+                    <td>${village.chief_name || 'Non renseigné'}</td>
+                    <td>${village.arrondissement_name}</td>
+                    <td>${formatArea(village.area_hectares)}</td>
+                    <td>${village.population ? village.population.toLocaleString() : 'Non renseignée'}</td>
+                    <td>
+                        <span class="status-badge ${village.is_active ? 'status-active' : 'status-inactive'}">
+                            ${village.is_active ? 'Actif' : 'Inactif'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-info btn-sm" onclick="viewVillage('${village.id}')" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editVillage('${village.id}')" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteVillage('${village.id}', '${village.village_name}')" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        function hideAddVillageForm() {
-            document.getElementById('addVillageForm').style.display = 'none';
-            resetVillageForm();
+        async function searchVillages() {
+            currentSearch = document.getElementById('villageSearchInput').value.trim();
+            currentPage = 1;
+            await loadVillages();
         }
 
-        function resetVillageForm() {
-            document.getElementById('villageForm').reset();
-            currentGeometry = null;
-            currentGeomFormat = 'wkt';
-            chiefPhotoFile = null;
-            villagePhotoFiles = [];
-            document.getElementById('chiefPhotoPreview').innerHTML = '';
-            document.getElementById('villagePhotosPreview').innerHTML = '';
-            
-            document.querySelectorAll('.format-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector('.format-btn[onclick="selectGeomFormat(\'wkt\')"]').classList.add('active');
-            
-            document.getElementById('wktSection').style.display = 'block';
-            document.getElementById('geojsonSection').style.display = 'none';
-            
-            resetDescriptionForm();
-            
-            if (drawnItems) {
-                drawnItems.clearLayers();
-            }
+        async function filterVillages() {
+            currentFilter.arrondissement = document.getElementById('arrondissementFilter').value;
+            currentFilter.status = document.getElementById('statusFilter').value;
+            currentPage = 1;
+            await loadVillages();
         }
 
         async function loadArrondissements() {
@@ -1044,496 +722,403 @@
 
                 if (error) throw error;
 
-                const select = document.getElementById('villageArrondissement');
-                select.innerHTML = '<option value="">Sélectionner...</option>';
-                
-                data.forEach(arr => {
-                    select.innerHTML += `<option value="${arr.id_arrondissement}">${arr.nom_arrondissement}</option>`;
+                const filters = ['arrondissementFilter', 'editVillageArrondissement'];
+                filters.forEach(filterId => {
+                    const select = document.getElementById(filterId);
+                    if (select) {
+                        const currentValue = select.value;
+                        select.innerHTML = filterId.includes('Filter') ? 
+                            '<option value="">Tous les arrondissements</option>' : 
+                            '<option value="">Sélectionner...</option>';
+                        
+                        data.forEach(arr => {
+                            select.innerHTML += `<option value="${arr.id_arrondissement}">${arr.nom_arrondissement}</option>`;
+                        });
+                        
+                        if (currentValue) select.value = currentValue;
+                    }
                 });
             } catch (error) {
                 console.error('Erreur chargement arrondissements:', error);
             }
         }
 
-        async function loadVillagesList() {
+        async function editVillage(villageId) {
             try {
                 const { data, error } = await supabase
-                    .from('villages_with_full_info')
+                    .from('villages_complete_extended')
                     .select('*')
-                    .order('village_name');
-
-                if (error) throw error;
-
-                const container = document.getElementById('villagesList');
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Aucun village enregistré</p>';
-                    return;
-                }
-
-                container.innerHTML = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Village</th>
-                                <th>Chef</th>
-                                <th>Arrondissement</th>
-                                <th>Superficie</th>
-                                <th>Population</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.map(village => `
-                                <tr>
-                                    <td><strong>${village.village_name}</strong></td>
-                                    <td>${village.chief_name || 'Non renseigné'}</td>
-                                    <td>${village.nom_arrondissement}</td>
-                                    <td>${village.area_hectares ? (village.area_hectares).toFixed(2) + ' ha' : 'Non calculé'}</td>
-                                    <td>${village.population || 'Non renseigné'}</td>
-                                    <td>
-                                        ${village.description_published ? 
-                                            '<span style="color: #28a745;"><i class="fas fa-check-circle"></i> Publiée</span>' : 
-                                            '<span style="color: #dc3545;"><i class="fas fa-times-circle"></i> Non publiée</span>'
-                                        }
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-secondary" onclick="editVillage('${village.id}')" style="padding: 5px 10px; margin-right: 5px;">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-danger" onclick="deleteVillage('${village.id}')" style="padding: 5px 10px;">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-            } catch (error) {
-                console.error('Erreur chargement villages:', error);
-                showNotification('Erreur lors du chargement des villages', 'error');
-            }
-        }
-
-        // Fonctions géométrie
-        function selectGeomFormat(format) {
-            currentGeomFormat = format;
-            
-            document.querySelectorAll('.format-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            if (format === 'wkt') {
-                document.getElementById('wktSection').style.display = 'block';
-                document.getElementById('geojsonSection').style.display = 'none';
-            } else {
-                document.getElementById('wktSection').style.display = 'none';
-                document.getElementById('geojsonSection').style.display = 'block';
-            }
-        }
-
-        function parseGeometryInput(input, format) {
-            try {
-                if (format === 'wkt') {
-                    return input.trim();
-                } else if (format === 'geojson') {
-                    const geojson = JSON.parse(input);
-                    
-                    if (!geojson.type || !geojson.coordinates) {
-                        throw new Error('Format GeoJSON invalide');
-                    }
-                    
-                    if (geojson.type === 'Polygon') {
-                        const coords = geojson.coordinates[0].map(coord => `${coord[0]} ${coord[1]}`).join(', ');
-                        return `POLYGON((${coords}))`;
-                    } else if (geojson.type === 'MultiPolygon') {
-                        const polygons = geojson.coordinates.map(polygon => {
-                            const coords = polygon[0].map(coord => `${coord[0]} ${coord[1]}`).join(', ');
-                            return `((${coords}))`;
-                        }).join(', ');
-                        return `MULTIPOLYGON(${polygons})`;
-                    } else {
-                        throw new Error('Type de géométrie GeoJSON non supporté. Utilisez Polygon ou MultiPolygon.');
-                    }
-                }
-            } catch (error) {
-                throw new Error(`Erreur de parsing ${format.toUpperCase()}: ${error.message}`);
-            }
-        }
-
-        function selectGeomMethod(method) {
-            currentGeomMethod = method;
-            
-            document.querySelectorAll('#addVillageForm .method-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            if (method === 'upload') {
-                document.getElementById('uploadGeomSection').style.display = 'block';
-                document.getElementById('drawGeomSection').style.display = 'none';
-            } else {
-                document.getElementById('uploadGeomSection').style.display = 'none';
-                document.getElementById('drawGeomSection').style.display = 'block';
-                
-                if (!adminMap) {
-                    setTimeout(() => {
-                        initializeAdminMap();
-                    }, 100);
-                }
-            }
-        }
-
-        function initializeAdminMap() {
-            if (adminMap) return;
-            
-            adminMap = L.map('adminMap').setView([4.1485, 9.504], 7);
-            
-            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: '© Mapbox © OpenStreetMap',
-                id: 'mapbox/streets-v11',
-                accessToken: CONFIG.mapbox.accessToken,
-                maxZoom: 18
-            }).addTo(adminMap);
-            
-            drawnItems = new L.FeatureGroup();
-            adminMap.addLayer(drawnItems);
-            
-            drawControl = new L.Control.Draw({
-                edit: {
-                    featureGroup: drawnItems
-                },
-                draw: {
-                    polygon: true,
-                    rectangle: false,
-                    circle: false,
-                    marker: false,
-                    polyline: false,
-                    circlemarker: false
-                }
-            });
-            
-            adminMap.on(L.Draw.Event.CREATED, function (e) {
-                var layer = e.layer;
-                drawnItems.addLayer(layer);
-                
-                const coords = layer.getLatLngs()[0].map(point => `${point.lng} ${point.lat}`).join(', ');
-                currentGeometry = `POLYGON((${coords}))`;
-                
-                showNotification('Polygone dessiné avec succès', 'success');
-            });
-        }
-
-        function startDrawing() {
-            if (!adminMap) {
-                initializeAdminMap();
-                setTimeout(() => {
-                    adminMap.addControl(drawControl);
-                }, 500);
-            } else {
-                adminMap.addControl(drawControl);
-            }
-            showNotification('Utilisez les outils de dessin pour créer un polygone', 'info');
-        }
-
-        function clearDrawing() {
-            if (drawnItems) {
-                drawnItems.clearLayers();
-            }
-            currentGeometry = null;
-            showNotification('Dessin effacé', 'info');
-        }
-
-        // Fonctions de gestion des photos
-        function previewChiefPhoto(input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            if (!file.type.startsWith('image/')) {
-                showNotification('Veuillez sélectionner un fichier image', 'error');
-                return;
-            }
-            
-            chiefPhotoFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('chiefPhotoPreview').innerHTML = `
-                    <div class="photo-item" style="margin-top: 15px; width: 150px;">
-                        <img src="${e.target.result}" class="photo-preview" alt="Photo chef">
-                        <button type="button" class="photo-remove" onclick="removeChiefPhoto()">×</button>
-                    </div>
-                `;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeChiefPhoto() {
-            chiefPhotoFile = null;
-            document.getElementById('chiefPhoto').value = '';
-            document.getElementById('chiefPhotoPreview').innerHTML = '';
-        }
-
-        function previewVillagePhotos(input) {
-            const files = Array.from(input.files);
-            
-            if (files.length > 2) {
-                showNotification('Maximum 2 photos autorisées pour le village', 'warning');
-                return;
-            }
-            
-            villagePhotoFiles = files.filter(file => file.type.startsWith('image/'));
-            
-            if (villagePhotoFiles.length !== files.length) {
-                showNotification('Seuls les fichiers image sont acceptés', 'warning');
-            }
-            
-            const preview = document.getElementById('villagePhotosPreview');
-            preview.innerHTML = '';
-            
-            villagePhotoFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const photoDiv = document.createElement('div');
-                    photoDiv.className = 'photo-item';
-                    photoDiv.innerHTML = `
-                        <img src="${e.target.result}" class="photo-preview" alt="Photo village ${index + 1}">
-                        <button type="button" class="photo-remove" onclick="removeVillagePhoto(${index})">×</button>
-                    `;
-                    preview.appendChild(photoDiv);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function removeVillagePhoto(index) {
-            villagePhotoFiles.splice(index, 1);
-            
-            const input = document.getElementById('villagePhotos');
-            input.value = '';
-            
-            const preview = document.getElementById('villagePhotosPreview');
-            preview.innerHTML = '';
-            
-            villagePhotoFiles.forEach((file, i) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const photoDiv = document.createElement('div');
-                    photoDiv.className = 'photo-item';
-                    photoDiv.innerHTML = `
-                        <img src="${e.target.result}" class="photo-preview" alt="Photo village ${i + 1}">
-                        <button type="button" class="photo-remove" onclick="removeVillagePhoto(${i})">×</button>
-                    `;
-                    preview.appendChild(photoDiv);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // Fonction d'upload des photos
-        async function uploadPhoto(file, fileName) {
-            try {
-                if (!file || !file.type.startsWith('image/')) {
-                    throw new Error('Fichier image requis');
-                }
-                
-                const maxSize = 5 * 1024 * 1024; // 5MB
-                if (file.size > maxSize) {
-                    throw new Error('La taille du fichier ne doit pas dépasser 5MB');
-                }
-                
-                const timestamp = Date.now();
-                const randomStr = Math.random().toString(36).substring(2, 8);
-                const extension = file.name.split('.').pop().toLowerCase();
-                const uniqueFileName = `${fileName}_${timestamp}_${randomStr}.${extension}`;
-                
-                const { data, error } = await supabase.storage
-                    .from('village-photos')
-                    .upload(uniqueFileName, file, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-                
-                if (error) throw error;
-                
-                const { data: { publicUrl } } = supabase.storage
-                    .from('village-photos')
-                    .getPublicUrl(uniqueFileName);
-                
-                return publicUrl;
-                
-            } catch (error) {
-                console.error('Erreur upload photo:', error);
-                showNotification(`Erreur upload photo: ${error.message}`, 'error');
-                return null;
-            }
-        }
-
-        // Soumission du formulaire village
-        document.getElementById('villageForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            try {
-                const villageName = document.getElementById('villageName').value.trim();
-                const arrondissement = document.getElementById('villageArrondissement').value;
-                
-                if (!villageName || !arrondissement) {
-                    showNotification('Veuillez remplir tous les champs obligatoires', 'error');
-                    return;
-                }
-                
-                let geometry;
-                if (currentGeomMethod === 'upload') {
-                    const input = currentGeomFormat === 'wkt' 
-                        ? document.getElementById('villageGeometryWKT').value.trim()
-                        : document.getElementById('villageGeometryGeoJSON').value.trim();
-                    
-                    if (!input) {
-                        showNotification('Veuillez saisir la géométrie du village', 'error');
-                        return;
-                    }
-                    
-                    geometry = parseGeometryInput(input, currentGeomFormat);
-                } else {
-                    if (!currentGeometry) {
-                        showNotification('Veuillez dessiner le polygone du village', 'error');
-                        return;
-                    }
-                    geometry = currentGeometry;
-                }
-                
-                const villageData = {
-                    village_name: villageName,
-                    id_arrondissement: parseInt(arrondissement),
-                    chief_name: document.getElementById('chiefName').value.trim() || null,
-                    email: document.getElementById('villageEmail').value.trim() || null,
-                    telephone: document.getElementById('villageTelephone').value.trim() || null,
-                    population: document.getElementById('villagePopulation').value ? parseInt(document.getElementById('villagePopulation').value) : null,
-                    chief_start_date: document.getElementById('chiefStartDate').value || null,
-                    geom: geometry,
-                    is_active: true
-                };
-                
-                const { data: village, error: villageError } = await supabase
-                    .from('villages')
-                    .insert([villageData])
-                    .select()
+                    .eq('id', villageId)
                     .single();
-                
-                if (villageError) throw villageError;
-                
-                const villageId = village.id;
-                
-                // Upload photo du chef
-                if (chiefPhotoFile) {
-                    const photoUrl = await uploadPhoto(chiefPhotoFile, `chief_${villageId}_${Date.now()}`);
-                    if (photoUrl) {
-                        await supabase
-                            .from('villages')
-                            .update({ chief_photo_url: photoUrl })
-                            .eq('id', villageId);
-                    }
-                }
-                
-                // Upload photos du village
-                for (let i = 0; i < villagePhotoFiles.length; i++) {
-                    const file = villagePhotoFiles[i];
-                    const photoUrl = await uploadPhoto(file, `village_${villageId}_${i + 1}_${Date.now()}`);
-                    
-                    if (photoUrl) {
-                        await supabase
-                            .from('village_photos')
-                            .insert({
-                                village_id: villageId,
-                                photo_url: photoUrl,
-                                photo_order: i + 1,
-                                file_size: file.size
-                            });
-                    }
-                }
-                
-                // Sauvegarder la description
-                const descriptionData = collectDescriptionData();
-                try {
-                    await saveVillageDescription(villageId, descriptionData);
-                } catch (descError) {
-                    console.warn('Erreur sauvegarde description:', descError);
-                }
-                
-                showNotification('Village ajouté avec succès', 'success');
-                hideAddVillageForm();
-                loadVillagesList();
-                
+
+                if (error) throw error;
+
+                // Remplir le formulaire d'édition
+                document.getElementById('editVillageId').value = data.id;
+                document.getElementById('editVillageName').value = data.village_name;
+                document.getElementById('editVillageArrondissement').value = data.id_arrondissement;
+                document.getElementById('editChiefName').value = data.chief_name || '';
+                document.getElementById('editChiefStartDate').value = data.chief_start_date || '';
+                document.getElementById('editVillageEmail').value = data.email || '';
+                document.getElementById('editVillageTelephone').value = data.telephone || '';
+                document.getElementById('editVillagePopulation').value = data.population || '';
+                document.getElementById('editVillageStatus').value = data.is_active ? '1' : '0';
+
+                // Afficher le modal
+                document.getElementById('editVillageModal').classList.add('active');
             } catch (error) {
-                console.error('Erreur ajout village:', error);
-                showNotification('Erreur lors de l\'ajout du village: ' + error.message, 'error');
+                console.error('Erreur chargement village:', error);
+                showNotification('Erreur lors du chargement du village', 'error');
             }
-        });
-
-        // Fonctions placeholders pour POI et Geonames
-        function showAddPOIForm() { 
-            showNotification('Fonctionnalité POI en développement', 'info'); 
-        }
-        function hideAddPOIForm() { }
-        function showAddGeonameForm() { 
-            showNotification('Fonctionnalité Géonymes en développement', 'info'); 
-        }
-        function hideAddGeonameForm() { }
-        function loadPOIList() { 
-            document.getElementById('poiList').innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Fonctionnalité en développement</p>'; 
-        }
-        function loadGeonamesList() { 
-            document.getElementById('geonamesList').innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Fonctionnalité en développement</p>'; 
         }
 
-        // Fonctions d'édition et suppression
-        window.editVillage = function(villageId) {
-            showNotification('Fonction d\'édition en développement', 'info');
-        };
+        function closeEditVillageModal() {
+            document.getElementById('editVillageModal').classList.remove('active');
+        }
 
-        window.deleteVillage = async function(villageId) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer ce village ?')) return;
+        async function saveVillageChanges(event) {
+            event.preventDefault();
             
             try {
+                const villageId = document.getElementById('editVillageId').value;
+                const updateData = {
+                    village_name: document.getElementById('editVillageName').value.trim(),
+                    id_arrondissement: parseInt(document.getElementById('editVillageArrondissement').value),
+                    chief_name: document.getElementById('editChiefName').value.trim() || null,
+                    chief_start_date: document.getElementById('editChiefStartDate').value || null,
+                    email: document.getElementById('editVillageEmail').value.trim() || null,
+                    telephone: document.getElementById('editVillageTelephone').value.trim() || null,
+                    population: document.getElementById('editVillagePopulation').value ? 
+                        parseInt(document.getElementById('editVillagePopulation').value) : null,
+                    is_active: document.getElementById('editVillageStatus').value === '1',
+                    updated_at: new Date().toISOString()
+                };
+
                 const { error } = await supabase
                     .from('villages')
-                    .update({ is_active: false })
+                    .update(updateData)
                     .eq('id', villageId);
-                
-                if (error) throw error;
-                
-                showNotification('Village supprimé avec succès', 'success');
-                loadVillagesList();
-            } catch (error) {
-                console.error('Erreur suppression village:', error);
-                showNotification('Erreur lors de la suppression', 'error');
-            }
-        };
 
-        // Initialisation
+                if (error) throw error;
+
+                showNotification('Village mis à jour avec succès', 'success');
+                closeEditVillageModal();
+                await loadVillages();
+            } catch (error) {
+                console.error('Erreur sauvegarde village:', error);
+                showNotification('Erreur lors de la sauvegarde', 'error');
+            }
+        }
+
+        function deleteVillage(villageId, villageName) {
+            document.getElementById('deleteMessage').textContent = 
+                `Êtes-vous sûr de vouloir supprimer le village "${villageName}" ?`;
+            
+            deleteCallback = async () => {
+                try {
+                    const { error } = await supabase
+                        .from('villages')
+                        .update({ is_active: false })
+                        .eq('id', villageId);
+
+                    if (error) throw error;
+
+                    showNotification('Village supprimé avec succès', 'success');
+                    closeDeleteModal();
+                    await loadVillages();
+                } catch (error) {
+                    console.error('Erreur suppression village:', error);
+                    showNotification('Erreur lors de la suppression', 'error');
+                }
+            };
+
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function viewVillage(villageId) {
+            window.open(`index.html#village=${villageId}`, '_blank');
+        }
+
+        // Descriptions CRUD
+        async function loadDescriptions() {
+            try {
+                const { data, error } = await supabase
+                    .from('village_descriptions')
+                    .select(`
+                        id, village_id, is_published, updated_at,
+                        villages:village_id (
+                            village_name,
+                            arrondissements:id_arrondissement (nom_arrondissement)
+                        )
+                    `)
+                    .order('updated_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayDescriptions(data || []);
+            } catch (error) {
+                console.error('Erreur chargement descriptions:', error);
+                showNotification('Erreur lors du chargement des descriptions', 'error');
+            }
+        }
+
+        function displayDescriptions(descriptions) {
+            const tbody = document.getElementById('descriptionsTableBody');
+            
+            if (!descriptions.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">Aucune description trouvée</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = descriptions.map(desc => `
+                <tr>
+                    <td><strong>${desc.villages?.village_name || 'Village supprimé'}</strong></td>
+                    <td>${desc.villages?.arrondissements?.nom_arrondissement || 'N/A'}</td>
+                    <td>
+                        <span class="status-badge ${desc.is_published ? 'status-published' : 'status-draft'}">
+                            ${desc.is_published ? 'Publiée' : 'Brouillon'}
+                        </span>
+                    </td>
+                    <td>${formatDate(desc.updated_at)}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-info btn-sm" onclick="viewDescription('${desc.id}')" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editDescription('${desc.id}')" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteDescription('${desc.id}')" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Photos CRUD
+        async function loadPhotos() {
+            try {
+                const [villagePhotos, chiefPhotos] = await Promise.all([
+                    supabase
+                        .from('village_photos')
+                        .select(`
+                            id, photo_url, photo_order, file_size, uploaded_at,
+                            villages:village_id (village_name)
+                        `)
+                        .order('uploaded_at', { ascending: false }),
+                    
+                    supabase
+                        .from('villages')
+                        .select('id, village_name, chief_photo_url, chief_photo_uploaded_at')
+                        .not('chief_photo_url', 'is', null)
+                        .order('chief_photo_uploaded_at', { ascending: false })
+                ]);
+
+                const allPhotos = [
+                    ...(villagePhotos.data || []).map(p => ({ ...p, type: 'village' })),
+                    ...(chiefPhotos.data || []).map(p => ({ 
+                        ...p, 
+                        type: 'chief', 
+                        photo_url: p.chief_photo_url,
+                        uploaded_at: p.chief_photo_uploaded_at 
+                    }))
+                ];
+
+                displayPhotos(allPhotos);
+            } catch (error) {
+                console.error('Erreur chargement photos:', error);
+                showNotification('Erreur lors du chargement des photos', 'error');
+            }
+        }
+
+        function displayPhotos(photos) {
+            const grid = document.getElementById('photosGrid');
+            
+            if (!photos.length) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">Aucune photo trouvée</div>';
+                return;
+            }
+
+            grid.innerHTML = photos.map(photo => `
+                <div class="photo-item">
+                    <img src="${photo.photo_url}" alt="${photo.villages?.village_name || photo.village_name}" 
+                         class="photo-preview" loading="lazy" onerror="this.style.display='none'">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; padding: 10px; font-size: 12px;">
+                        <div><strong>${photo.villages?.village_name || photo.village_name}</strong></div>
+                        <div>${photo.type === 'chief' ? 'Photo du chef' : `Photo ${photo.photo_order || 1}`}</div>
+                        <div>${formatDate(photo.uploaded_at)}</div>
+                    </div>
+                    <button class="photo-remove" onclick="deletePhoto('${photo.id}', '${photo.type}')" title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // POI CRUD
+        async function loadPOI() {
+            try {
+                const { data, error } = await supabase
+                    .from('poi')
+                    .select(`
+                        id, name, type, description, is_active, geom,
+                        villages:village_id (village_name)
+                    `)
+                    .order('name');
+
+                if (error) throw error;
+
+                displayPOI(data || []);
+            } catch (error) {
+                console.error('Erreur chargement POI:', error);
+                showNotification('Erreur lors du chargement des POI', 'error');
+            }
+        }
+
+        function displayPOI(pois) {
+            const tbody = document.getElementById('poiTableBody');
+            
+            if (!pois.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">Aucun POI trouvé</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pois.map(poi => {
+                let coordinates = 'N/A';
+                if (poi.geom && poi.geom.coordinates) {
+                    const [lng, lat] = poi.geom.coordinates;
+                    coordinates = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                }
+
+                return `
+                    <tr>
+                        <td><strong>${poi.name}</strong></td>
+                        <td>${poi.type}</td>
+                        <td>${poi.villages?.village_name || 'Non associé'}</td>
+                        <td>${coordinates}</td>
+                        <td>
+                            <span class="status-badge ${poi.is_active ? 'status-active' : 'status-inactive'}">
+                                ${poi.is_active ? 'Actif' : 'Inactif'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-warning btn-sm" onclick="editPOI('${poi.id}')" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deletePOI('${poi.id}', '${poi.name}')" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Fonctions modales
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            deleteCallback = null;
+        }
+
+        function confirmDelete() {
+            if (deleteCallback) {
+                deleteCallback();
+            }
+        }
+
+        // Pagination
+        function updatePagination(containerId, totalItems) {
+            const container = document.getElementById(containerId);
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let paginationHTML = '';
+            
+            // Bouton précédent
+            paginationHTML += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">«</button>`;
+            
+            // Pages
+            for (let i = 1; i <= Math.min(totalPages, 10); i++) {
+                paginationHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+            
+            // Bouton suivant
+            paginationHTML += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">»</button>`;
+            
+            container.innerHTML = paginationHTML;
+        }
+
+        async function changePage(page) {
+            currentPage = page;
+            await loadVillages();
+        }
+
+        // Fonctions placeholder
+        function showAddVillageForm() { showNotification('Fonctionnalité en développement', 'info'); }
+        function showAddPOIForm() { showNotification('Fonctionnalité en développement', 'info'); }
+        function showUploadPhotosModal() { showNotification('Fonctionnalité en développement', 'info'); }
+        function viewDescription() { showNotification('Fonctionnalité en développement', 'info'); }
+        function editDescription() { showNotification('Fonctionnalité en développement', 'info'); }
+        function deleteDescription() { showNotification('Fonctionnalité en développement', 'info'); }
+        function editPOI() { showNotification('Fonctionnalité en développement', 'info'); }
+        function deletePOI() { showNotification('Fonctionnalité en développement', 'info'); }
+        function deletePhoto() { showNotification('Fonctionnalité en développement', 'info'); }
+        function searchDescriptions() { currentPage = 1; loadDescriptions(); }
+        function filterDescriptions() { currentPage = 1; loadDescriptions(); }
+        function searchPhotos() { loadPhotos(); }
+        function filterPhotos() { loadPhotos(); }
+        function searchPOI() { loadPOI(); }
+        function filterPOI() { loadPOI(); }
+
+        function logout() {
+            if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+                sessionStorage.removeItem('adminLoggedIn');
+                sessionStorage.removeItem('adminEmail');
+                sessionStorage.removeItem('adminUserId');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
             supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
+            
+            // Form submission
+            document.getElementById('editVillageForm').addEventListener('submit', saveVillageChanges);
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+            
+            // Search inputs
+            document.getElementById('villageSearchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchVillages();
+            });
+            
             loadDashboardStats();
-            console.log('Interface d\'administration initialisée avec descriptions détaillées');
+            console.log('Interface d\'administration CRUD initialisée');
         });
 
         // Rendre les fonctions globales accessibles
         window.showSection = showSection;
+        window.refreshDashboard = refreshDashboard;
+        window.searchVillages = searchVillages;
+        window.filterVillages = filterVillages;
+        window.editVillage = editVillage;
+        window.deleteVillage = deleteVillage;
+        window.viewVillage = viewVillage;
+        window.closeEditVillageModal = closeEditVillageModal;
+        window.closeDeleteModal = closeDeleteModal;
+        window.changePage = changePage;
         window.logout = logout;
         window.showAddVillageForm = showAddVillageForm;
-        window.hideAddVillageForm = hideAddVillageForm;
-        window.selectGeomMethod = selectGeomMethod;
-        window.selectGeomFormat = selectGeomFormat;
-        window.startDrawing = startDrawing;
-        window.clearDrawing = clearDrawing;
-        window.removeChiefPhoto = removeChiefPhoto;
-        window.removeVillagePhoto = removeVillagePhoto;
-        window.toggleDescriptionForm = toggleDescriptionForm;
         window.showAddPOIForm = showAddPOIForm;
-        window.hideAddPOIForm = hideAddPOIForm;
-        window.showAddGeonameForm = showAddGeonameForm;
-        window.hideAddGeonameForm = hideAddGeonameForm;
+        window.showUploadPhotosModal = showUploadPhotosModal;
     </script>
 </body>
 </html>

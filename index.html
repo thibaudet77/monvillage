@@ -283,7 +283,7 @@
                     <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 3px solid #d62728;"></div><span class="legend-label">Régions</span></div>
                     <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px solid #000000;"></div><span class="legend-label">Départements</span></div>
                     <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px dashed #8B008B;"></div><span class="legend-label">Arrondissements</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: rgba(74, 124, 89, 0.3); border: 2px solid #4a7c59;"></div><span class="legend-label">Villages</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px dashed #cc6600;"></div><span class="legend-label">Villages</span></div>
                     <div class="legend-item"><div class="legend-symbol" style="background: #FFD700;"><i class="fas fa-crown" style="font-size: 10px; color: #333;"></i></div><span class="legend-label">Chefferie 1er degré</span></div>
                     <div class="legend-item"><div class="legend-symbol" style="background: #FFA500;"><i class="fas fa-crown" style="font-size: 10px; color: #333;"></i></div><span class="legend-label">Chefferie 2ème degré</span></div>
                     <div class="legend-item"><div class="legend-symbol" style="background: #FF6347;"><i class="fas fa-crown" style="font-size: 10px; color: white;"></i></div><span class="legend-label">Chefferie 3ème degré</span></div>
@@ -923,11 +923,12 @@
 
                         const layer = L.geoJSON(geometry, {
                             style: { 
-                                fillColor: '#4a7c59', 
-                                color: '#2c5530', 
+                                fillColor: 'transparent', 
+                                color: '#cc6600', 
                                 weight: 2,
                                 opacity: 0.8,
-                                fillOpacity: 0.3 
+                                fillOpacity: 0,
+                                dashArray: '8, 6'
                             },
                             interactive: true
                         }).addTo(mapLayers.villages);
