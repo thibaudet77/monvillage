@@ -66,6 +66,15 @@
         .locate-btn.locating { background: #007bff; color: white; animation: pulse-button 1s infinite; }
         .locate-btn.located { background: #007bff; color: white; }
 
+        /* Print Area Selection */
+        .print-area-selector { border: 3px dashed #007bff; background: rgba(0, 123, 255, 0.1); cursor: move; }
+        .print-area-handle { width: 12px; height: 12px; background: #007bff; border: 2px solid white; border-radius: 50%; position: absolute; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .print-area-handle.nw { top: -6px; left: -6px; cursor: nw-resize; }
+        .print-area-handle.ne { top: -6px; right: -6px; cursor: ne-resize; }
+        .print-area-handle.sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+        .print-area-handle.se { bottom: -6px; right: -6px; cursor: se-resize; }
+        .print-area-info { position: absolute; top: -30px; left: 0; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; }
+
         /* Notification System */
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; max-width: 350px; }
         .notification.show { transform: translateX(0); }
@@ -113,7 +122,7 @@
         /* Print Modal Styles */
         .print-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10001; backdrop-filter: blur(3px); }
         .print-modal.active { display: flex; align-items: center; justify-content: center; }
-        .print-modal-content { background: white; border-radius: 15px; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .print-modal-content { background: white; border-radius: 15px; max-width: 1100px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
         .print-modal-header { padding: 20px 30px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; border-radius: 15px 15px 0 0; }
         .print-modal-title { font-size: 24px; font-weight: bold; color: #2c5530; margin: 0; }
         .print-modal-close { background: none; border: none; font-size: 24px; color: #666; cursor: pointer; padding: 5px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
@@ -140,12 +149,19 @@
         .scale-preset { background: #f0f0f0; border: 1px solid #ccc; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; }
         .scale-preset:hover { background: #e0e0e0; }
         
-        .preview-container { width: 250px; height: 350px; border: 2px solid #ddd; border-radius: 8px; background: white; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        /* Enhanced Preview Container */
+        .preview-container { width: 350px; height: 450px; border: 2px solid #ddd; border-radius: 8px; background: white; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .preview-header { background: #f8f9fa; padding: 8px; text-align: center; font-size: 12px; font-weight: bold; border-bottom: 1px solid #ddd; }
-        .preview-map { width: 100%; height: 250px; background: linear-gradient(45deg, #e8f5e8, #d4e6d4); position: relative; display: flex; align-items: center; justify-content: center; }
+        .preview-map { width: 100%; height: 350px; position: relative; overflow: hidden; }
+        .preview-map-canvas { width: 100%; height: 100%; border: none; }
         .preview-footer { padding: 8px; background: #f8f9fa; text-align: center; font-size: 10px; border-top: 1px solid #ddd; }
-        .preview-north-arrow { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .preview-scale { position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; font-size: 10px; }
+        .preview-north-arrow { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; z-index: 10; }
+        .preview-scale { position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.9); padding: 4px 8px; border-radius: 4px; font-size: 10px; z-index: 10; }
+
+        .print-area-controls { margin-bottom: 20px; text-align: center; }
+        .area-select-btn { background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin: 0 10px; font-size: 14px; font-weight: 600; }
+        .area-select-btn:hover { background: #0056b3; }
+        .area-select-btn.active { background: #28a745; }
         
         .print-summary { background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0; }
         .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -160,12 +176,20 @@
         .btn-secondary { background: #6c757d; color: white; }
         .btn-secondary:hover { background: #5a6268; }
         
+        /* Enhanced Payment Modal */
         .payment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10002; }
         .payment-modal.active { display: flex; align-items: center; justify-content: center; }
-        .payment-content { background: white; border-radius: 15px; padding: 30px; max-width: 400px; width: 90%; text-align: center; }
-        .payment-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: #2c5530; }
-        .payment-amount { font-size: 24px; color: #4a7c59; font-weight: bold; margin-bottom: 20px; }
+        .payment-content { background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; text-align: center; }
+        .payment-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #2c5530; }
+        .payment-amount { font-size: 28px; color: #4a7c59; font-weight: bold; margin-bottom: 20px; }
         .payment-info { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; }
+        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .payment-method { border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .payment-method:hover { border-color: #4a7c59; background: #f0f8f1; }
+        .payment-method.selected { border-color: #4a7c59; background: #4a7c59; color: white; }
+        .payment-method-icon { font-size: 24px; margin-bottom: 8px; }
+        .payment-method-name { font-weight: bold; margin-bottom: 4px; }
+        .payment-method-desc { font-size: 12px; opacity: 0.8; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #4a7c59; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -239,6 +263,7 @@
             .format-grid { grid-template-columns: repeat(3, 1fr); }
             .locate-btn { top: 15px; right: 15px; width: 36px; height: 36px; font-size: 16px; }
             .village-info-grid { grid-template-columns: 1fr; }
+            .payment-methods { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -504,6 +529,14 @@
                     <button class="print-modal-close" id="closePrintModal"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="print-modal-body">
+                    <!-- Print Area Selection Controls -->
+                    <div class="print-area-controls">
+                        <h4 style="margin-bottom: 15px; color: #2c5530;">Sélection de la zone à imprimer</h4>
+                        <button class="area-select-btn" id="selectPrintArea">📐 Sélectionner une zone</button>
+                        <button class="area-select-btn" id="useCurrentView">🗺️ Utiliser la vue actuelle</button>
+                        <button class="area-select-btn" id="clearPrintArea">❌ Effacer la sélection</button>
+                    </div>
+                    
                     <div class="print-config">
                         <div class="print-options">
                             <div class="form-group">
@@ -570,13 +603,13 @@
                         </div>
                         
                         <div class="print-preview">
-                            <h4 style="margin-bottom: 15px; color: #2c5530;">Aperçu</h4>
+                            <h4 style="margin-bottom: 15px; color: #2c5530;">Aperçu de l'exportation</h4>
                             <div class="preview-container" id="previewContainer">
                                 <div class="preview-header" id="previewTitle">Carte des Villages - MonVillage</div>
                                 <div class="preview-map">
-                                    <div class="preview-north-arrow" id="previewNorthArrow">↑</div>
+                                    <div id="previewMap" class="preview-map-canvas"></div>
+                                    <div class="preview-north-arrow" id="previewNorthArrow">⇑</div>
                                     <div class="preview-scale" id="previewScale">1:50,000</div>
-                                    <div style="color: #666; font-size: 12px;">Aperçu de la carte</div>
                                 </div>
                                 <div class="preview-footer">
                                     Format: <span id="previewFormat">A2</span> | 
@@ -600,6 +633,10 @@
                             <span class="summary-value" id="summaryScale">1:50,000</span>
                         </div>
                         <div class="summary-row">
+                            <span class="summary-label">Zone sélectionnée:</span>
+                            <span class="summary-value" id="summaryArea">Vue actuelle</span>
+                        </div>
+                        <div class="summary-row">
                             <span class="summary-label total-price">Prix total:</span>
                             <span class="summary-value total-price" id="summaryPrice">2,000 XAF</span>
                         </div>
@@ -613,20 +650,35 @@
             </div>
         </div>
 
-        <!-- Payment Modal -->
+        <!-- Enhanced Payment Modal -->
         <div id="paymentModal" class="payment-modal">
             <div class="payment-content">
-                <h3 class="payment-title">Paiement sécurisé</h3>
+                <h3 class="payment-title">💳 Paiement sécurisé</h3>
                 <div class="payment-amount" id="paymentAmount">2,000 XAF</div>
                 <div class="payment-info">
                     <strong>Détails de l'exportation:</strong><br>
                     <span id="paymentDetails">Format A2 - PDF</span>
                 </div>
+                
+                <!-- Enhanced Payment Methods Selection -->
+                <div class="payment-methods">
+                    <div class="payment-method" data-method="mobilemoney">
+                        <div class="payment-method-icon">📱</div>
+                        <div class="payment-method-name">Mobile Money</div>
+                        <div class="payment-method-desc">Orange Money, MTN MoMo</div>
+                    </div>
+                    <div class="payment-method" data-method="card">
+                        <div class="payment-method-icon">💳</div>
+                        <div class="payment-method-name">Carte Bancaire</div>
+                        <div class="payment-method-desc">Visa, Mastercard</div>
+                    </div>
+                </div>
+                
                 <div id="paymentSpinner" class="spinner" style="display: none;"></div>
                 <div id="paymentStatus"></div>
                 <div class="print-actions">
                     <button class="btn btn-secondary" id="cancelPayment">Annuler</button>
-                    <button class="btn btn-primary" id="confirmPayment">Payer maintenant</button>
+                    <button class="btn btn-primary" id="confirmPayment">Procéder au paiement</button>
                 </div>
             </div>
         </div>
@@ -649,20 +701,20 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://checkout.flutterwave.com/v3.js"></script>
     
-    <script>
-        console.log('🚀 MonVillage - Initialisation complète avec système d\'impression et descriptions de villages');
+    <script type="module">
+        console.log('🚀 MonVillage - Initialisation complète avec système d\'impression avancé');
         
-        // CONFIGURATION ET VARIABLES GLOBALES
+        // CONFIGURATION AVEC VARIABLES D'ENVIRONNEMENT
         const CONFIG = {
             supabase: {
-                url: 'https://hrlufnjhwhgddxkpyzst.supabase.co',
-                anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8'
+                url: import.meta.env?.VITE_SUPABASE_URL || 'https://hrlufnjhwhgddxkpyzst.supabase.co',
+                anonKey: import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8'
             },
             mapbox: {
-                accessToken: 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg'
+                accessToken: import.meta.env?.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg'
             },
             flutterwave: {
-                publicKey: 'FLWPUBK_TEST-1a5444355646149fcac53a4adf561674-X'
+                publicKey: import.meta.env?.VITE_FLUTTERWAVE_PUBLIC_KEY || 'FLWPUBK-de06efbef44902ddb3aa4a1680436c38-X'
             },
             map: { center: [5.2, 12.7], zoom: 7 },
             print: {
@@ -670,13 +722,13 @@
                     A4: { price: 500, width: 210, height: 297 },
                     A3: { price: 1000, width: 297, height: 420 },
                     A2: { price: 2000, width: 420, height: 594 },
-                    A1: { price: 4000, width: 594, height: 841 },
+                    A1: { price: 4000, width: 594, width: 841 },
                     A0: { price: 6000, width: 841, height: 1189 }
                 }
             }
         };
 
-        let map, supabase;
+        let map, supabase, previewMap;
         let mapLayers = { regions: null, departements: null, arrondissements: null, villages: null, poi: null, geonames: null };
         let baseLayers = { standard: null, satellite: null };
         let currentBaseLayer = 'standard';
@@ -690,6 +742,12 @@
         let polygonPoints = [];
         let tempPolygon = null;
 
+        // Variables pour la sélection de zone d'impression
+        let printAreaSelector = null;
+        let printBounds = null;
+        let isSelectingPrintArea = false;
+        let selectedPaymentMethod = 'mobilemoney';
+
         // Variables pour l'impression
         let printConfig = {
             title: 'Carte des Villages - MonVillage',
@@ -700,7 +758,8 @@
             showScale: true,
             showLegend: true,
             showCoordinates: true,
-            price: 2000
+            price: 2000,
+            bounds: null
         };
 
         // Variables pour la géolocalisation
@@ -827,7 +886,7 @@
         function initializeSupabase() {
             try {
                 supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
-                console.log('✅ Supabase initialisé');
+                console.log('✅ Supabase initialisé avec variables d\'environnement');
             } catch (error) {
                 console.error('❌ Erreur Supabase:', error);
                 showNotification('Mode hors ligne - données démo', 'warning');
@@ -873,9 +932,204 @@
             console.log('✅ Carte initialisée avec optimisations de performance');
         }
 
+        function initializePreviewMap() {
+            // Initialiser la carte d'aperçu dans le modal d'impression
+            const previewElement = document.getElementById('previewMap');
+            if (previewElement && !previewMap) {
+                setTimeout(() => {
+                    try {
+                        previewMap = L.map('previewMap', {
+                            center: CONFIG.map.center,
+                            zoom: CONFIG.map.zoom - 1,
+                            zoomControl: false,
+                            attributionControl: false,
+                            dragging: false,
+                            touchZoom: false,
+                            doubleClickZoom: false,
+                            scrollWheelZoom: false,
+                            boxZoom: false,
+                            keyboard: false
+                        });
+
+                        // Ajouter la couche de base à l'aperçu
+                        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                            id: 'mapbox/streets-v11',
+                            accessToken: CONFIG.mapbox.accessToken,
+                            maxZoom: 18
+                        }).addTo(previewMap);
+
+                        console.log('✅ Carte d\'aperçu initialisée');
+                    } catch (error) {
+                        console.error('Erreur initialisation carte aperçu:', error);
+                    }
+                }, 500);
+            }
+        }
+
         function initializeNativeMeasurementTools() {
             measurementLayer = new L.FeatureGroup();
             map.addLayer(measurementLayer);
+        }
+
+        // SYSTÈME DE SÉLECTION DE ZONE D'IMPRESSION
+        function startPrintAreaSelection() {
+            if (isSelectingPrintArea) {
+                stopPrintAreaSelection();
+                return;
+            }
+
+            isSelectingPrintArea = true;
+            document.getElementById('selectPrintArea').classList.add('active');
+            document.getElementById('selectPrintArea').textContent = '⏹️ Arrêter la sélection';
+            
+            showNotification('Cliquez et glissez pour sélectionner la zone à imprimer', 'info');
+            
+            map.getContainer().style.cursor = 'crosshair';
+            
+            map.on('mousedown', onPrintAreaStart);
+            map.on('mousemove', onPrintAreaMove);
+            map.on('mouseup', onPrintAreaEnd);
+        }
+
+        function stopPrintAreaSelection() {
+            isSelectingPrintArea = false;
+            document.getElementById('selectPrintArea').classList.remove('active');
+            document.getElementById('selectPrintArea').textContent = '📐 Sélectionner une zone';
+            
+            map.getContainer().style.cursor = '';
+            
+            map.off('mousedown', onPrintAreaStart);
+            map.off('mousemove', onPrintAreaMove);
+            map.off('mouseup', onPrintAreaEnd);
+        }
+
+        let isDragging = false;
+        let dragStartLatLng = null;
+
+        function onPrintAreaStart(e) {
+            if (!isSelectingPrintArea) return;
+            
+            isDragging = true;
+            dragStartLatLng = e.latlng;
+            
+            // Supprimer l'ancien sélecteur s'il existe
+            if (printAreaSelector) {
+                map.removeLayer(printAreaSelector);
+            }
+        }
+
+        function onPrintAreaMove(e) {
+            if (!isSelectingPrintArea || !isDragging || !dragStartLatLng) return;
+            
+            const bounds = L.latLngBounds(dragStartLatLng, e.latlng);
+            
+            if (printAreaSelector) {
+                map.removeLayer(printAreaSelector);
+            }
+            
+            printAreaSelector = L.rectangle(bounds, {
+                className: 'print-area-selector',
+                color: '#007bff',
+                weight: 3,
+                fillColor: '#007bff',
+                fillOpacity: 0.1,
+                dashArray: '10, 5'
+            }).addTo(map);
+        }
+
+        function onPrintAreaEnd(e) {
+            if (!isSelectingPrintArea || !isDragging || !dragStartLatLng) return;
+            
+            isDragging = false;
+            
+            const bounds = L.latLngBounds(dragStartLatLng, e.latlng);
+            printBounds = bounds;
+            
+            // Mettre à jour l'aperçu avec la zone sélectionnée
+            updatePreviewWithBounds(bounds);
+            updatePrintAreaSummary(bounds);
+            
+            stopPrintAreaSelection();
+            showNotification('Zone d\'impression sélectionnée', 'success');
+        }
+
+        function useCurrentMapView() {
+            printBounds = map.getBounds();
+            
+            if (printAreaSelector) {
+                map.removeLayer(printAreaSelector);
+            }
+            
+            printAreaSelector = L.rectangle(printBounds, {
+                className: 'print-area-selector',
+                color: '#007bff',
+                weight: 3,
+                fillColor: '#007bff',
+                fillOpacity: 0.1,
+                dashArray: '10, 5'
+            }).addTo(map);
+            
+            updatePreviewWithBounds(printBounds);
+            updatePrintAreaSummary(printBounds);
+            
+            showNotification('Vue actuelle sélectionnée pour l\'impression', 'success');
+        }
+
+        function clearPrintAreaSelection() {
+            if (printAreaSelector) {
+                map.removeLayer(printAreaSelector);
+                printAreaSelector = null;
+            }
+            
+            printBounds = null;
+            
+            // Réinitialiser l'aperçu
+            if (previewMap) {
+                previewMap.setView(CONFIG.map.center, CONFIG.map.zoom - 1);
+            }
+            
+            document.getElementById('summaryArea').textContent = 'Aucune sélection';
+            
+            showNotification('Sélection effacée', 'info');
+        }
+
+        function updatePreviewWithBounds(bounds) {
+            if (!previewMap || !bounds) return;
+            
+            try {
+                // Centrer et ajuster le zoom de l'aperçu sur la zone sélectionnée
+                previewMap.fitBounds(bounds);
+                
+                // Ajouter un rectangle pour montrer la zone sélectionnée
+                previewMap.eachLayer(layer => {
+                    if (layer instanceof L.Rectangle) {
+                        previewMap.removeLayer(layer);
+                    }
+                });
+                
+                L.rectangle(bounds, {
+                    color: '#ff0000',
+                    weight: 2,
+                    fillOpacity: 0,
+                    dashArray: '5, 5'
+                }).addTo(previewMap);
+                
+            } catch (error) {
+                console.error('Erreur mise à jour aperçu:', error);
+            }
+        }
+
+        function updatePrintAreaSummary(bounds) {
+            if (!bounds) {
+                document.getElementById('summaryArea').textContent = 'Aucune sélection';
+                return;
+            }
+            
+            const center = bounds.getCenter();
+            const area = (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
+            
+            document.getElementById('summaryArea').textContent = 
+                `Zone sélectionnée (${area.toFixed(4)}° × ${area.toFixed(4)}°)`;
         }
 
         // CHARGEMENT DES DONNÉES VILLAGES AVEC DESCRIPTIONS
@@ -1029,12 +1283,10 @@
             `;
         }
 
-        // Fonctions pour le modal de détail du village
+        // FONCTIONS DU MODAL VILLAGE (identiques)
         window.openVillageDetails = function(villageId) {
-            // Fermer la popup
             map.closePopup();
             
-            // Trouver les données du village
             let villageData = null;
             if (mapLayers.villages) {
                 mapLayers.villages.eachLayer(layer => {
@@ -1286,7 +1538,7 @@
             document.body.style.overflow = '';
         }
 
-        // FONCTIONS DE CHARGEMENT DES COUCHES ADMINISTRATIVES
+        // CHARGEMENT DES COUCHES ADMINISTRATIVES
         async function loadRegionsOptimized() {
             try {
                 const { data, error } = await supabase
@@ -1487,12 +1739,9 @@
             }
         }
 
-        // OUTILS DE MESURE ET AUTRES FONCTIONS (identiques à index précédent)
-        // ... [Le reste du code JavaScript pour les mesures, impression, géolocalisation, etc.] ...
-
         // GÉOLOCALISATION
         function locateUser() {
-            console.log('📍 Demande de géolocalisation utilisateur');
+            console.log('🔍 Demande de géolocalisation utilisateur');
             
             const button = document.getElementById('locateUser');
             
@@ -1920,12 +2169,15 @@
             }).addTo(map);
         }
 
-        // FONCTIONS D'IMPRESSION (identiques à l'index précédent)
+        // SYSTÈME D'IMPRESSION AVANCÉ
         function openPrintModal() {
-            console.log('🖨️ Ouverture du modal d\'impression');
+            console.log('🖨️ Ouverture du modal d\'impression avancé');
             
             const modal = document.getElementById('printModal');
             modal.classList.add('active');
+            
+            // Initialiser la carte d'aperçu si elle n'existe pas
+            initializePreviewMap();
             
             document.getElementById('previewDate').textContent = new Date().toLocaleDateString('fr-FR');
             updatePrintPreview();
@@ -1935,6 +2187,11 @@
         function closePrintModal() {
             const modal = document.getElementById('printModal');
             modal.classList.remove('active');
+            
+            // Arrêter la sélection de zone si active
+            if (isSelectingPrintArea) {
+                stopPrintAreaSelection();
+            }
         }
 
         function updatePrintPreview() {
@@ -1958,6 +2215,11 @@
             document.getElementById('summaryFileType').textContent = document.getElementById('outputFormat').value.toUpperCase();
             document.getElementById('summaryScale').textContent = `1:${parseInt(scale).toLocaleString()}`;
             document.getElementById('summaryPrice').textContent = `${printConfig.price.toLocaleString()} XAF`;
+            
+            // Mettre à jour l'aperçu de la carte si des bornes sont sélectionnées
+            if (printBounds && previewMap) {
+                updatePreviewWithBounds(printBounds);
+            }
         }
 
         function selectFormat(format, price) {
@@ -1978,6 +2240,7 @@
             updatePrintPreview();
         }
 
+        // SYSTÈME DE PAIEMENT FLUTTERWAVE AMÉLIORÉ
         async function proceedToPayment() {
             printConfig.title = document.getElementById('mapTitle').value;
             printConfig.outputFormat = document.getElementById('outputFormat').value;
@@ -1985,6 +2248,7 @@
             printConfig.showScale = document.getElementById('showScale').checked;
             printConfig.showLegend = document.getElementById('showLegend').checked;
             printConfig.showCoordinates = document.getElementById('showCoordinates').checked;
+            printConfig.bounds = printBounds;
             
             const paymentModal = document.getElementById('paymentModal');
             paymentModal.classList.add('active');
@@ -2002,6 +2266,24 @@
             openPrintModal();
         }
 
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            document.querySelector(`[data-method="${method}"]`).classList.add('selected');
+            
+            // Mettre à jour le texte du bouton selon la méthode
+            const confirmButton = document.getElementById('confirmPayment');
+            if (method === 'mobilemoney') {
+                confirmButton.innerHTML = '📱 Payer par Mobile Money';
+            } else if (method === 'card') {
+                confirmButton.innerHTML = '💳 Payer par Carte';
+            }
+        }
+
         async function processPayment() {
             try {
                 document.getElementById('paymentSpinner').style.display = 'block';
@@ -2009,12 +2291,16 @@
                 
                 const txRef = `PRINT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 
+                let paymentOptions = "card,mobilemoney,ussd";
+                let preferredOption = selectedPaymentMethod === 'card' ? 'card' : 'mobilemoney';
+                
                 FlutterwaveCheckout({
                     public_key: CONFIG.flutterwave.publicKey,
                     tx_ref: txRef,
                     amount: printConfig.price,
                     currency: "XAF",
-                    payment_options: "mobilemoney, card, ussd",
+                    payment_options: paymentOptions,
+                    redirect_url: window.location.href,
                     customer: {
                         email: "client@monvillage.cm",
                         phone_number: "+237000000000",
@@ -2022,12 +2308,17 @@
                     },
                     customizations: {
                         title: "MonVillage - Exportation de Carte",
-                        description: `Exportation ${printConfig.format} - Orange Money, MTN MoMo disponibles`,
+                        description: `Exportation ${printConfig.format} - ${selectedPaymentMethod === 'mobilemoney' ? 'Orange Money, MTN MoMo disponibles' : 'Visa, Mastercard acceptées'}`,
                         logo: "https://via.placeholder.com/150x50?text=MonVillage"
+                    },
+                    meta: {
+                        print_format: printConfig.format,
+                        print_title: printConfig.title,
+                        payment_method: selectedPaymentMethod
                     },
                     callback: function(data) {
                         console.log('Paiement réussi:', data);
-                        handlePaymentSuccess(data, txRef, data.payment_type);
+                        handlePaymentSuccess(data, txRef, data.payment_type || selectedPaymentMethod);
                     },
                     onclose: function() {
                         console.log('Paiement fermé par l\'utilisateur');
@@ -2069,7 +2360,12 @@
                         flutterwave_tx_id: paymentData.transaction_id,
                         print_format: printConfig.format,
                         print_title: printConfig.title,
-                        map_bounds: JSON.stringify(map.getBounds())
+                        map_bounds: printBounds ? JSON.stringify({
+                            north: printBounds.getNorth(),
+                            south: printBounds.getSouth(),
+                            east: printBounds.getEast(),
+                            west: printBounds.getWest()
+                        }) : JSON.stringify(map.getBounds())
                     });
                     
                     if (error) {
@@ -2104,9 +2400,8 @@
             try {
                 await new Promise(resolve => setTimeout(resolve, 3000));
                 
-                const bounds = map.getBounds();
-                const center = map.getCenter();
-                const zoom = map.getZoom();
+                const bounds = printBounds || map.getBounds();
+                const center = bounds.getCenter();
                 
                 const exportData = {
                     config: printConfig,
@@ -2116,7 +2411,7 @@
                             [bounds.getSouth(), bounds.getWest()],
                             [bounds.getNorth(), bounds.getEast()]
                         ],
-                        zoom: zoom
+                        zoom: map.getZoom()
                     },
                     layers: getActiveLayers(),
                     timestamp: new Date().toISOString()
@@ -2127,6 +2422,9 @@
                 
                 loadingOverlay.classList.remove('active');
                 showNotification(`Exportation réussie: ${fileName}`, 'success', 6000);
+                
+                // Nettoyer la sélection de zone après export
+                clearPrintAreaSelection();
                 
             } catch (error) {
                 console.error('❌ Erreur lors de la génération:', error);
@@ -2206,22 +2504,48 @@
 
         // GESTION DES ÉVÉNEMENTS
         function initializeEventListeners() {
+            // Navigation et interface
             document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
             document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
             document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
             document.getElementById('zoomHome').addEventListener('click', () => map.setView(CONFIG.map.center, CONFIG.map.zoom));
             document.getElementById('toggleSatellite').addEventListener('click', toggleSatelliteView);
+            
+            // Géolocalisation
             document.getElementById('locateUser').addEventListener('click', locateUser);
+            
+            // Outils de mesure
             document.getElementById('measureDistance').addEventListener('click', startDistanceMeasurement);
             document.getElementById('measureArea').addEventListener('click', startAreaMeasurement);
             document.getElementById('clearMeasurements').addEventListener('click', clearAllMeasurements);
+            
+            // Impression
             document.getElementById('printMap').addEventListener('click', openPrintModal);
             document.getElementById('closePrintModal').addEventListener('click', closePrintModal);
             document.getElementById('cancelPrint').addEventListener('click', closePrintModal);
             document.getElementById('proceedToPay').addEventListener('click', proceedToPayment);
+            
+            // Sélection de zone d'impression
+            document.getElementById('selectPrintArea').addEventListener('click', startPrintAreaSelection);
+            document.getElementById('useCurrentView').addEventListener('click', useCurrentMapView);
+            document.getElementById('clearPrintArea').addEventListener('click', clearPrintAreaSelection);
+            
+            // Modal village
+            document.getElementById('closeVillageModal').addEventListener('click', closeVillageModal);
+            
+            // Paiement
             document.getElementById('cancelPayment').addEventListener('click', cancelPayment);
             document.getElementById('confirmPayment').addEventListener('click', processPayment);
-            document.getElementById('closeVillageModal').addEventListener('click', closeVillageModal);
+            
+            // Sélection des méthodes de paiement
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.addEventListener('click', function() {
+                    selectPaymentMethod(this.dataset.method);
+                });
+            });
+            
+            // Sélectionner Mobile Money par défaut
+            selectPaymentMethod('mobilemoney');
 
             // Événements pour l'impression
             document.getElementById('mapTitle').addEventListener('input', updatePrintPreview);
@@ -2284,6 +2608,8 @@
                         cancelPayment();
                     } else if (isLocating) {
                         stopLocationTracking();
+                    } else if (isSelectingPrintArea) {
+                        stopPrintAreaSelection();
                     }
                 }
             });
@@ -2297,6 +2623,8 @@
         // INITIALISATION PRINCIPALE
         document.addEventListener('DOMContentLoaded', function() {
             try {
+                console.log('🚀 Initialisation MonVillage avec variables d\'environnement');
+                
                 initializeSupabase();
                 initializeMap();
                 initializeNativeMeasurementTools();
@@ -2324,6 +2652,21 @@
             if (map) {
                 setTimeout(() => map.invalidateSize(), 100);
             }
+            
+            if (previewMap) {
+                setTimeout(() => previewMap.invalidateSize(), 100);
+            }
+        });
+
+        // Gestion des erreurs globales
+        window.addEventListener('error', function(e) {
+            console.error('Erreur globale:', e.error);
+            showNotification('Une erreur inattendue s\'est produite', 'error');
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Promise non gérée:', e.reason);
+            showNotification('Erreur de connexion - vérifiez votre réseau', 'warning');
         });
     </script>
 </body>
