@@ -757,9 +757,12 @@
                     geom: await getGeom()
                 };
 
-                const { user } = await supabase.auth.getUser();
-                data.created_by = user.id;
-                data.updated_by = user.id;
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                    if (user) {
+                        data.created_by = user.id;
+                        data.updated_by = user.id;
+                    }
+                    // Si pas d'utilisateur authentifié, les champs restent undefined (ce qui est OK)
 
                 let error;
                 if (editingId) {
