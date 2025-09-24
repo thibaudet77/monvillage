@@ -29,13 +29,67 @@
             border-radius: 0.5rem; 
             border: 1px solid #e5e7eb; 
         }
+        @media (max-width: 640px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                z-index: 50;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .hamburger {
+                display: block;
+            }
+            .modal-content {
+                max-height: 90vh;
+                width: 90vw;
+            }
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            thead, tbody, tr {
+                display: block;
+            }
+            tr {
+                margin-bottom: 1rem;
+            }
+            td, th {
+                display: block;
+                text-align: left;
+            }
+            td:before {
+                content: attr(data-label);
+                font-weight: bold;
+                margin-right: 0.5rem;
+            }
+        }
+        @media (min-width: 641px) {
+            .hamburger {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
-    <div class="flex h-screen">
-        <aside class="w-64 bg-white shadow-md">
-            <div class="p-4">
-                <h1 class="text-2xl font-bold text-gray-800">MonVillage Admin</h1>
+    <div class="flex min-h-screen">
+        <aside class="w-64 bg-white shadow-md sidebar">
+            <div class="p-4 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-gray-800">MonVillage Admin</h1>
+                <button id="close-sidebar" class="sm:hidden text-gray-600 hover:text-gray-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
             </div>
             <nav class="mt-4">
                 <ul>
@@ -52,45 +106,51 @@
             </div>
         </aside>
 
-        <main class="flex-1 p-6 overflow-y-auto">
+        <main class="flex-1 p-4 sm:p-6 overflow-y-auto main-content">
+            <button id="hamburger-btn" class="hamburger fixed top-4 left-4 sm:hidden p-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
             <section id="dashboard" class="active">
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold mb-4">Statistiques générales</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                    <h2 class="text-lg sm:text-xl font-semibold mb-4">Statistiques générales</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="p-4 bg-blue-50 rounded-lg">
                             <h3 class="font-medium">Villages</h3>
-                            <p id="villages-count" class="text-2xl">-</p>
+                            <p id="villages-count" class="text-xl sm:text-2xl">-</p>
                         </div>
                         <div class="p-4 bg-blue-50 rounded-lg">
                             <h3 class="font-medium">Points d'intérêt</h3>
-                            <p id="poi-count" class="text-2xl">-</p>
+                            <p id="poi-count" class="text-xl sm:text-2xl">-</p>
                         </div>
                         <div class="p-4 bg-blue-50 rounded-lg">
                             <h3 class="font-medium">Géonymes</h3>
-                            <p id="geonames-count" class="text-2xl">-</p>
+                            <p id="geonames-count" class="text-xl sm:text-2xl">-</p>
                         </div>
                         <div class="p-4 bg-blue-50 rounded-lg">
                             <h3 class="font-medium">Descriptions</h3>
-                            <p id="descriptions-count" class="text-2xl">-</p>
+                            <p id="descriptions-count" class="text-xl sm:text-2xl">-</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             <section id="villages" class="hidden">
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold">Gestion des Villages</h2>
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                        <h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">Gestion des Villages</h2>
                         <button id="new-village-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Nouveau Village</button>
                     </div>
                     <table class="w-full border-collapse">
                         <thead>
                             <tr class="bg-gray-200">
-                                <th class="p-2 text-left">Nom</th>
-                                <th class="p-2 text-left">Arrondissement</th>
-                                <th class="p-2 text-left">Chef</th>
-                                <th class="p-2 text-left">Population</th>
-                                <th class="p-2 text-left">Actions</th>
+                                <th class="p-2 text-left" data-label="Nom">Nom</th>
+                                <th class="p-2 text-left" data-label="Arrondissement">Arrondissement</th>
+                                <th class="p-2 text-left" data-label="Chef">Chef</th>
+                                <th class="p-2 text-left" data-label="Population">Population</th>
+                                <th class="p-2 text-left" data-label="Actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="villages-table"></tbody>
@@ -98,11 +158,11 @@
                 </div>
 
                 <div id="village-form" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div class="modal-content bg-white p-6 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-                        <h2 id="village-form-title" class="text-xl font-semibold mb-4">Ajouter un Village</h2>
+                    <div class="modal-content bg-white p-4 sm:p-6 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <h2 id="village-form-title" class="text-lg sm:text-xl font-semibold mb-4">Ajouter un Village</h2>
                         <button class="close-modal float-right px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Annuler</button>
                         <form>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="form-group">
                                     <label class="block mb-1 font-medium">Nom du village *</label>
                                     <input type="text" id="village-name" class="w-full p-2 border rounded" required>
@@ -162,7 +222,7 @@
                                     <label class="block mb-1 font-medium">Photos du village (max 2)</label>
                                     <input type="file" id="village-photos" accept="image/*" multiple class="w-full p-2 border rounded">
                                 </div>
-                                <div class="form-group col-span-2">
+                                <div class="form-group col-span-1 sm:col-span-2">
                                     <label class="block mb-1 font-medium">Description détaillée du village</label>
                                     <button type="button" id="add-description-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ajouter une description détaillée</button>
                                     <div id="description-form" class="mt-4 hidden">
@@ -204,18 +264,18 @@
             </section>
 
             <section id="poi" class="hidden">
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold">Gestion des Points d'Intérêt</h2>
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                        <h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">Gestion des Points d'Intérêt</h2>
                         <button id="new-poi-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Nouveau POI</button>
                     </div>
                     <table class="w-full border-collapse">
                         <thead>
                             <tr class="bg-gray-200">
-                                <th class="p-2 text-left">Nom</th>
-                                <th class="p-2 text-left">Type</th>
-                                <th class="p-2 text-left">Village</th>
-                                <th class="p-2 text-left">Actions</th>
+                                <th class="p-2 text-left" data-label="Nom">Nom</th>
+                                <th class="p-2 text-left" data-label="Type">Type</th>
+                                <th class="p-2 text-left" data-label="Village">Village</th>
+                                <th class="p-2 text-left" data-label="Actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="poi-table"></tbody>
@@ -223,8 +283,8 @@
                 </div>
 
                 <div id="poi-form" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div class="modal-content bg-white p-6 rounded-lg max-w-lg w-full">
-                        <h2 id="poi-form-title" class="text-xl font-semibold mb-4">Ajouter un Point d'Intérêt</h2>
+                    <div class="modal-content bg-white p-4 sm:p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <h2 id="poi-form-title" class="text-lg sm:text-xl font-semibold mb-4">Ajouter un Point d'Intérêt</h2>
                         <button class="close-modal float-right px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Annuler</button>
                         <form>
                             <div class="form-group mb-4">
@@ -257,24 +317,24 @@
                                 <input type="number" id="poi-lon" class="w-full p-2 border rounded" step="0.000001">
                             </div>
                             <div id="poi-map" class="form-group hidden map-container"></div>
-                            <button type="submit" id="save-poi-btn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Enregistrer le POI</button>
+                            <button type="submit" id="save-poi-btn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700">Enregistrer le POI</button>
                         </form>
                     </div>
                 </div>
             </section>
 
             <section id="geonames" class="hidden">
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold">Gestion des Géonymes</h2>
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                        <h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">Gestion des Géonymes</h2>
                         <button id="new-geoname-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Nouveau Géonyme</button>
                     </div>
                     <table class="w-full border-collapse">
                         <thead>
                             <tr class="bg-gray-200">
-                                <th class="p-2 text-left">Nom</th>
-                                <th class="p-2 text-left">Type</th>
-                                <th class="p-2 text-left">Actions</th>
+                                <th class="p-2 text-left" data-label="Nom">Nom</th>
+                                <th class="p-2 text-left" data-label="Type">Type</th>
+                                <th class="p-2 text-left" data-label="Actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="geonames-table"></tbody>
@@ -282,8 +342,8 @@
                 </div>
 
                 <div id="geoname-form" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div class="modal-content bg-white p-6 rounded-lg max-w-lg w-full">
-                        <h2 id="geoname-form-title" class="text-xl font-semibold mb-4">Ajouter un Géonyme</h2>
+                    <div class="modal-content bg-white p-4 sm:p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <h2 id="geoname-form-title" class="text-lg sm:text-xl font-semibold mb-4">Ajouter un Géonyme</h2>
                         <button class="close-modal float-right px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Annuler</button>
                         <form>
                             <div class="form-group mb-4">
@@ -321,25 +381,25 @@
                                 <input type="number" id="geoname-lon" class="w-full p-2 border rounded" step="0.000001">
                             </div>
                             <div id="geoname-map" class="form-group hidden map-container"></div>
-                            <button type="submit" id="save-geoname-btn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Enregistrer le Géonyme</button>
+                            <button type="submit" id="save-geoname-btn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700">Enregistrer le Géonyme</button>
                         </form>
                     </div>
                 </div>
             </section>
 
             <section id="users" class="hidden">
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold">Gestion des Utilisateurs</h2>
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                        <h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">Gestion des Utilisateurs</h2>
                         <button id="new-user-btn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Nouvel Utilisateur</button>
                     </div>
                     <table class="w-full border-collapse">
                         <thead>
                             <tr class="bg-gray-200">
-                                <th class="p-2 text-left">Nom</th>
-                                <th class="p-2 text-left">Rôle</th>
-                                <th class="p-2 text-left">Actif</th>
-                                <th class="p-2 text-left">Actions</th>
+                                <th class="p-2 text-left" data-label="Nom">Nom</th>
+                                <th class="p-2 text-left" data-label="Rôle">Rôle</th>
+                                <th class="p-2 text-left" data-label="Actif">Actif</th>
+                                <th class="p-2 text-left" data-label="Actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="users-table"></tbody>
@@ -347,8 +407,8 @@
                 </div>
 
                 <div id="user-form" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div class="modal-content bg-white p-6 rounded-lg max-w-lg w-full">
-                        <h2 id="user-form-title" class="text-xl font-semibold mb-4">Ajouter un Utilisateur</h2>
+                    <div class="modal-content bg-white p-4 sm:p-6 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <h2 id="user-form-title" class="text-lg sm:text-xl font-semibold mb-4">Ajouter un Utilisateur</h2>
                         <button class="close-modal float-right px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Annuler</button>
                         <form>
                             <div class="form-group mb-4">
@@ -365,7 +425,7 @@
                                 <label class="block mb-1 font-medium">Actif</label>
                                 <input type="checkbox" id="user-active" class="mr-2" checked>
                             </div>
-                            <button type="submit" id="save-user-btn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Enregistrer l'Utilisateur</button>
+                            <button type="submit" id="save-user-btn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700">Enregistrer l'Utilisateur</button>
                         </form>
                     </div>
                 </div>
@@ -399,12 +459,48 @@
         }
 
         function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
-            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
-            document.getElementById(sectionId).classList.remove('hidden');
-            document.querySelector(`nav a[href="#${sectionId}"]`).classList.add('active');
-            currentSection = sectionId;
-            loadData();
+            console.log(`Attempting to show section: ${sectionId}`);
+            try {
+                // Hide all sections
+                const sections = document.querySelectorAll('section');
+                sections.forEach(sec => {
+                    sec.classList.add('hidden');
+                    sec.classList.remove('active');
+                });
+
+                // Remove active class from all nav links
+                const navLinks = document.querySelectorAll('nav a');
+                navLinks.forEach(a => a.classList.remove('active'));
+
+                // Show the selected section
+                const targetSection = document.getElementById(sectionId);
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                    targetSection.classList.add('active');
+                    console.log(`Section ${sectionId} shown`);
+                } else {
+                    console.error(`Section with ID ${sectionId} not found`);
+                    return;
+                }
+
+                // Update active nav link
+                const targetLink = document.querySelector(`nav a[href="#${sectionId}"]`);
+                if (targetLink) {
+                    targetLink.classList.add('active');
+                    console.log(`Active class added to nav link for ${sectionId}`);
+                } else {
+                    console.error(`Nav link for #${sectionId} not found`);
+                }
+
+                currentSection = sectionId;
+                loadData();
+
+                // Close sidebar on mobile after selection
+                document.querySelector('.sidebar').classList.remove('open');
+            } catch (error) {
+                console.error('Error in showSection:', error);
+                alert('Erreur lors du changement de section');
+            }
         }
 
         function showModal(modalId) {
@@ -412,9 +508,18 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.add('show');
-                if (modalId === 'village-form' && !map) map = initMap('map');
-                if (modalId === 'poi-form' && !poiMap) poiMap = initMap('poi-map', true);
-                if (modalId === 'geoname-form' && !geonameMap) geonameMap = initMap('geoname-map', true);
+                if (modalId === 'village-form' && !map) {
+                    map = initMap('map');
+                    setTimeout(() => map.invalidateSize(), 100);
+                }
+                if (modalId === 'poi-form' && !poiMap) {
+                    poiMap = initMap('poi-map', true);
+                    setTimeout(() => poiMap.invalidateSize(), 100);
+                }
+                if (modalId === 'geoname-form' && !geonameMap) {
+                    geonameMap = initMap('geoname-map', true);
+                    setTimeout(() => geonameMap.invalidateSize(), 100);
+                }
             } else {
                 console.error(`Modal ${modalId} not found`);
             }
@@ -538,11 +643,11 @@
                 data.forEach(v => {
                     tbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2">${v.village_name}</td>
-                            <td class="p-2">${v.arrondissement_name}</td>
-                            <td class="p-2">${v.chief_name || '-'}</td>
-                            <td class="p-2">${v.population || '-'}</td>
-                            <td class="p-2">
+                            <td class="p-2" data-label="Nom">${v.village_name}</td>
+                            <td class="p-2" data-label="Arrondissement">${v.arrondissement_name}</td>
+                            <td class="p-2" data-label="Chef">${v.chief_name || '-'}</td>
+                            <td class="p-2" data-label="Population">${v.population || '-'}</td>
+                            <td class="p-2" data-label="Actions">
                                 <button onclick="editVillage('${v.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
                                 <button onclick="deleteVillage('${v.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
                             </td>
@@ -564,10 +669,10 @@
                 data.forEach(p => {
                     tbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2">${p.name}</td>
-                            <td class="p-2">${p.type}</td>
-                            <td class="p-2">${p.village_name || '-'}</td>
-                            <td class="p-2">
+                            <td class="p-2" data-label="Nom">${p.name}</td>
+                            <td class="p-2" data-label="Type">${p.type}</td>
+                            <td class="p-2" data-label="Village">${p.village_name || '-'}</td>
+                            <td class="p-2" data-label="Actions">
                                 <button onclick="editPoi('${p.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
                                 <button onclick="deletePoi('${p.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
                             </td>
@@ -589,9 +694,9 @@
                 data.forEach(g => {
                     tbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2">${g.nom}</td>
-                            <td class="p-2">${g.type}</td>
-                            <td class="p-2">
+                            <td class="p-2" data-label="Nom">${g.nom}</td>
+                            <td class="p-2" data-label="Type">${g.type}</td>
+                            <td class="p-2" data-label="Actions">
                                 <button onclick="editGeoname('${g.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
                                 <button onclick="deleteGeoname('${g.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
                             </td>
@@ -613,10 +718,10 @@
                 data.forEach(u => {
                     tbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2">${u.full_name}</td>
-                            <td class="p-2">${u.role}</td>
-                            <td class="p-2">${u.is_active ? 'Oui' : 'Non'}</td>
-                            <td class="p-2">
+                            <td class="p-2" data-label="Nom">${u.full_name}</td>
+                            <td class="p-2" data-label="Rôle">${u.role}</td>
+                            <td class="p-2" data-label="Actif">${u.is_active ? 'Oui' : 'Non'}</td>
+                            <td class="p-2" data-label="Actions">
                                 <button onclick="editUser('${u.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
                                 <button onclick="deleteUser('${u.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
                             </td>
@@ -630,6 +735,7 @@
         }
 
         function loadData() {
+            console.log(`Loading data for section: ${currentSection}`);
             if (currentSection === 'dashboard') loadDashboard();
             else if (currentSection === 'villages') loadVillages();
             else if (currentSection === 'poi') loadPoi();
@@ -1013,24 +1119,44 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             try {
+                console.log('DOM fully loaded, initializing...');
                 await checkAuth();
                 await loadArrondissements();
                 await loadPoiTypes();
                 await loadVillagesForSelect('poi-village-id');
                 loadDashboard();
 
+                // Initialize maps
+                console.log('Initializing maps...');
                 map = initMap('map');
                 poiMap = initMap('poi-map', true);
                 geonameMap = initMap('geoname-map', true);
 
-                document.querySelectorAll('nav a').forEach(a => {
+                // Navigation event listeners
+                console.log('Setting up navigation event listeners...');
+                const navLinks = document.querySelectorAll('nav a');
+                console.log(`Found ${navLinks.length} navigation links`);
+                navLinks.forEach(a => {
                     a.addEventListener('click', e => {
                         e.preventDefault();
-                        showSection(a.getAttribute('href').slice(1));
+                        const sectionId = a.getAttribute('href').slice(1);
+                        console.log(`Navigation link clicked: ${sectionId}`);
+                        showSection(sectionId);
                     });
                 });
 
+                document.getElementById('hamburger-btn').addEventListener('click', () => {
+                    console.log('Hamburger button clicked');
+                    document.querySelector('.sidebar').classList.add('open');
+                });
+
+                document.getElementById('close-sidebar').addEventListener('click', () => {
+                    console.log('Close sidebar button clicked');
+                    document.querySelector('.sidebar').classList.remove('open');
+                });
+
                 document.getElementById('logout-btn').addEventListener('click', async () => {
+                    console.log('Logout button clicked');
                     await supabase.auth.signOut();
                     window.location.href = 'login.html';
                 });
@@ -1053,7 +1179,11 @@
                 });
 
                 document.querySelectorAll('.close-modal').forEach(btn => {
-                    btn.addEventListener('click', () => hideModal(btn.closest('.modal').id));
+                    btn.addEventListener('click', () => {
+                        const modalId = btn.closest('.modal').id;
+                        console.log(`Close modal button clicked for ${modalId}`);
+                        hideModal(modalId);
+                    });
                 });
 
                 document.querySelector('#village-form form').addEventListener('submit', saveVillage);
@@ -1062,45 +1192,57 @@
                 document.querySelector('#user-form form').addEventListener('submit', saveUser);
 
                 document.getElementById('geom-method').addEventListener('change', e => {
+                    console.log(`Geometry method changed to: ${e.target.value}`);
                     document.getElementById('geom-upload').classList.toggle('hidden', e.target.value !== 'upload');
                     document.getElementById('geom-draw').classList.toggle('hidden', e.target.value !== 'draw');
                 });
 
                 document.getElementById('poi-geom-method').addEventListener('change', e => {
+                    console.log(`POI geometry method changed to: ${e.target.value}`);
                     document.getElementById('poi-coords').classList.toggle('hidden', e.target.value !== 'coords');
                     document.getElementById('poi-map').classList.toggle('hidden', e.target.value !== 'click');
                 });
 
                 document.getElementById('geoname-geom-method').addEventListener('change', e => {
+                    console.log(`Geoname geometry method changed to: ${e.target.value}`);
                     document.getElementById('geoname-coords').classList.toggle('hidden', e.target.value !== 'coords');
                     document.getElementById('geoname-map').classList.toggle('hidden', e.target.value !== 'click');
                 });
 
-                document.getElementById('start-draw').addEventListener('click', () => drawControl.enable());
+                document.getElementById('start-draw').addEventListener('click', () => {
+                    console.log('Start draw button clicked');
+                    drawControl.enable();
+                });
+
                 document.getElementById('clear-draw').addEventListener('click', () => {
+                    console.log('Clear draw button clicked');
                     if (drawnLayer) map.removeLayer(drawnLayer);
                     drawnLayer = null;
                 });
 
                 map.on('draw:created', e => {
+                    console.log('Draw created on village map');
                     if (drawnLayer) map.removeLayer(drawnLayer);
                     drawnLayer = e.layer;
                     map.addLayer(drawnLayer);
                 });
 
                 poiMap.on('draw:created', e => {
+                    console.log('Draw created on POI map');
                     if (drawnLayer) poiMap.removeLayer(drawnLayer);
                     drawnLayer = e.layer;
                     poiMap.addLayer(drawnLayer);
                 });
 
                 geonameMap.on('draw:created', e => {
+                    console.log('Draw created on geoname map');
                     if (drawnLayer) geonameMap.removeLayer(drawnLayer);
                     drawnLayer = e.layer;
                     geonameMap.addLayer(drawnLayer);
                 });
 
                 document.getElementById('add-description-btn').addEventListener('click', () => {
+                    console.log('Add description button clicked');
                     document.getElementById('description-form').classList.remove('hidden');
                 });
             } catch (error) {
