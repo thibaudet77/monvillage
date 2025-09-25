@@ -744,60 +744,74 @@
         }
 
         async function saveVillage(e) {
-            e.preventDefault();
-            try {
-                const data = {
-                    village_name: document.getElementById('village-name').value,
-                    id_arrondissement: document.getElementById('arrondissement-id').value,
-                    chief_name: document.getElementById('chief-name').value || null,
-                    chief_start_date: document.getElementById('chief-start-date').value || null,
-                    email: document.getElementById('village-email').value || null,
-                    telephone: document.getElementById('village-telephone').value || null,
-                    population: parseInt(document.getElementById('village-population').value) || null,
-                    geom: await getGeom()
-                };
+        e.preventDefault();
+        try {
+            const geometry = await getGeom();
+            
+            const data = {
+                village_name: document.getElementById('village-name').value,
+                id_arrondissement: parseInt(document.getElementById('arrondissement-id').value),
+                chief_name: document.getElementById('chief-name').value || null,
+                chief_start_date: document.getElementById('chief-start-date').value || null,
+                email: document.getElementById('village-email').value || null,
+                telephone: document.getElementById('village-telephone').value || null,
+                population: parseInt(document.getElementById('village-population').value) || null,
+                geom: geometry // Directement la géométrie GeoJSON
+            };
 
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
-                    if (user) {
-                        data.created_by = user.id;
-                        data.updated_by = user.id;
-                    }
-                    // Si pas d'utilisateur authentifié, les champs restent undefined (ce qui est OK)
-
-                let error;
-                if (editingId) {
-                    ({ error } = await supabase.from('villages').update(data).eq('id', editingId));
-                } else {
-                    ({ error } = await supabase.from('villages').insert(data));
-                }
-                if (error) throw error;
-
-                const villageId = editingId || (await supabase.from('villages').select('id').eq('village_name', data.village_name).single()).data.id;
-
-                await uploadChiefPhoto(villageId);
-                await uploadVillagePhotos(villageId);
-                await saveDescription(villageId);
-
-                hideModal('village-form');
-                loadVillages();
-            } catch (error) {
-                console.error('Error saving village:', error);
-                alert('Erreur lors de l\'enregistrement du village');
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (user) {
+                data.created_by = user.id;
+                data.updated_by = user.id;
             }
+
+            let result;
+            if (editingId) {
+                result = await supabase.from('villages').update(data).eq('id', editingId);
+            } else {
+                result = await supabase.from('villages').insert(data).select().single();
+            }
+            
+            if (result.error) throw result.error;
+
+            const villageId = editingId || result.data.id;
+
+            // Continuer avec l'upload des photos et descriptions...
+            await uploadChiefPhoto(villageId);
+            await uploadVillagePhotos(villageId);
+            await saveDescription(villageId);
+
+            hideModal('village-form');
+            loadVillages();
+            
+        } catch (error) {
+            console.error('Error saving village:', error);
+            alert('Erreur lors de l\'enregistrement du village: ' + error.message);
         }
+    }
 
         async function getGeom() {
             const method = document.getElementById('geom-method').value;
             if (method === 'draw') {
                 if (!drawnLayer) throw new Error('Aucune géométrie dessinée');
                 const geojson = drawnLayer.toGeoJSON();
-                return `ST_GeomFromGeoJSON('${JSON.stringify(geojson.geometry)}')`;
+                return geojson.geometry; // Retourner directement la géométrie GeoJSON
             } else {
                 const format = document.getElementById('geom-format').value;
                 const text = document.getElementById('geom-text').value;
                 if (!text) throw new Error('Géométrie requise');
-                if (format === 'wkt') return `ST_GeomFromText('${text}')`;
-                else return `ST_GeomFromGeoJSON('${text}')`;
+                
+                if (format === 'wkt') {
+                    // Convertir WKT en GeoJSON (vous pourriez avoir besoin d'une librairie)
+                    throw new Error('Conversion WKT non implémentée. Utilisez GeoJSON.');
+                } else {
+                    // Supposer que c'est du GeoJSON valide
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        throw new Error('Format GeoJSON invalide');
+                    }
+                }
             }
         }
 
@@ -957,14 +971,18 @@
         async function getPointGeom(prefix) {
             const method = document.getElementById(`${prefix}-geom-method`).value;
             if (method === 'coords') {
-                const lat = document.getElementById(`${prefix}-lat`).value;
-                const lon = document.getElementById(`${prefix}-lon`).value;
-                if (!lat || !lon) throw new Error('Coordonnées requises');
-                return `ST_Point(${lon}, ${lat})`;
+                const lat = parseFloat(document.getElementById(`${prefix}-lat`).value);
+                const lon = parseFloat(document.getElementById(`${prefix}-lon`).value);
+                if (isNaN(lat) || isNaN(lon)) throw new Error('Coordonnées invalides');
+                
+                return {
+                    type: "Point",
+                    coordinates: [lon, lat]
+                };
             } else {
                 if (!drawnLayer) throw new Error('Aucun point sélectionné');
                 const geojson = drawnLayer.toGeoJSON();
-                return `ST_GeomFromGeoJSON('${JSON.stringify(geojson.geometry)}')`;
+                return geojson.geometry;
             }
         }
 
