@@ -802,14 +802,14 @@
                 if (!text) throw new Error('Géométrie requise');
                 
                 if (format === 'wkt') {
-                    // Convertir WKT en GeoJSON (vous pourriez avoir besoin d'une librairie)
-                    throw new Error('Conversion WKT non implémentée. Utilisez GeoJSON.');
+                    throw new Error('Format WKT non supporté. Utilisez GeoJSON uniquement.');
                 } else {
                     // Supposer que c'est du GeoJSON valide
                     try {
-                        return JSON.parse(text);
+                        const parsed = JSON.parse(text);
+                        return parsed; // Retourner la géométrie GeoJSON parsée
                     } catch (e) {
-                        throw new Error('Format GeoJSON invalide');
+                        throw new Error('Format GeoJSON invalide: ' + e.message);
                     }
                 }
             }
