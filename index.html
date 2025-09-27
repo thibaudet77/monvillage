@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MonVillage - Cartographie des Villages du Cameroun</title>
     
-    <!-- Leaflet CSS uniquement -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     
     <!-- Font Awesome -->
@@ -241,6 +241,87 @@
         .contact-info { display: flex; gap: 20px; align-items: center; }
         .contact-item { display: flex; align-items: center; gap: 5px; }
 
+        /* Styles pour la barre de recherche intelligente */
+        .search-results-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .search-result-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .search-result-badge {
+            background: #4a7c59;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .search-result-details {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .search-result-chief, .search-result-location {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 2px;
+        }
+
+        .search-result-chief i, .search-result-location i {
+            width: 12px;
+            text-align: center;
+        }
+
+        mark {
+            background-color: #ffeb3b;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+
+        /* Amélioration de l'input de recherche */
+        .search-container {
+            position: relative;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4a7c59;
+            box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.1);
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .header-content { flex-direction: row; gap: 8px; padding: 4px 8px; height: 45px; justify-content: space-between; }
@@ -277,9 +358,9 @@
                     <h1 class="app-title">MonVillage</h1>
                 </div>
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Rechercher un village..." id="searchInput">
+                    <input type="text" class="search-input" placeholder="Rechercher un village ou un chef..." id="searchInput">
                     <button class="search-btn" id="searchBtn"><i class="fas fa-search"></i></button>
-                    <div class="search-results" id="searchResults"></div>
+                    <div class="search-results-container" id="searchResults"></div>
                 </div>
                 <div class="admin-access" onclick="checkAdminAccess()">
                     <i class="fas fa-cog"></i>
@@ -702,7 +783,7 @@
     <script src="https://checkout.flutterwave.com/v3.js"></script>
     
     <script type="module">
-        console.log('🚀 MonVillage - Initialisation complète avec système d\'impression avancé');
+        console.log('🚀 MonVillage - Initialisation avec priorité des clics sur les villages');
         
         // CONFIGURATION AVEC VARIABLES D'ENVIRONNEMENT
         const CONFIG = {
@@ -766,6 +847,10 @@
         let userLocationMarker = null;
         let userLocationAccuracy = null;
         let isLocating = false;
+
+        // Variables pour la recherche intelligente
+        let searchTimeout;
+        let currentSearchResults = [];
 
         // FONCTIONS UTILITAIRES
         function parseGeometry(geom) {
@@ -971,6 +1056,174 @@
             map.addLayer(measurementLayer);
         }
 
+        // ================================================================
+        // FONCTIONS DE RECHERCHE INTELLIGENTE
+        // ================================================================
+
+        function initializeIntelligentSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            
+            // Événement de saisie avec debounce
+            searchInput.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                const query = e.target.value.trim();
+                
+                if (query.length < 2) {
+                    hideSearchResults();
+                    return;
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    performIntelligentSearch(query);
+                }, 300);
+            });
+            
+            // Événement de focus
+            searchInput.addEventListener('focus', function() {
+                if (currentSearchResults.length > 0) {
+                    showSearchResults();
+                }
+            });
+            
+            // Événement de touche Entrée
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentSearchResults.length > 0) {
+                        selectSearchResult(currentSearchResults[0]);
+                    }
+                } else if (e.key === 'Escape') {
+                    hideSearchResults();
+                }
+            });
+            
+            // Cacher les résultats quand on clique ailleurs
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    hideSearchResults();
+                }
+            });
+        }
+
+        async function performIntelligentSearch(query) {
+            if (!supabase) {
+                showNotification('Recherche hors ligne limitée', 'warning');
+                return;
+            }
+            
+            try {
+                // Recherche dans les villages et noms de chefs
+                const { data, error } = await supabase
+                    .from('villages_complete')
+                    .select('*')
+                    .or(`village_name.ilike.%${query}%,chief_name.ilike.%${query}%`)
+                    .eq('is_active', true)
+                    .limit(10);
+                
+                if (error) throw error;
+                
+                currentSearchResults = data || [];
+                displaySearchResults(currentSearchResults, query);
+                
+            } catch (error) {
+                console.error('Erreur recherche:', error);
+                showNotification('Erreur lors de la recherche', 'error');
+            }
+        }
+
+        function displaySearchResults(results, query) {
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!results || results.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item">Aucun résultat trouvé</div>';
+                searchResults.style.display = 'block';
+                return;
+            }
+            
+            const resultsHTML = results.map((village, index) => {
+                const villageName = highlightMatch(village.village_name, query);
+                const chiefName = village.chief_name ? highlightMatch(village.chief_name, query) : 'Non renseigné';
+                
+                return `
+                    <div class="search-result-item" data-village-id="${village.id}" data-index="${index}">
+                        <div class="search-result-main">
+                            <strong>${villageName}</strong>
+                            <span class="search-result-badge">Village</span>
+                        </div>
+                        <div class="search-result-details">
+                            <div class="search-result-chief">
+                                <i class="fas fa-user-tie"></i> ${chiefName}
+                            </div>
+                            <div class="search-result-location">
+                                <i class="fas fa-map-marker-alt"></i> 
+                                ${village.arrondissement_name} → ${village.departement_name} → ${village.region_name}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            searchResults.innerHTML = resultsHTML;
+            searchResults.style.display = 'block';
+            
+            // Ajouter les événements de clic
+            document.querySelectorAll('.search-result-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const villageId = this.getAttribute('data-village-id');
+                    selectSearchResult(results.find(r => r.id === villageId));
+                });
+            });
+        }
+
+        function highlightMatch(text, query) {
+            if (!text) return '';
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+
+        function hideSearchResults() {
+            const searchResults = document.getElementById('searchResults');
+            if (searchResults) {
+                searchResults.style.display = 'none';
+            }
+        }
+
+        function showSearchResults() {
+            const searchResults = document.getElementById('searchResults');
+            if (searchResults && currentSearchResults.length > 0) {
+                searchResults.style.display = 'block';
+            }
+        }
+
+        function selectSearchResult(village) {
+            if (!village) return;
+            
+            hideSearchResults();
+            document.getElementById('searchInput').value = village.village_name;
+            
+            // Zoomer sur le village
+            if (village.centroid) {
+                const centroid = parseGeometry(village.centroid);
+                if (centroid && centroid.coordinates) {
+                    map.setView([centroid.coordinates[1], centroid.coordinates[0]], 15);
+                    
+                    // Ouvrir le popup après un délai
+                    setTimeout(() => {
+                        if (mapLayers.villages) {
+                            mapLayers.villages.eachLayer(layer => {
+                                if (layer.villageData && layer.villageData.id === village.id) {
+                                    layer.openPopup();
+                                }
+                            });
+                        }
+                    }, 500);
+                }
+            }
+            
+            showNotification(`Village "${village.village_name}" trouvé`, 'success');
+        }
+
         // SYSTÈME DE SÉLECTION DE ZONE D'IMPRESSION
         function startPrintAreaSelection() {
             if (isSelectingPrintArea) {
@@ -1143,15 +1396,15 @@
             try {
                 showNotification('Chargement des couches...', 'info');
                 
-                await Promise.all([
-                    loadRegionsOptimized(),
-                    loadDepartementsOptimized(), 
-                    loadArrondissementsOptimized(),
-                    loadVillagesOptimized()
-                ]);
+                // MODIFICATION : Chargement séquentiel pour garantir l'ordre
+                await loadRegionsOptimized();
+                await loadDepartementsOptimized(); 
+                await loadArrondissementsOptimized();
+                // Villages chargés APRÈS les arrondissements pour priorité des clics
+                await loadVillagesOptimized();
                 
                 showNotification('Données chargées rapidement', 'success', 2000);
-                console.log('✅ Toutes les données chargées en parallèle');
+                console.log('✅ Toutes les données chargées en séquence');
             } catch (error) {
                 console.error('❌ Erreur chargement:', error);
                 showNotification('Erreur de chargement des données', 'error');
@@ -1194,8 +1447,15 @@
                             className: 'village-popup'
                         });
 
+                        // MODIFICATION : Gestion des clics avec priorité haute
+                        // Les villages sont chargés APRÈS les arrondissements
                         layer.on('click', function(e) {
                             if (!isDistanceMeasuring && !isAreaMeasuring) {
+                                // Marquer l'événement comme traité par un village
+                                e.originalEvent._processedByVillage = true;
+                                e.originalEvent._villagesProcessed = true;
+                                
+                                L.DomEvent.stopPropagation(e); // Empêche la propagation aux autres couches
                                 layer.openPopup();
                             }
                         });
@@ -1283,7 +1543,7 @@
             `;
         }
 
-        // FONCTIONS DU MODAL VILLAGE (identiques)
+        // FONCTIONS DU MODAL VILLAGE
         window.openVillageDetails = function(villageId) {
             map.closePopup();
             
@@ -1580,7 +1840,8 @@
                         `);
 
                         layer.on('click', function(e) {
-                            if (!isDistanceMeasuring && !isAreaMeasuring) {
+                            // Vérifier si un village n'a pas déjà traité ce clic
+                            if (!e.originalEvent._processedByVillage && !isDistanceMeasuring && !isAreaMeasuring) {
                                 layer.openPopup();
                             }
                         });
@@ -1637,7 +1898,8 @@
                         `);
 
                         layer.on('click', function(e) {
-                            if (!isDistanceMeasuring && !isAreaMeasuring) {
+                            // Vérifier si un village n'a pas déjà traité ce clic
+                            if (!e.originalEvent._processedByVillage && !isDistanceMeasuring && !isAreaMeasuring) {
                                 layer.openPopup();
                             }
                         });
@@ -1694,8 +1956,11 @@
                             </div>
                         `);
 
+                        // MODIFICATION : Gestion des clics avec priorité basse
+                        // Les arrondissements sont chargés AVANT les villages
                         layer.on('click', function(e) {
-                            if (!isDistanceMeasuring && !isAreaMeasuring) {
+                            // Vérifier si un village n'a pas déjà traité ce clic
+                            if (!e.originalEvent._processedByVillage && !isDistanceMeasuring && !isAreaMeasuring) {
                                 L.DomEvent.stopPropagation(e);
                                 layer.openPopup();
                             }
@@ -2585,6 +2850,14 @@
                 });
             });
 
+            // Recherche intelligente
+            document.getElementById('searchBtn').addEventListener('click', function() {
+                const query = document.getElementById('searchInput').value.trim();
+                if (query.length >= 2) {
+                    performIntelligentSearch(query);
+                }
+            });
+
             // Raccourcis clavier
             document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.key === 'd') {
@@ -2623,12 +2896,13 @@
         // INITIALISATION PRINCIPALE
         document.addEventListener('DOMContentLoaded', function() {
             try {
-                console.log('🚀 Initialisation MonVillage avec variables d\'environnement');
+                console.log('🚀 Initialisation MonVillage avec priorités de clic et recherche intelligente');
                 
                 initializeSupabase();
                 initializeMap();
                 initializeNativeMeasurementTools();
                 initializeEventListeners();
+                initializeIntelligentSearch();
                 loadInitialData();
                 
                 showNotification('MonVillage chargé avec succès', 'success');
