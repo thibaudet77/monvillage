@@ -813,6 +813,7 @@
         let mapLayers = { regions: null, departements: null, arrondissements: null, villages: null, poi: null, geonames: null };
         let baseLayers = { standard: null, satellite: null };
         let currentBaseLayer = 'standard';
+        let suspended = false;
         
         let measurementLayer;
         let isDistanceMeasuring = false;
@@ -1015,6 +1016,9 @@
             map.on('zoomend', loadLayersByZoom);
             
             console.log('✅ Carte initialisée avec optimisations de performance');
+
+            /*  écouteur global – UNE SEULE FOIS  */
+            map.on('blur click', restoreArrondissements);
         }
 
         function initializePreviewMap() {
@@ -1387,26 +1391,23 @@
 
         // CHARGEMENT DES DONNÉES VILLAGES AVEC DESCRIPTIONS
         async function loadInitialData() {
-            console.log('📊 Chargement ultra-rapide des données...');
             if (!supabase) {
                 showNotification('Mode démo - pas de données', 'warning');
                 return;
             }
-            
             try {
-                showNotification('Chargement des couches...', 'info');
-                
-                // MODIFICATION : Chargement séquentiel pour garantir l'ordre
+                showNotification('Chargement des couches…', 'info');
+
+                /* 1️⃣  administrative layers first */
                 await loadRegionsOptimized();
-                await loadDepartementsOptimized(); 
-                await loadArrondissementsOptimized();
-                // Villages chargés APRÈS les arrondissements pour priorité des clics
-                await loadVillagesOptimized();
-                
+                await loadDepartementsOptimized();
+                await loadArrondissementsOptimized();   // ← finishes first
+
+                /* 2️⃣  villages layer last */
+                await loadVillagesOptimized();          // ← added after arrondissements
                 showNotification('Données chargées rapidement', 'success', 2000);
-                console.log('✅ Toutes les données chargées en séquence');
-            } catch (error) {
-                console.error('❌ Erreur chargement:', error);
+            } catch (err) {
+                console.error('❌ Erreur chargement:', err);
                 showNotification('Erreur de chargement des données', 'error');
             }
         }
@@ -1447,18 +1448,36 @@
                             className: 'village-popup'
                         });
 
+
+                        /* 1.  GESTION HOVER (desktop + mobile) */
+                            layer.on('mouseover touchstart', function () {
+                            suspendArrondissements();
+                            });
+                            layer.on('mouseout', function () {          // desktop quit
+                            restoreArrondissements();
+                            });
+
+                            /* 2.  CLICK = open popup + empêcher arrondissement */
+                            layer.on('click', function (e) {
+                            L.DomEvent.stopPropagation(e);            // bloque propagation
+                            e.originalEvent._processedByVillage = true;
+                            layer.openPopup();
+                            });
+
+                            /* 3.  Quand la popup se ferme : on restaure immédiatement */
+                            layer.on('popupclose', function () {
+                            restoreArrondissements();
+                            });
+
                         // MODIFICATION : Gestion des clics avec priorité haute
                         // Les villages sont chargés APRÈS les arrondissements
-                        layer.on('click', function(e) {
-                            if (!isDistanceMeasuring && !isAreaMeasuring) {
-                                // Marquer l'événement comme traité par un village
-                                e.originalEvent._processedByVillage = true;
-                                e.originalEvent._villagesProcessed = true;
-                                
-                                L.DomEvent.stopPropagation(e); // Empêche la propagation aux autres couches
+
+                            layer.on('click', function (e) {
+                                 // if (isDistanceMeasuring || isAreaMeasuring) return; // ignore during measure
+                                L.DomEvent.stopPropagation(e);          // stop map & arrondissement
+                                e.originalEvent._processedByVillage = true; // ⭐  flag for arrondissement
                                 layer.openPopup();
-                            }
-                        });
+                            });
 
                         // Stocker les données du village pour le modal
                         layer.villageData = village;
@@ -1467,6 +1486,7 @@
                 
                 map.addLayer(mapLayers.villages);
                 console.log(`${data.length} villages chargés avec informations complètes`);
+                bringToFront(mapLayers.villages); 
                 
             } catch (error) {
                 console.error('Erreur villages:', error);
@@ -1960,16 +1980,18 @@
                         // Les arrondissements sont chargés AVANT les villages
                         layer.on('click', function(e) {
                             // Vérifier si un village n'a pas déjà traité ce clic
-                            if (!e.originalEvent._processedByVillage && !isDistanceMeasuring && !isAreaMeasuring) {
-                                L.DomEvent.stopPropagation(e);
+                           // if (!e.originalEvent._processedByVillage && !isDistanceMeasuring && !isAreaMeasuring) {
+                               // L.DomEvent.stopPropagation(e);
+                               if (e.originalEvent._processedByVillage) return;
                                 layer.openPopup();
-                            }
+                            
                         });
                     }
                 });
                 
                 map.addLayer(mapLayers.arrondissements);
                 console.log(`TOUS les ${data.length} arrondissements chargés complètement`);
+                sendToBack(mapLayers.arrondissements); 
                 
             } catch (error) {
                 console.error('Erreur arrondissements:', error);
@@ -2002,6 +2024,10 @@
                     map.addLayer(mapLayers.arrondissements);
                 }
             }
+
+
+            if (mapLayers.villages) bringToFront(mapLayers.villages);
+            if (mapLayers.arrondissements) sendToBack(mapLayers.arrondissements);
         }
 
         // GÉOLOCALISATION
@@ -2942,6 +2968,32 @@
             console.error('Promise non gérée:', e.reason);
             showNotification('Erreur de connexion - vérifiez votre réseau', 'warning');
         });
+
+        function suspendArrondissements() {
+            if (!suspended && map.hasLayer(mapLayers.arrondissements)) {
+                map.removeLayer(mapLayers.arrondissements);
+                suspended = true;
+            }
+            }
+
+            function restoreArrondissements() {
+            if (suspended) {
+                map.addLayer(mapLayers.arrondissements);
+                suspended = false;
+            }
+            
+            }
+       
+
+        /* ----------  z-index helpers  ---------- */
+                function bringToFront(layerGroup) {
+                layerGroup.eachLayer(l => l.bringToFront?.());
+                }
+
+                function sendToBack(layerGroup) {
+                layerGroup.eachLayer(l => l.bringToBack?.());
+                }
+
     </script>
 </body>
 </html>
