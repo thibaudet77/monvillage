@@ -1,0 +1,62 @@
+4. • Experience implementing two-factor authentication, audit logging, rate limiting, 
+input validation and secure coding practices is required.
+
+I have implemented comprehensive security controls across production applications:
+Two-Factor Authentication:
+
+Integrated email-based 2FA in GéoFoncier for high-value transactions
+Supabase Auth 2FA implementation with TOTP support for admin accounts
+
+Audit Logging:
+
+GéoFoncier: Complete audit trail capturing user actions, payment transactions, parcel modifications with timestamps, IP addresses, and user identifiers
+MonVillage: Administrator action logging for village data changes, user management, approval workflows
+Database-level triggers for sensitive operations
+
+Rate Limiting:
+
+API endpoint throttling using Express rate-limit middleware
+Payment gateway rate limiting to prevent abuse
+Search query throttling for resource-intensive operations
+
+Input Validation:
+
+Server-side validation for all API endpoints (Joi/Zod schemas)
+SQL injection prevention via parameterized queries
+XSS protection through input sanitization and Content Security Policy headers
+File upload validation (type, size, malicious content checks)
+
+Secure Coding Practices:
+
+OWASP Top 10 compliance review
+Hashed password storage (bcrypt)
+HTTPS enforcement, secure headers (HSTS, CSP)
+Principle of least privilege in database permissions
+Regular dependency vulnerability scanning
+
+
+-- à propos de monvillage: 
+
+https://claude.ai/chat/5da22dcf-4299-4539-9bd9-3483be718b37
+
+--actualisation Github:
+
+https://claude.ai/chat/f5a96d4c-bd2a-4904-a378-ea20cb4109c9
+
+
+
+prompt pour réduire le nombre de tokens: résume tout ce que nous avons 
+fait d'important ici sous forme de projet en 400 tokens maximum: objectif, decisions clés, 
+corrections acceptées, état actuelet trois prochaines étapes. 
+
+
+
+
+--prompt pour recommencer claude en cmd :
+
+ > voici le projet sur lequel je travaillais: C:\Users\LENOVO\Desktop\monvillage2. 
+  accède entièrement à la bd de supabase. voici la clé du servic_role of my supabase project:
+   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6InNlcnZp  
+    Y2Vfcm9sZSIsImlhdCI6MTc1MjczMjAzNywiZXhwIjoyMDY4MzA4MDM3fQ.VQW8bJ_2DVlHXavcxzcSYR6Pn_IxsZqSQWuTZunIKZo   
+
+ mets mon application à jour ici: https://github.com/thibaudet77/monvillage
