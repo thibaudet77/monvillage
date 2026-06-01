@@ -10,6 +10,8 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+ 
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -95,10 +97,10 @@
         .village-modal-body { padding: 0; }
 
         .village-hero { background: #f8f9fa; padding: 20px 30px; border-bottom: 1px solid #e0e0e0; }
-        .village-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .village-info-item { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; }
+        .village-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .village-info-item { background: white; padding: 12px 15px; border-radius: 8px; border: 1px solid #e0e0e0; }
         .village-info-label { font-weight: bold; color: #2c5530; margin-bottom: 5px; font-size: 12px; text-transform: uppercase; }
-        .village-info-value { color: #333; }
+        .village-info-value { color: #333; text-align: justify; line-height: 1.5; word-break: break-word; }
 
         .village-photos { margin-bottom: 20px; }
         .village-photos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
@@ -109,7 +111,7 @@
         .village-description { padding: 30px; }
         .description-section { margin-bottom: 30px; }
         .description-title { font-size: 18px; font-weight: bold; color: #2c5530; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #e0e0e0; }
-        .description-content { color: #333; line-height: 1.6; white-space: pre-wrap; }
+        .description-content { color: #333; line-height: 1.6; text-align: justify; white-space: pre-line; }
         .description-empty { color: #999; font-style: italic; }
 
         .village-tabs { display: flex; border-bottom: 1px solid #e0e0e0; background: #f8f9fa; }
@@ -122,6 +124,10 @@
         /* Print Modal Styles */
         .print-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10001; backdrop-filter: blur(3px); }
         .print-modal.active { display: flex; align-items: center; justify-content: center; }
+        .print-modal.minimized { display: block; background: none; pointer-events: none; }
+        .print-modal.minimized .print-modal-content { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: auto; max-width: 400px; max-height: 60px; overflow: hidden; border-radius: 15px 15px 0 0; padding: 10px 20px; pointer-events: all; }
+        #validateZoneBtn { display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 10002; background: #4a7c59; color: white; border: none; padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        #validateZoneBtn.visible { display: block; }
         .print-modal-content { background: white; border-radius: 15px; max-width: 1100px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
         .print-modal-header { padding: 20px 30px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; border-radius: 15px 15px 0 0; }
         .print-modal-title { font-size: 24px; font-weight: bold; color: #2c5530; margin: 0; }
@@ -234,6 +240,8 @@
 
         /* Measurement styles */
         .measurement-tooltip { background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 5px; font-size: 13px; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .distance-total-label { background: rgba(255, 71, 87, 0.9); font-weight: bold; border: 1px solid #ff4757; }
+        .export-label { background: rgba(255,255,255,0.85) !important; border: none !important; box-shadow: none !important; padding: 2px 6px !important; font-size: 11px !important; border-radius: 3px !important; }
 
         /* Footer */
         .footer { background: #2c5530; color: white; padding: 15px 20px; text-align: center; font-size: 14px; }
@@ -322,6 +330,132 @@
             box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.1);
         }
 
+        /* Popup Leaflet - styles globaux */
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+        }
+        .leaflet-popup-content {
+            margin: 10px 15px;
+            max-width: 320px;
+            text-align: justify;
+        }
+        .village-popup .leaflet-popup-content-wrapper {
+            padding: 0;
+            overflow: hidden;
+        }
+        .village-popup .leaflet-popup-content {
+            margin: 0;
+            width: auto !important;
+            max-width: min(320px, calc(100vw - 60px));
+        }
+
+        /* Village Popup Inner Styles */
+        .village-popup-inner {
+            font-family: inherit;
+            width: 100%;
+        }
+        .village-popup-header {
+            background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+            color: white;
+            padding: 12px 15px;
+        }
+        .village-popup-title {
+            margin: 0 0 4px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .village-popup-location {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 13px;
+        }
+        .village-popup-body {
+            padding: 12px 15px;
+        }
+        .village-popup-chief {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .village-popup-chief img,
+        .village-popup-chief > div:first-child {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .village-popup-chief-label {
+            font-weight: bold;
+            color: #2c5530;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .village-popup-chief-name {
+            color: #555;
+            font-size: 13px;
+        }
+        .village-popup-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .village-popup-stat {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .village-popup-stat-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .village-popup-stat-value {
+            font-weight: bold;
+            color: #2c5530;
+            font-size: 13px;
+        }
+        .village-popup-contact {
+            margin-bottom: 12px;
+        }
+        .village-popup-contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #333;
+        }
+        .village-popup-contact-item i {
+            color: #4a7c59;
+            margin-right: 8px;
+            width: 14px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .village-popup-contact-item span {
+            word-break: break-all;
+        }
+        .village-popup-action {
+            text-align: center;
+        }
+        .village-popup-action button {
+            background: #4a7c59;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            width: 100%;
+            max-width: 200px;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .header-content { flex-direction: row; gap: 8px; padding: 4px 8px; height: 45px; justify-content: space-between; }
@@ -345,6 +479,76 @@
             .locate-btn { top: 15px; right: 15px; width: 36px; height: 36px; font-size: 16px; }
             .village-info-grid { grid-template-columns: 1fr; }
             .payment-methods { grid-template-columns: 1fr; }
+
+            /* Popup responsive tablette */
+            .leaflet-popup-content { max-width: 280px; }
+            .village-modal-content { width: 95%; max-height: 85vh; }
+            .village-modal-title { font-size: 22px; }
+            .village-modal-header { padding: 15px 20px; }
+            .village-hero { padding: 15px 20px; }
+            .village-description { padding: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .header { padding: 4px 8px; }
+            .header-content { height: 40px; gap: 5px; }
+            .logo { width: 24px; height: 24px; font-size: 10px; }
+            .app-title { font-size: 13px; }
+            .search-container { margin: 0 6px; }
+            .search-input { height: 28px; font-size: 11px; padding: 4px 26px 4px 8px; }
+            .search-btn { width: 22px; height: 22px; font-size: 10px; }
+            .admin-access { padding: 4px 6px; height: 28px; }
+
+            /* Toolbar mobile petit écran */
+            .toolbar { bottom: 12px; right: 10px; left: 10px; padding: 6px; gap: 4px; border-radius: 10px; }
+            .tool-btn { padding: 8px; min-width: 34px; min-height: 34px; font-size: 14px; }
+            .toggle-sidebar { width: 40px; height: 40px; font-size: 15px; top: 12px; left: 10px; }
+            .locate-btn { width: 32px; height: 32px; font-size: 14px; top: 12px; right: 10px; }
+
+            /* Popup village - petit écran */
+            .leaflet-popup-content { max-width: calc(100vw - 60px); margin: 8px 10px; font-size: 13px; }
+            .leaflet-popup-content-wrapper { border-radius: 8px; }
+
+            /* Village modal mobile */
+            .village-modal-content { width: 98%; max-height: 90vh; border-radius: 10px; }
+            .village-modal-title { font-size: 18px; }
+            .village-modal-subtitle { font-size: 13px; }
+            .village-modal-header { padding: 12px 15px; border-radius: 10px 10px 0 0; }
+            .village-modal-close { width: 32px; height: 32px; font-size: 14px; top: 12px; right: 12px; }
+            .village-hero { padding: 12px 15px; }
+            .village-info-grid { gap: 10px; }
+            .village-info-item { padding: 10px; }
+            .village-info-label { font-size: 11px; }
+            .village-description { padding: 15px; }
+            .description-title { font-size: 15px; }
+            .village-tabs { overflow-x: auto; }
+            .village-tab { padding: 10px 14px; font-size: 13px; white-space: nowrap; }
+
+            /* Print/Payment modals mobile */
+            .print-modal-content { width: 98%; border-radius: 10px; }
+            .print-modal-header { padding: 12px 15px; }
+            .print-modal-title { font-size: 18px; }
+            .print-modal-body { padding: 15px; }
+            .preview-container { width: 100%; height: 300px; }
+            .payment-content { padding: 20px 15px; }
+            .payment-title { font-size: 18px; }
+            .payment-amount { font-size: 22px; }
+            .print-actions { flex-direction: column; gap: 10px; }
+            .btn { width: 100%; }
+
+            /* Footer mobile */
+            .footer { padding: 8px 10px; font-size: 11px; }
+
+            /* Notification mobile */
+            .notification { max-width: calc(100vw - 20px); right: 10px; top: 10px; padding: 10px 15px; font-size: 13px; }
+        }
+
+        @media (max-width: 360px) {
+            .app-title { font-size: 11px; }
+            .search-input { font-size: 10px; }
+            .leaflet-popup-content { max-width: calc(100vw - 40px); margin: 6px 8px; font-size: 12px; }
+            .toolbar { gap: 2px; padding: 4px; }
+            .tool-btn { padding: 6px; min-width: 30px; min-height: 30px; font-size: 12px; }
         }
     </style>
 </head>
@@ -478,10 +682,7 @@
                         <div class="village-description">
                             <div class="description-section">
                                 <div class="description-title">Informations Générales</div>
-                                <div class="description-content">
-                                    Ce village fait partie de l'arrondissement <span id="villageArrondissementInfo"></span>. 
-                                    <span id="villageBasicInfo"></span>
-                                </div>
+                                <div class="description-content" id="villageGeneralInfo">Ce village fait partie de l'arrondissement <span id="villageArrondissementInfo"></span>. <span id="villageBasicInfo"></span></div>
                             </div>
                         </div>
                     </div>
@@ -610,156 +811,202 @@
                     <button class="print-modal-close" id="closePrintModal"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="print-modal-body">
-                    <!-- Print Area Selection Controls -->
-                    <div class="print-area-controls">
-                        <h4 style="margin-bottom: 15px; color: #2c5530;">Sélection de la zone à imprimer</h4>
-                        <button class="area-select-btn" id="selectPrintArea">📐 Sélectionner une zone</button>
-                        <button class="area-select-btn" id="useCurrentView">🗺️ Utiliser la vue actuelle</button>
-                        <button class="area-select-btn" id="clearPrintArea">❌ Effacer la sélection</button>
-                    </div>
-                    
                     <div class="print-config">
                         <div class="print-options">
                             <div class="form-group">
                                 <label class="form-label">Titre de la carte</label>
                                 <input type="text" class="form-input" id="mapTitle" placeholder="Carte des Villages - MonVillage" value="Carte des Villages - MonVillage">
                             </div>
-                            
+
+                            <div class="form-group">
+                                <label class="form-label">Source de la zone</label>
+                                <select class="form-select" id="printSourceMode">
+                                    <option value="manual">Selection manuelle sur la carte</option>
+                                    <option value="admin">Unite administrative / Village</option>
+                                </select>
+                            </div>
+
+                            <div id="adminSelectGroup" class="form-group" style="display:none;">
+                                <label class="form-label">Type</label>
+                                <select class="form-select" id="adminType">
+                                    <option value="">-- Choisir --</option>
+                                    <option value="region">Region</option>
+                                    <option value="departement">Departement</option>
+                                    <option value="arrondissement">Arrondissement</option>
+                                    <option value="village">Village</option>
+                                </select>
+                                <select class="form-select" id="adminEntity" style="margin-top:8px; display:none;">
+                                    <option value="">-- Choisir une entite --</option>
+                                </select>
+                            </div>
+
+                            <div id="manualSelectGroup" class="form-group">
+                                <div class="print-area-controls">
+                                    <button class="area-select-btn" id="selectPrintArea"><i class="fas fa-vector-square"></i> Selectionner une zone</button>
+                                    <button class="area-select-btn" id="useCurrentView"><i class="fas fa-expand"></i> Vue actuelle</button>
+                                    <button class="area-select-btn" id="clearPrintArea"><i class="fas fa-trash"></i> Effacer</button>
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 <label class="form-label">Format de sortie</label>
                                 <select class="form-select" id="outputFormat">
-                                    <option value="pdf">PDF (recommandé)</option>
-                                    <option value="png">PNG (image)</option>
+                                    <option value="png">PNG (image haute qualite)</option>
+                                    <option value="pdf">PDF</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label class="form-label">Taille du papier</label>
                                 <div class="format-grid">
-                                    <div class="format-option" data-format="A4" data-price="500">
+                                    <div class="format-option" data-format="A4" data-price="500" data-w="0.21" data-h="0.297">
                                         <div class="format-size">A4</div>
                                         <div class="format-price">500 XAF</div>
                                     </div>
-                                    <div class="format-option" data-format="A3" data-price="1000">
+                                    <div class="format-option" data-format="A3" data-price="1000" data-w="0.297" data-h="0.42">
                                         <div class="format-size">A3</div>
-                                        <div class="format-price">1000 XAF</div>
+                                        <div class="format-price">1 000 XAF</div>
                                     </div>
-                                    <div class="format-option selected" data-format="A2" data-price="2000">
+                                    <div class="format-option selected" data-format="A2" data-price="2000" data-w="0.42" data-h="0.594">
                                         <div class="format-size">A2</div>
-                                        <div class="format-price">2000 XAF</div>
+                                        <div class="format-price">2 000 XAF</div>
                                     </div>
-                                    <div class="format-option" data-format="A1" data-price="4000">
+                                    <div class="format-option" data-format="A1" data-price="4000" data-w="0.594" data-h="0.841">
                                         <div class="format-size">A1</div>
-                                        <div class="format-price">4000 XAF</div>
+                                        <div class="format-price">4 000 XAF</div>
                                     </div>
-                                    <div class="format-option" data-format="A0" data-price="6000">
+                                    <div class="format-option" data-format="A0" data-price="6000" data-w="0.841" data-h="1.189">
                                         <div class="format-size">A0</div>
-                                        <div class="format-price">6000 XAF</div>
+                                        <div class="format-price">6 000 XAF</div>
+                                    </div>
+                                    <div class="format-option" data-format="custom" data-price="0" data-w="1" data-h="1">
+                                        <div class="format-size">Perso.</div>
+                                        <div class="format-price">10k/m2</div>
                                     </div>
                                 </div>
                             </div>
-                            
+
+                            <div id="customSizeGroup" class="form-group" style="display:none;">
+                                <label class="form-label">Dimensions personnalisees (m)</label>
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <input type="number" class="form-input" id="customWidth" value="1" min="1" max="2" step="0.1" style="width:80px;">
+                                    <span>x</span>
+                                    <input type="number" class="form-input" id="customHeight" value="1.5" min="1" max="2" step="0.1" style="width:80px;">
+                                    <span>m</span>
+                                </div>
+                                <small style="color:#666; margin-top:5px; display:block;">Min 1m, Max 2m. Prix: 10 000 XAF/m2</small>
+                            </div>
+
                             <div class="form-group">
-                                <label class="form-label">Échelle numérique</label>
+                                <label class="form-label">Echelle souhaitee (optionnel)</label>
                                 <div class="scale-input-group">
                                     <span>1:</span>
-                                    <input type="number" class="form-input scale-input" id="mapScale" value="50000" min="1000" max="10000000">
+                                    <input type="number" class="form-input scale-input" id="userScale" value="" min="1000" max="10000000" placeholder="Auto">
                                 </div>
-                                <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
-                                    <span class="scale-preset" data-scale="25000">1:25,000</span>
-                                    <span class="scale-preset" data-scale="50000">1:50,000</span>
-                                    <span class="scale-preset" data-scale="100000">1:100,000</span>
-                                    <span class="scale-preset" data-scale="250000">1:250,000</span>
-                                    <span class="scale-preset" data-scale="500000">1:500,000</span>
+                                <div style="margin-top:8px; display:flex; gap:5px; flex-wrap:wrap;">
+                                    <span class="scale-preset" data-scale="10000">1:10k</span>
+                                    <span class="scale-preset" data-scale="25000">1:25k</span>
+                                    <span class="scale-preset" data-scale="50000">1:50k</span>
+                                    <span class="scale-preset" data-scale="100000">1:100k</span>
+                                    <span class="scale-preset" data-scale="250000">1:250k</span>
+                                    <span class="scale-preset" data-scale="500000">1:500k</span>
                                 </div>
+                                <small style="color:#666; margin-top:5px; display:block;">Definir une echelle impose un format de papier. Laisser vide pour calcul auto.</small>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label class="form-label">Options d'affichage</label>
-                                <label><input type="checkbox" id="showNorthArrow" checked> Flèche Nord</label><br>
-                                <label><input type="checkbox" id="showScale" checked> Échelle graphique</label><br>
-                                <label><input type="checkbox" id="showLegend" checked> Légende</label><br>
-                                <label><input type="checkbox" id="showCoordinates" checked> Coordonnées</label>
+                                <label><input type="checkbox" id="showNorthArrow" checked> Fleche Nord</label><br>
+                                <label><input type="checkbox" id="showScale" checked> Echelle graphique</label><br>
+                                <label><input type="checkbox" id="showLegend" checked> Legende</label><br>
+                                <label><input type="checkbox" id="showCoordinates" checked> Coordonnees</label>
                             </div>
                         </div>
-                        
+
                         <div class="print-preview">
-                            <h4 style="margin-bottom: 15px; color: #2c5530;">Aperçu de l'exportation</h4>
+                            <h4 style="margin-bottom: 15px; color: #2c5530;">Apercu</h4>
                             <div class="preview-container" id="previewContainer">
                                 <div class="preview-header" id="previewTitle">Carte des Villages - MonVillage</div>
                                 <div class="preview-map">
                                     <div id="previewMap" class="preview-map-canvas"></div>
-                                    <div class="preview-north-arrow" id="previewNorthArrow">⇑</div>
-                                    <div class="preview-scale" id="previewScale">1:50,000</div>
+                                    <div class="preview-north-arrow" id="previewNorthArrow">N</div>
+                                    <div class="preview-scale" id="previewScale">1:50 000</div>
                                 </div>
                                 <div class="preview-footer">
-                                    Format: <span id="previewFormat">A2</span> | 
+                                    Format: <span id="previewFormat">A2</span> |
                                     <span id="previewDate"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="print-summary">
                         <div class="summary-row">
-                            <span class="summary-label">Format sélectionné:</span>
+                            <span class="summary-label">Format:</span>
                             <span class="summary-value" id="summaryFormat">A2</span>
                         </div>
                         <div class="summary-row">
-                            <span class="summary-label">Type de fichier:</span>
-                            <span class="summary-value" id="summaryFileType">PDF</span>
+                            <span class="summary-label">Fichier:</span>
+                            <span class="summary-value" id="summaryFileType">PNG</span>
                         </div>
                         <div class="summary-row">
-                            <span class="summary-label">Échelle:</span>
-                            <span class="summary-value" id="summaryScale">1:50,000</span>
+                            <span class="summary-label">Echelle calculee:</span>
+                            <span class="summary-value" id="summaryScale">--</span>
                         </div>
                         <div class="summary-row">
-                            <span class="summary-label">Zone sélectionnée:</span>
-                            <span class="summary-value" id="summaryArea">Vue actuelle</span>
+                            <span class="summary-label">Zone:</span>
+                            <span class="summary-value" id="summaryArea">Aucune selection</span>
                         </div>
                         <div class="summary-row">
                             <span class="summary-label total-price">Prix total:</span>
-                            <span class="summary-value total-price" id="summaryPrice">2,000 XAF</span>
+                            <span class="summary-value total-price" id="summaryPrice">2 000 XAF</span>
                         </div>
                     </div>
-                    
+
                     <div class="print-actions">
                         <button class="btn btn-secondary" id="cancelPrint">Annuler</button>
-                        <button class="btn btn-primary" id="proceedToPay">Payer et Exporter</button>
+                        <button class="btn btn-primary" id="proceedToPay"><i class="fas fa-credit-card"></i> Payer et Exporter</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Enhanced Payment Modal -->
+        <!-- Payment Modal -->
         <div id="paymentModal" class="payment-modal">
             <div class="payment-content">
-                <h3 class="payment-title">💳 Paiement sécurisé</h3>
-                <div class="payment-amount" id="paymentAmount">2,000 XAF</div>
+                <h3 class="payment-title"><i class="fas fa-lock"></i> Paiement securise</h3>
+                <div class="payment-amount" id="paymentAmount">2 000 XAF</div>
                 <div class="payment-info">
-                    <strong>Détails de l'exportation:</strong><br>
-                    <span id="paymentDetails">Format A2 - PDF</span>
+                    <strong>Details:</strong><br>
+                    <span id="paymentDetails">Format A2 - PNG</span>
                 </div>
-                
-                <!-- Enhanced Payment Methods Selection -->
                 <div class="payment-methods">
-                    <div class="payment-method" data-method="mobilemoney">
-                        <div class="payment-method-icon">📱</div>
+                    <div class="payment-method selected" data-method="mobilemoney">
+                        <div class="payment-method-icon"><i class="fas fa-mobile-alt"></i></div>
                         <div class="payment-method-name">Mobile Money</div>
-                        <div class="payment-method-desc">Orange Money, MTN MoMo</div>
+                        <div class="payment-method-desc">Orange / MTN MoMo</div>
                     </div>
                     <div class="payment-method" data-method="card">
-                        <div class="payment-method-icon">💳</div>
+                        <div class="payment-method-icon"><i class="fas fa-credit-card"></i></div>
                         <div class="payment-method-name">Carte Bancaire</div>
                         <div class="payment-method-desc">Visa, Mastercard</div>
                     </div>
                 </div>
-                
+                <div id="payment-customer-fields" style="margin: 12px 0;">
+                    <div id="field-phone" style="margin-bottom: 8px;">
+                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Numéro de téléphone *</label>
+                        <input type="tel" id="customer-phone" placeholder="+237 6XX XXX XXX" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    </div>
+                    <div id="field-name" style="margin-bottom: 8px; display: none;">
+                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Nom sur la carte *</label>
+                        <input type="text" id="customer-name" placeholder="Nom complet" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    </div>
+                </div>
                 <div id="paymentSpinner" class="spinner" style="display: none;"></div>
                 <div id="paymentStatus"></div>
                 <div class="print-actions">
                     <button class="btn btn-secondary" id="cancelPayment">Annuler</button>
-                    <button class="btn btn-primary" id="confirmPayment">Procéder au paiement</button>
+                    <button class="btn btn-primary" id="confirmPayment"><i class="fas fa-check"></i> Payer</button>
                 </div>
             </div>
         </div>
@@ -768,8 +1015,8 @@
         <div id="loadingOverlay" class="loading-overlay">
             <div class="loading-content">
                 <div class="spinner"></div>
-                <h3>Génération de votre carte...</h3>
-                <p>Veuillez patienter pendant que nous préparons votre exportation.</p>
+                <h3>Generation de votre carte...</h3>
+                <p>Veuillez patienter.</p>
             </div>
         </div>
 
@@ -781,6 +1028,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://checkout.flutterwave.com/v3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <script type="module">
         console.log('🚀 MonVillage - Initialisation avec priorité des clics sur les villages');
@@ -811,9 +1060,13 @@
 
         let map, supabase, previewMap;
         let mapLayers = { regions: null, departements: null, arrondissements: null, villages: null, poi: null, geonames: null };
+        let mapDataCache = { regions: [], departements: [], arrondissements: [], villages: [] };
         let baseLayers = { standard: null, satellite: null };
         let currentBaseLayer = 'standard';
         let suspended = false;
+        let printRect = null;               // L.Rectangle
+        let isPrintSelectorOn = false;      // toggle state
+        let previewRect = null;             // rectangle on mini-map
         
         let measurementLayer;
         let isDistanceMeasuring = false;
@@ -824,8 +1077,12 @@
         let polygonPoints = [];
         let tempPolygon = null;
 
+        let cornerMarkers = [];
+        let isDraggingCorner = false;
+        let draggedCornerIndex = -1;
+
         // Variables pour la sélection de zone d'impression
-        let printAreaSelector = null;
+        
         let printBounds = null;
         let isSelectingPrintArea = false;
         let selectedPaymentMethod = 'mobilemoney';
@@ -844,6 +1101,9 @@
             bounds: null
         };
 
+        let rectDragStart = null;
+        let rectOriginalBounds = null;
+
         // Variables pour la géolocalisation
         let userLocationMarker = null;
         let userLocationAccuracy = null;
@@ -852,6 +1112,113 @@
         // Variables pour la recherche intelligente
         let searchTimeout;
         let currentSearchResults = [];
+
+
+        function applyClickHierarchy() {
+            console.log('🎯 Application de la hiérarchie des clics');
+
+            // Priorité conditionnelle au zoom :
+            // Régions : toujours visibles (zoom >= 0)
+            // Départements : visibles à zoom >= 6
+            // Arrondissements : visibles à zoom >= 9
+            // Villages : toujours visibles quand chargés (zoom >= 11)
+            const layerOrder = [
+                { name: 'villages', layer: mapLayers.villages, minZoom: 0 },
+                { name: 'arrondissements', layer: mapLayers.arrondissements, minZoom: 9 },
+                { name: 'departements', layer: mapLayers.departements, minZoom: 6 },
+                { name: 'regions', layer: mapLayers.regions, minZoom: 0 }
+            ];
+
+            // Supprimer les handlers de clic individuels sur toutes les couches
+            layerOrder.forEach(config => {
+                if (config.layer) {
+                    config.layer.eachLayer(layer => {
+                        layer.off('click');
+                        if (layer.eachLayer) {
+                            layer.eachLayer(sub => sub.off('click'));
+                        }
+                    });
+                }
+            });
+
+            // Un seul handler global sur la carte pour gérer la priorité
+            map.off('click', handleHierarchyClick);
+            map.on('click', handleHierarchyClick);
+        }
+
+        function handleHierarchyClick(e) {
+            // Ne pas interférer avec les outils de mesure ou la sélection d'impression
+            if (isDistanceMeasuring || isAreaMeasuring || isPrintSelectorOn) return;
+
+            const latlng = e.latlng;
+            const zoom = map.getZoom();
+
+            // Couches ordonnées par priorité décroissante, filtrées par zoom
+            const layerOrder = [
+                { name: 'villages', layer: mapLayers.villages, minZoom: 0 },
+                { name: 'arrondissements', layer: mapLayers.arrondissements, minZoom: 9 },
+                { name: 'departements', layer: mapLayers.departements, minZoom: 6 },
+                { name: 'regions', layer: mapLayers.regions, minZoom: 0 }
+            ];
+
+            for (const config of layerOrder) {
+                if (zoom < config.minZoom) continue;
+                if (!config.layer || !map.hasLayer(config.layer)) continue;
+
+                let found = false;
+                config.layer.eachLayer(group => {
+                    if (found) return;
+                    const layers = group.getLayers ? group.getLayers() : [group];
+                    layers.forEach(sub => {
+                        if (found) return;
+                        if (sub.getBounds && sub.getBounds().contains(latlng)) {
+                            let inside = false;
+                            if (sub.getLatLngs) {
+                                inside = isPointInLayer(latlng, sub);
+                            } else {
+                                inside = true;
+                            }
+                            if (inside && (sub.getPopup() || group.getPopup())) {
+                                map.closePopup();
+                                const target = sub.getPopup() ? sub : group;
+                                setTimeout(() => target.openPopup(latlng), 10);
+                                found = true;
+                            }
+                        }
+                    });
+                });
+                if (found) return;
+            }
+        }
+
+        function isPointInLayer(latlng, layer) {
+            const latlngs = layer.getLatLngs();
+            if (!latlngs || latlngs.length === 0) return false;
+            // Gère les multi-polygones (tableau imbriqué)
+            const rings = Array.isArray(latlngs[0][0]) ? latlngs.flat() : latlngs;
+            for (const ring of rings) {
+                if (isPointInPolygon(latlng, Array.isArray(ring[0]) ? ring[0] : ring)) return true;
+            }
+            return false;
+        }
+
+        function isPointInPolygon(point, polygon) {
+            let inside = false;
+            const x = point.lat, y = point.lng;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const xi = polygon[i].lat, yi = polygon[i].lng;
+                const xj = polygon[j].lat, yj = polygon[j].lng;
+                const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+
+
+
+
+        
 
         // FONCTIONS UTILITAIRES
         function parseGeometry(geom) {
@@ -873,6 +1240,27 @@
                 notification.classList.remove('show');
             }, duration);
         }
+
+            function createCustomPanes() {
+                console.log('🎨 Création des panes personnalisés');
+                
+                const panes = [
+                    { name: 'regionsPane', zIndex: 400 },
+                    { name: 'departementsPane', zIndex: 410 },
+                    { name: 'arrondissementsPane', zIndex: 650 },   // ✅ ÉLEVÉ
+                    { name: 'villagesPane', zIndex: 660 }           // ✅ Maximum
+                ];
+                
+                panes.forEach(pane => {
+                    if (!map.getPane(pane.name)) {
+                        const customPane = map.createPane(pane.name);
+                        customPane.style.zIndex = pane.zIndex;
+                        customPane.style.pointerEvents = 'auto';
+                        console.log(`✅ ${pane.name} (z-index: ${pane.zIndex})`);
+                    }
+                });
+            }
+
 
         function calculateDistance(latlng1, latlng2) {
             const R = 6371000;
@@ -968,97 +1356,14 @@
             }
         }
 
-        // FONCTIONS D'INITIALISATION
-        function initializeSupabase() {
-            try {
-                supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
-                console.log('✅ Supabase initialisé avec variables d\'environnement');
-            } catch (error) {
-                console.error('❌ Erreur Supabase:', error);
-                showNotification('Mode hors ligne - données démo', 'warning');
-            }
-        }
+        
 
-        function initializeMap() {
-            console.log('🗺️ Initialisation de la carte avec optimisations');
-            
-            map = L.map('map', { 
-                center: CONFIG.map.center, 
-                zoom: CONFIG.map.zoom, 
-                zoomControl: false,
-                preferCanvas: true,
-                renderer: L.canvas({ padding: 0.5 })
-            });
-            
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-            // Couche Mapbox standard
-            baseLayers.standard = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                attribution: '© Mapbox © OpenStreetMap',
-                id: 'mapbox/streets-v11',
-                accessToken: CONFIG.mapbox.accessToken,
-                maxZoom: 18,
-                updateWhenIdle: true,
-                updateWhenZooming: false
-            });
-
-            // Couche satellite alternative
-            baseLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: '© Esri',
-                maxZoom: 20,
-                updateWhenIdle: true,
-                updateWhenZooming: false
-            });
-
-            baseLayers.standard.addTo(map);
-            
-            // Événement de zoom pour chargement conditionnel
-            map.on('zoomend', loadLayersByZoom);
-            
-            console.log('✅ Carte initialisée avec optimisations de performance');
-
-            /*  écouteur global – UNE SEULE FOIS  */
-            map.on('blur click', restoreArrondissements);
-        }
 
         function initializePreviewMap() {
-            // Initialiser la carte d'aperçu dans le modal d'impression
-            const previewElement = document.getElementById('previewMap');
-            if (previewElement && !previewMap) {
-                setTimeout(() => {
-                    try {
-                        previewMap = L.map('previewMap', {
-                            center: CONFIG.map.center,
-                            zoom: CONFIG.map.zoom - 1,
-                            zoomControl: false,
-                            attributionControl: false,
-                            dragging: false,
-                            touchZoom: false,
-                            doubleClickZoom: false,
-                            scrollWheelZoom: false,
-                            boxZoom: false,
-                            keyboard: false
-                        });
-
-                        // Ajouter la couche de base à l'aperçu
-                        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-                            id: 'mapbox/streets-v11',
-                            accessToken: CONFIG.mapbox.accessToken,
-                            maxZoom: 18
-                        }).addTo(previewMap);
-
-                        console.log('✅ Carte d\'aperçu initialisée');
-                    } catch (error) {
-                        console.error('Erreur initialisation carte aperçu:', error);
-                    }
-                }, 500);
-            }
+            // Handled by initPreviewMap() now
+            initPreviewMap();
         }
 
-        function initializeNativeMeasurementTools() {
-            measurementLayer = new L.FeatureGroup();
-            map.addLayer(measurementLayer);
-        }
 
         // ================================================================
         // FONCTIONS DE RECHERCHE INTELLIGENTE
@@ -1228,273 +1533,676 @@
             showNotification(`Village "${village.village_name}" trouvé`, 'success');
         }
 
-        // SYSTÈME DE SÉLECTION DE ZONE D'IMPRESSION
-        function startPrintAreaSelection() {
-            if (isSelectingPrintArea) {
-                stopPrintAreaSelection();
-                return;
-            }
-
-            isSelectingPrintArea = true;
-            document.getElementById('selectPrintArea').classList.add('active');
-            document.getElementById('selectPrintArea').textContent = '⏹️ Arrêter la sélection';
-            
-            showNotification('Cliquez et glissez pour sélectionner la zone à imprimer', 'info');
-            
-            map.getContainer().style.cursor = 'crosshair';
-            
-            map.on('mousedown', onPrintAreaStart);
-            map.on('mousemove', onPrintAreaMove);
-            map.on('mouseup', onPrintAreaEnd);
-        }
-
-        function stopPrintAreaSelection() {
-            isSelectingPrintArea = false;
-            document.getElementById('selectPrintArea').classList.remove('active');
-            document.getElementById('selectPrintArea').textContent = '📐 Sélectionner une zone';
-            
-            map.getContainer().style.cursor = '';
-            
-            map.off('mousedown', onPrintAreaStart);
-            map.off('mousemove', onPrintAreaMove);
-            map.off('mouseup', onPrintAreaEnd);
-        }
+        // ================================================================
+        // SYSTEME D'IMPRESSION - SELECTION DE ZONE
+        // ================================================================
 
         let isDragging = false;
         let dragStartLatLng = null;
 
-        function onPrintAreaStart(e) {
-            if (!isSelectingPrintArea) return;
-            
-            isDragging = true;
-            dragStartLatLng = e.latlng;
-            
-            // Supprimer l'ancien sélecteur s'il existe
-            if (printAreaSelector) {
-                map.removeLayer(printAreaSelector);
+        function togglePrintSelector() {
+            isPrintSelectorOn = !isPrintSelectorOn;
+            const btn = document.getElementById('selectPrintArea');
+            btn.classList.toggle('active', isPrintSelectorOn);
+            btn.innerHTML = isPrintSelectorOn
+                ? '<i class="fas fa-stop"></i> Arreter selection'
+                : '<i class="fas fa-vector-square"></i> Selectionner une zone';
+
+            if (isPrintSelectorOn) {
+                // Minimize the modal
+                const modal = document.getElementById('printModal');
+                modal.classList.remove('active');
+                modal.classList.add('minimized');
+                // Show validate button
+                let valBtn = document.getElementById('validateZoneBtn');
+                if (!valBtn) {
+                    valBtn = document.createElement('button');
+                    valBtn.id = 'validateZoneBtn';
+                    valBtn.textContent = 'Valider la zone';
+                    valBtn.addEventListener('click', function() {
+                        // Re-open modal fully
+                        const m = document.getElementById('printModal');
+                        m.classList.remove('minimized');
+                        m.classList.add('active');
+                        valBtn.classList.remove('visible');
+                        isPrintSelectorOn = false;
+                        const b = document.getElementById('selectPrintArea');
+                        b.innerHTML = '<i class="fas fa-vector-square"></i> Selectionner une zone';
+                        b.classList.remove('active');
+                        updatePreviewFromBounds();
+                        updatePrintAreaSummary();
+                        calculateAndDisplayScale();
+                    });
+                    document.body.appendChild(valBtn);
+                }
+                valBtn.classList.add('visible');
+                createDraggableRectangle();
+                showNotification('Zone de selection activee - Deplacez le rectangle ou ses coins', 'info');
+            } else {
+                removeRectangle();
+                let valBtn = document.getElementById('validateZoneBtn');
+                if (valBtn) valBtn.classList.remove('visible');
             }
         }
 
-        function onPrintAreaMove(e) {
-            if (!isSelectingPrintArea || !isDragging || !dragStartLatLng) return;
-            
-            const bounds = L.latLngBounds(dragStartLatLng, e.latlng);
-            
-            if (printAreaSelector) {
-                map.removeLayer(printAreaSelector);
+        let printSvgRenderer = null;
+
+        function ensurePrintPane() {
+            if (!map.getPane('printPane')) {
+                const pane = map.createPane('printPane');
+                pane.style.zIndex = 800;
+                pane.style.pointerEvents = 'auto';
             }
-            
-            printAreaSelector = L.rectangle(bounds, {
-                className: 'print-area-selector',
+            if (!printSvgRenderer) {
+                printSvgRenderer = L.svg({ pane: 'printPane' });
+                printSvgRenderer.addTo(map);
+            }
+        }
+
+        function createDraggableRectangle() {
+            removeRectangle();
+            ensurePrintPane();
+
+            const b = map.getBounds();
+            const w = b.getWest(), e = b.getEast(), s = b.getSouth(), n = b.getNorth();
+            const w2 = w + (e - w) * 0.25, e2 = e - (e - w) * 0.25;
+            const s2 = s + (n - s) * 0.25, n2 = n - (n - s) * 0.25;
+
+            printBounds = L.latLngBounds([s2, w2], [n2, e2]);
+
+            printRect = L.rectangle(printBounds, {
                 color: '#007bff',
                 weight: 3,
+                fillOpacity: 0.15,
                 fillColor: '#007bff',
-                fillOpacity: 0.1,
-                dashArray: '10, 5'
+                dashArray: '8 6',
+                interactive: true,
+                bubblingMouseEvents: false,
+                pane: 'printPane',
+                renderer: printSvgRenderer
             }).addTo(map);
+
+            printRect.on('mousedown', onRectMouseDown);
+            addCornerHandles();
+            updatePrintAreaSummary();
         }
 
-        function onPrintAreaEnd(e) {
-            if (!isSelectingPrintArea || !isDragging || !dragStartLatLng) return;
-            
-            isDragging = false;
-            
-            const bounds = L.latLngBounds(dragStartLatLng, e.latlng);
-            printBounds = bounds;
-            
-            // Mettre à jour l'aperçu avec la zone sélectionnée
-            updatePreviewWithBounds(bounds);
-            updatePrintAreaSummary(bounds);
-            
-            stopPrintAreaSelection();
-            showNotification('Zone d\'impression sélectionnée', 'success');
+        function onRectMouseDown(e) {
+            L.DomEvent.stopPropagation(e);
+            rectDragStart = e.latlng;
+            rectOriginalBounds = printRect.getBounds();
+            map.dragging.disable();
+            map.on('mousemove', onRectDrag);
+            map.on('mouseup', onRectDragEnd);
+        }
+
+        function onRectDrag(e) {
+            if (!rectDragStart || !rectOriginalBounds) return;
+            const latDiff = e.latlng.lat - rectDragStart.lat;
+            const lngDiff = e.latlng.lng - rectDragStart.lng;
+            const newBounds = L.latLngBounds(
+                [rectOriginalBounds.getSouth() + latDiff, rectOriginalBounds.getWest() + lngDiff],
+                [rectOriginalBounds.getNorth() + latDiff, rectOriginalBounds.getEast() + lngDiff]
+            );
+            printRect.setBounds(newBounds);
+            printBounds = newBounds;
+            updateCornerPositions();
+            updatePrintAreaSummary();
+        }
+
+        function onRectDragEnd() {
+            rectDragStart = null;
+            rectOriginalBounds = null;
+            map.dragging.enable();
+            map.off('mousemove', onRectDrag);
+            map.off('mouseup', onRectDragEnd);
+        }
+
+        function addCornerHandles() {
+            removeCornerHandles();
+            if (!printRect) return;
+            ensurePrintPane();
+            const bounds = printRect.getBounds();
+            const corners = [
+                bounds.getNorthWest(),
+                bounds.getNorthEast(),
+                bounds.getSouthEast(),
+                bounds.getSouthWest()
+            ];
+            corners.forEach((corner, index) => {
+                const marker = L.circleMarker(corner, {
+                    radius: 10,
+                    color: '#ffffff',
+                    fillColor: '#007bff',
+                    fillOpacity: 1,
+                    weight: 3,
+                    interactive: true,
+                    bubblingMouseEvents: false,
+                    pane: 'printPane',
+                    renderer: printSvgRenderer
+                }).addTo(map);
+                marker.on('mousedown', (e) => onCornerMouseDown(e, index));
+                cornerMarkers.push(marker);
+            });
+        }
+
+        function onCornerMouseDown(e, cornerIndex) {
+            L.DomEvent.stopPropagation(e);
+            isDraggingCorner = true;
+            draggedCornerIndex = cornerIndex;
+            map.dragging.disable();
+            map.on('mousemove', onCornerDrag);
+            map.on('mouseup', onCornerDragEnd);
+        }
+
+        function onCornerDrag(e) {
+            if (!isDraggingCorner) return;
+            const bounds = printRect.getBounds();
+            let newBounds;
+            switch(draggedCornerIndex) {
+                case 0: // NW
+                    newBounds = L.latLngBounds(
+                        [bounds.getSouth(), e.latlng.lng],
+                        [e.latlng.lat, bounds.getEast()]
+                    );
+                    break;
+                case 1: // NE
+                    newBounds = L.latLngBounds(
+                        [bounds.getSouth(), bounds.getWest()],
+                        [e.latlng.lat, e.latlng.lng]
+                    );
+                    break;
+                case 2: // SE
+                    newBounds = L.latLngBounds(
+                        [e.latlng.lat, bounds.getWest()],
+                        [bounds.getNorth(), e.latlng.lng]
+                    );
+                    break;
+                case 3: // SW
+                    newBounds = L.latLngBounds(
+                        [e.latlng.lat, e.latlng.lng],
+                        [bounds.getNorth(), bounds.getEast()]
+                    );
+                    break;
+            }
+            printRect.setBounds(newBounds);
+            printBounds = newBounds;
+            updateCornerPositions();
+            updatePrintAreaSummary();
+        }
+
+        function onCornerDragEnd() {
+            isDraggingCorner = false;
+            draggedCornerIndex = -1;
+            map.dragging.enable();
+            map.off('mousemove', onCornerDrag);
+            map.off('mouseup', onCornerDragEnd);
+        }
+
+        function updateCornerPositions() {
+            if (cornerMarkers.length === 0) return;
+            const bounds = printRect.getBounds();
+            const corners = [
+                bounds.getNorthWest(),
+                bounds.getNorthEast(),
+                bounds.getSouthEast(),
+                bounds.getSouthWest()
+            ];
+            cornerMarkers.forEach((marker, index) => {
+                marker.setLatLng(corners[index]);
+            });
+        }
+
+        function removeCornerHandles() {
+            cornerMarkers.forEach(marker => map.removeLayer(marker));
+            cornerMarkers = [];
+        }
+
+        function updatePreviewFromBounds() {
+            if (!previewMap) initPreviewMap();
+            if (!printBounds || !previewMap) return;
+            previewMap.fitBounds(printBounds, { animate: false });
+            clearPreviewRect();
+            previewRect = L.rectangle(printBounds, {
+                color: '#ff0000', weight: 2, fillOpacity: 0.05, dashArray: '5 5'
+            }).addTo(previewMap);
+        }
+
+        function clearPreviewRect() {
+            if (previewRect && previewMap) {
+                previewMap.removeLayer(previewRect);
+                previewRect = null;
+            }
+        }
+
+        function updateRectFromMap() {
+            if (!printRect) return;
+            const mapB = map.getBounds();
+            const rectB = printRect.getBounds();
+            if (!mapB.overlaps(rectB)) createDraggableRectangle();
+        }
+
+        function removeRectangle() {
+            if (printRect) {
+                printRect.off('mousedown', onRectMouseDown);
+                map.removeLayer(printRect);
+                printRect = null;
+            }
+            removeCornerHandles();
+            printBounds = null;
+            clearPreviewRect();
+            const el = document.getElementById('summaryArea');
+            if (el) el.textContent = 'Aucune selection';
+        }
+
+        function initPreviewMap() {
+            if (previewMap) return;
+            const el = document.getElementById('previewMap');
+            if (!el) return;
+            previewMap = L.map(el, {
+                center: CONFIG.map.center,
+                zoom: CONFIG.map.zoom - 1,
+                zoomControl: true,
+                attributionControl: false,
+                dragging: true,
+                touchZoom: true,
+                doubleClickZoom: true,
+                scrollWheelZoom: true,
+                boxZoom: false,
+                keyboard: false
+            });
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 19
+            }).addTo(previewMap);
         }
 
         function useCurrentMapView() {
-            printBounds = map.getBounds();
-            
-            if (printAreaSelector) {
-                map.removeLayer(printAreaSelector);
+            const b = map.getBounds();
+            printBounds = b;
+            if (printRect) {
+                printRect.setBounds(b);
+                updateCornerPositions();
+            } else {
+                // Show rect on map without minimizing modal
+                ensurePrintPane();
+                printRect = L.rectangle(b, {
+                    color: '#007bff',
+                    weight: 3,
+                    fillOpacity: 0.15,
+                    fillColor: '#007bff',
+                    dashArray: '8 6',
+                    interactive: true,
+                    bubblingMouseEvents: false,
+                    pane: 'printPane',
+                    renderer: printSvgRenderer
+                }).addTo(map);
+                printRect.on('mousedown', onRectMouseDown);
+                addCornerHandles();
             }
-            
-            printAreaSelector = L.rectangle(printBounds, {
-                className: 'print-area-selector',
-                color: '#007bff',
-                weight: 3,
-                fillColor: '#007bff',
-                fillOpacity: 0.1,
-                dashArray: '10, 5'
-            }).addTo(map);
-            
-            updatePreviewWithBounds(printBounds);
-            updatePrintAreaSummary(printBounds);
-            
-            showNotification('Vue actuelle sélectionnée pour l\'impression', 'success');
+            updatePreviewFromBounds();
+            updatePrintAreaSummary();
+            calculateAndDisplayScale();
+            showNotification('Vue actuelle selectionnee', 'success');
         }
 
         function clearPrintAreaSelection() {
-            if (printAreaSelector) {
-                map.removeLayer(printAreaSelector);
-                printAreaSelector = null;
+            removeRectangle();
+            if (isPrintSelectorOn) {
+                isPrintSelectorOn = false;
+                const btn = document.getElementById('selectPrintArea');
+                btn.innerHTML = '<i class="fas fa-vector-square"></i> Selectionner une zone';
+                btn.classList.remove('active');
+                let valBtn = document.getElementById('validateZoneBtn');
+                if (valBtn) valBtn.classList.remove('visible');
             }
-            
-            printBounds = null;
-            
-            // Réinitialiser l'aperçu
-            if (previewMap) {
-                previewMap.setView(CONFIG.map.center, CONFIG.map.zoom - 1);
-            }
-            
-            document.getElementById('summaryArea').textContent = 'Aucune sélection';
-            
-            showNotification('Sélection effacée', 'info');
+            const scaleEl = document.getElementById('summaryScale');
+            if (scaleEl) scaleEl.textContent = '--';
+            showNotification('Selection effacee', 'info');
         }
 
         function updatePreviewWithBounds(bounds) {
             if (!previewMap || !bounds) return;
-            
             try {
-                // Centrer et ajuster le zoom de l'aperçu sur la zone sélectionnée
                 previewMap.fitBounds(bounds);
-                
-                // Ajouter un rectangle pour montrer la zone sélectionnée
-                previewMap.eachLayer(layer => {
-                    if (layer instanceof L.Rectangle) {
-                        previewMap.removeLayer(layer);
-                    }
-                });
-                
-                L.rectangle(bounds, {
+                clearPreviewRect();
+                previewRect = L.rectangle(bounds, {
                     color: '#ff0000',
                     weight: 2,
-                    fillOpacity: 0,
+                    fillOpacity: 0.05,
                     dashArray: '5, 5'
                 }).addTo(previewMap);
-                
             } catch (error) {
-                console.error('Erreur mise à jour aperçu:', error);
+                console.error('Erreur mise a jour apercu:', error);
             }
         }
 
-        function updatePrintAreaSummary(bounds) {
-            if (!bounds) {
-                document.getElementById('summaryArea').textContent = 'Aucune sélection';
+        function updatePrintAreaSummary() {
+            const summaryAreaEl = document.getElementById('summaryArea');
+            if (!summaryAreaEl) return;
+            if (!printBounds) {
+                summaryAreaEl.textContent = 'Aucune selection';
                 return;
             }
-            
-            const center = bounds.getCenter();
-            const area = (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
-            
-            document.getElementById('summaryArea').textContent = 
-                `Zone sélectionnée (${area.toFixed(4)}° × ${area.toFixed(4)}°)`;
+            const ne = printBounds.getNorthEast();
+            const sw = printBounds.getSouthWest();
+            // Calculate approximate area in km
+            const widthKm = haversineDistance(
+                sw.lat, sw.lng, sw.lat, ne.lng
+            ) / 1000;
+            const heightKm = haversineDistance(
+                sw.lat, sw.lng, ne.lat, sw.lng
+            ) / 1000;
+            summaryAreaEl.textContent = `${widthKm.toFixed(1)} km x ${heightKm.toFixed(1)} km`;
         }
+
+        // Haversine distance in meters
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function calculateAndDisplayScale() {
+            if (!printBounds) return;
+            const scaleEl = document.getElementById('summaryScale');
+            if (!scaleEl) return;
+
+            const sw = printBounds.getSouthWest();
+            const ne = printBounds.getNorthEast();
+            const centerLat = (sw.lat + ne.lat) / 2;
+            const geoWidthM = haversineDistance(centerLat, sw.lng, centerLat, ne.lng);
+            const geoHeightM = haversineDistance(sw.lat, sw.lng, ne.lat, sw.lng);
+
+            const userScaleInput = document.getElementById('userScale');
+            const userScale = userScaleInput ? parseInt(userScaleInput.value) : 0;
+
+            if (userScale > 0) {
+                // User imposed a scale → calculate required paper size
+                const requiredWidthM = geoWidthM / userScale;
+                const requiredHeightM = geoHeightM / userScale;
+
+                if (requiredWidthM > 2 || requiredHeightM > 2) {
+                    scaleEl.textContent = `1:${userScale.toLocaleString()} (format trop grand!)`;
+                    showNotification(`A cette echelle, le papier devrait mesurer ${requiredWidthM.toFixed(2)}m x ${requiredHeightM.toFixed(2)}m, ce qui depasse le maximum de 2m x 2m. Choisissez une echelle plus petite.`, 'warning', 8000);
+                    printConfig.scale = userScale;
+                    return;
+                }
+
+                // Auto-select custom format with calculated dimensions
+                printConfig.format = 'custom';
+                printConfig.scale = userScale;
+
+                // Update custom size fields
+                const wField = document.getElementById('customWidth');
+                const hField = document.getElementById('customHeight');
+                if (wField) wField.value = Math.max(1, requiredWidthM).toFixed(2);
+                if (hField) hField.value = Math.max(1, requiredHeightM).toFixed(2);
+
+                // Show custom size group
+                const customGroup = document.getElementById('customSizeGroup');
+                if (customGroup) customGroup.style.display = 'block';
+
+                // Select custom format option visually
+                document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected'));
+                const customOpt = document.querySelector('[data-format="custom"]');
+                if (customOpt) customOpt.classList.add('selected');
+
+                // Calculate price
+                const area = Math.max(1, requiredWidthM) * Math.max(1, requiredHeightM);
+                printConfig.price = Math.round(area * 10000);
+                const priceEl = document.getElementById('summaryPrice');
+                if (priceEl) priceEl.textContent = `${printConfig.price.toLocaleString()} XAF`;
+
+                scaleEl.textContent = `1:${userScale.toLocaleString()} → ${Math.max(1, requiredWidthM).toFixed(2)}m x ${Math.max(1, requiredHeightM).toFixed(2)}m`;
+                const formatEl = document.getElementById('summaryFormat');
+                if (formatEl) formatEl.textContent = `Personnalise (${Math.max(1, requiredWidthM).toFixed(2)}m x ${Math.max(1, requiredHeightM).toFixed(2)}m)`;
+            } else {
+                // Auto-calculate scale from paper size
+                const paperWidthM = getPaperWidthMeters();
+                if (!paperWidthM) { scaleEl.textContent = '--'; return; }
+
+                const scale = Math.round(geoWidthM / paperWidthM);
+                printConfig.scale = scale;
+
+                if (scale < 100) {
+                    scaleEl.textContent = '1:' + scale + ' (tres detaille)';
+                } else if (scale > 5000000) {
+                    scaleEl.textContent = '1:' + scale.toLocaleString() + ' (tres grande zone)';
+                } else {
+                    scaleEl.textContent = '1:' + scale.toLocaleString();
+                }
+            }
+        }
+
+        function getPaperWidthMeters() {
+            if (printConfig.format === 'custom') {
+                const w = parseFloat(document.getElementById('customWidth').value) || 1;
+                return w; // already in meters
+            }
+            // Standard formats: data-w attribute is in meters
+            const selectedOption = document.querySelector('.format-option.selected');
+            if (selectedOption) {
+                return parseFloat(selectedOption.dataset.w) || 0.42;
+            }
+            return 0.42; // default A2 width
+        }
+
+        // Admin entity selection - uses mapDataCache (raw Supabase data)
+        function loadAdminEntities(adminType) {
+            const entitySelect = document.getElementById('adminEntity');
+            entitySelect.innerHTML = '<option value="">-- Choisir une entite --</option>';
+            entitySelect.style.display = 'block';
+
+            let dataArr = [];
+            let nameKey = '';
+            switch(adminType) {
+                case 'region':
+                    dataArr = mapDataCache.regions;
+                    nameKey = 'nom_region';
+                    break;
+                case 'departement':
+                    dataArr = mapDataCache.departements;
+                    nameKey = 'nom_departement';
+                    break;
+                case 'arrondissement':
+                    dataArr = mapDataCache.arrondissements;
+                    nameKey = 'nom_arrondissement';
+                    break;
+                case 'village':
+                    dataArr = mapDataCache.villages;
+                    nameKey = 'village_name';
+                    break;
+            }
+
+            if (!dataArr || dataArr.length === 0) {
+                showNotification('Donnees non chargees. Veuillez attendre le chargement complet.', 'warning');
+                return;
+            }
+
+            // Sort alphabetically
+            const sorted = [...dataArr].sort((a, b) => (a[nameKey] || '').localeCompare(b[nameKey] || ''));
+
+            sorted.forEach((item, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = item[nameKey] || 'Sans nom';
+                entitySelect.appendChild(opt);
+            });
+
+            // Store sorted data for later retrieval
+            entitySelect._sortedData = sorted;
+            entitySelect._nameKey = nameKey;
+        }
+
+        function selectAdminEntity(index) {
+            const entitySelect = document.getElementById('adminEntity');
+            const sortedData = entitySelect._sortedData;
+            if (!sortedData || index === '' || index === undefined) return;
+
+            const item = sortedData[parseInt(index)];
+            if (!item || !item.geom) {
+                showNotification('Pas de geometrie pour cette entite', 'warning');
+                return;
+            }
+
+            // Parse geometry and compute bounds
+            const geometry = parseGeometry(item.geom);
+            if (!geometry) {
+                showNotification('Geometrie invalide', 'warning');
+                return;
+            }
+
+            // Create a temporary GeoJSON layer to get bounds
+            const tempLayer = L.geoJSON(geometry);
+            const bounds = tempLayer.getBounds();
+
+            if (bounds && bounds.isValid()) {
+                printBounds = bounds;
+                updatePreviewFromBounds();
+                updatePrintAreaSummary();
+                calculateAndDisplayScale();
+                // Show rectangle on main map
+                if (printRect) {
+                    map.removeLayer(printRect);
+                    removeCornerHandles();
+                }
+                ensurePrintPane();
+                printRect = L.rectangle(bounds, {
+                    color: '#007bff',
+                    weight: 3,
+                    fillOpacity: 0.15,
+                    fillColor: '#007bff',
+                    dashArray: '8 6',
+                    interactive: true,
+                    bubblingMouseEvents: false,
+                    pane: 'printPane',
+                    renderer: printSvgRenderer
+                }).addTo(map);
+                printRect.on('mousedown', onRectMouseDown);
+                addCornerHandles();
+                map.fitBounds(bounds);
+                showNotification('Zone de l\'entite selectionnee', 'success');
+            } else {
+                showNotification('Impossible de determiner les limites de cette entite', 'warning');
+            }
+        }
+
+        function applyScaleToMap(targetMap, bounds, scale) {
+            const metersPerPixel = scale / 100;
+            const centerLat = bounds.getCenter().lat;
+            const zoom = Math.log2(40075016.686 * Math.abs(Math.cos(centerLat * Math.PI / 180)) / (metersPerPixel * 256));
+            targetMap.setView(bounds.getCenter(), Math.round(zoom));
+        }
+
 
         // CHARGEMENT DES DONNÉES VILLAGES AVEC DESCRIPTIONS
         async function loadInitialData() {
-            if (!supabase) {
-                showNotification('Mode démo - pas de données', 'warning');
-                return;
+                if (!supabase) {
+                    showNotification('Mode démo - pas de données', 'warning');
+                    return;
+                }
+                try {
+                    showNotification('Chargement des couches…', 'info');
+
+                    // Charger dans l'ordre : base → top (inverse de la priorité visuelle)
+                    await loadRegionsOptimized();           // Niveau 1 (plus bas)
+                    await loadDepartementsOptimized();      // Niveau 2
+                    await loadArrondissementsOptimized();   // Niveau 3
+                    await loadVillagesOptimized();          // Niveau 4
+                    // await loadPOIOptimized();            // Niveau 5 - À activer plus tard
+                    // await loadGeonamesOptimized();       // Niveau 6 - À activer plus tard
+                    
+                    // Appliquer la hiérarchie z-index après chargement
+                    applyLayerHierarchy();
+                    
+                    showNotification('Données chargées avec hiérarchie correcte', 'success', 2000);
+                } catch (err) {
+                    console.error('❌ Erreur chargement:', err);
+                    showNotification('Erreur de chargement des données', 'error');
+                }
             }
-            try {
-                showNotification('Chargement des couches…', 'info');
 
-                /* 1️⃣  administrative layers first */
-                await loadRegionsOptimized();
-                await loadDepartementsOptimized();
-                await loadArrondissementsOptimized();   // ← finishes first
 
-                /* 2️⃣  villages layer last */
-                await loadVillagesOptimized();          // ← added after arrondissements
-                showNotification('Données chargées rapidement', 'success', 2000);
-            } catch (err) {
-                console.error('❌ Erreur chargement:', err);
-                showNotification('Erreur de chargement des données', 'error');
-            }
-        }
-
-        async function loadVillagesOptimized() {
-            try {
-                const { data, error } = await supabase
-                    .from('villages_complete_extended')
-                    .select('*')
-                    .eq('is_active', true);
+            function applyLayerHierarchy() {
+                console.log('📊 Vérification de la hiérarchie des panes');
                 
-                if (error) throw error;
-                if (!data || data.length === 0) return;
-
-                mapLayers.villages = L.layerGroup();
+                const panes = [
+                    { name: 'regionsPane', expectedZ: 400 },
+                    { name: 'departementsPane', expectedZ: 410 },
+                    { name: 'arrondissementsPane', expectedZ: 420 },
+                    { name: 'villagesPane', expectedZ: 650 }
+                ];
                 
-                data.forEach(village => {
-                    if (village.geom) {
-                        const geometry = parseGeometry(village.geom);
-                        if (!geometry) return;
-
-                        const layer = L.geoJSON(geometry, {
-                            style: { 
-                                fillColor: 'transparent', 
-                                color: '#cc6600', 
-                                weight: 2,
-                                opacity: 0.8,
-                                fillOpacity: 0,
-                                dashArray: '8, 6'
-                            },
-                            interactive: true
-                        }).addTo(mapLayers.villages);
-
-                        // Popup améliorée avec nouvelles informations
-                        const popupContent = createVillagePopup(village);
-                        layer.bindPopup(popupContent, {
-                            maxWidth: 350,
-                            className: 'village-popup'
-                        });
-
-
-                        /* 1.  GESTION HOVER (desktop + mobile) */
-                            layer.on('mouseover touchstart', function () {
-                            suspendArrondissements();
-                            });
-                            layer.on('mouseout', function () {          // desktop quit
-                            restoreArrondissements();
-                            });
-
-                            /* 2.  CLICK = open popup + empêcher arrondissement */
-                            layer.on('click', function (e) {
-                            L.DomEvent.stopPropagation(e);            // bloque propagation
-                            e.originalEvent._processedByVillage = true;
-                            layer.openPopup();
-                            });
-
-                            /* 3.  Quand la popup se ferme : on restaure immédiatement */
-                            layer.on('popupclose', function () {
-                            restoreArrondissements();
-                            });
-
-                        // MODIFICATION : Gestion des clics avec priorité haute
-                        // Les villages sont chargés APRÈS les arrondissements
-
-                            layer.on('click', function (e) {
-                                 // if (isDistanceMeasuring || isAreaMeasuring) return; // ignore during measure
-                                L.DomEvent.stopPropagation(e);          // stop map & arrondissement
-                                e.originalEvent._processedByVillage = true; // ⭐  flag for arrondissement
-                                layer.openPopup();
-                            });
-
-                        // Stocker les données du village pour le modal
-                        layer.villageData = village;
+                panes.forEach(config => {
+                    const pane = map.getPane(config.name);
+                    if (pane) {
+                        const currentZ = pane.style.zIndex;
+                        console.log(`✅ ${config.name}: z-index = ${currentZ}`);
                     }
                 });
-                
-                map.addLayer(mapLayers.villages);
-                console.log(`${data.length} villages chargés avec informations complètes`);
-                bringToFront(mapLayers.villages); 
-                
-            } catch (error) {
-                console.error('Erreur villages:', error);
-                throw error;
             }
-        }
 
-        function createVillagePopup(village) {
+
+  async function loadVillagesOptimized() {
+    try {
+        const { data, error } = await supabase
+            .from('villages_complete_extended')
+            .select('*')
+            .eq('is_active', true);
+        
+        if (error) throw error;
+        if (!data || data.length === 0) return;
+
+        mapDataCache.villages = data;
+        mapLayers.villages = L.layerGroup();
+
+        data.forEach(village => {
+            if (village.geom) {
+                const geometry = parseGeometry(village.geom);
+                if (!geometry) return;
+
+                const layer = L.geoJSON(geometry, {
+                    style: { 
+                        fillColor: 'transparent', 
+                        color: '#cc6600', 
+                        weight: 2,
+                        opacity: 0.8,
+                        fillOpacity: 0,
+                        dashArray: '8, 6'
+                    },
+                    interactive: true,
+                    pane: 'villagesPane'
+                }).addTo(mapLayers.villages);
+
+                const popupContent = createVillagePopup(village);
+                const popupMaxWidth = window.innerWidth < 480 ? (window.innerWidth - 60) : 320;
+                layer.bindPopup(popupContent, {
+                    maxWidth: popupMaxWidth,
+                    minWidth: 200,
+                    className: 'village-popup'
+                });
+
+                layer.villageData = village;
+            }
+        });
+        
+        map.addLayer(mapLayers.villages);
+        console.log(`✅ ${data.length} villages dans villagesPane (z-index: 650 - PRIORITÉ MAX)`);
+        
+    } catch (error) {
+        console.error('Erreur villages:', error);
+        throw error;
+    }
+}
+     
+
+function createVillagePopup(village) {
             const areaText = village.area_hectares ? 
                 `${village.area_hectares.toFixed(2)} ha` : 'Non calculée';
             
@@ -1503,61 +2211,60 @@
             
             const phoneText = village.telephone || 'Non disponible';
             
-            const chiefPhotoHtml = village.chief_photo_url ? 
-                `<img src="${village.chief_photo_url}" alt="Photo du chef" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 10px;">` 
-                : `<div style="width: 60px; height: 60px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #666;"><i class="fas fa-user"></i></div>`;
+            const chiefPhotoHtml = village.chief_photo_url ?
+                `<img src="${village.chief_photo_url}" alt="Photo du chef">`
+                : `<div style="width: 50px; height: 50px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #666; flex-shrink: 0;"><i class="fas fa-user"></i></div>`;
 
             const chiefServiceYears = village.chief_years_of_service ? 
                 ` (${village.chief_years_of_service} ans de service)` : '';
 
             return `
-                <div style="font-family: inherit; min-width: 320px;">
-                    <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); color: white; padding: 15px; margin: -10px -15px 15px; border-radius: 8px;">
-                        <h3 style="margin: 0 0 5px; font-size: 18px;">
+                <div class="village-popup-inner">
+                    <div class="village-popup-header">
+                        <h3 class="village-popup-title">
                             <i class="fas fa-home"></i> ${village.village_name}
                         </h3>
-                        <p style="margin: 0; opacity: 0.9; font-size: 14px;">
-                            ${village.arrondissement_name}
-                        </p>
+                        <p class="village-popup-location">${village.arrondissement_name}</p>
                     </div>
-                    
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        ${chiefPhotoHtml}
-                        <div>
-                            <div style="font-weight: bold; color: #2c5530;">Chef de Village</div>
-                            <div style="color: #666;">${village.chief_name || 'Non renseigné'}${chiefServiceYears}</div>
+
+                    <div class="village-popup-body">
+                        <div class="village-popup-chief">
+                            ${chiefPhotoHtml}
+                            <div>
+                                <div class="village-popup-chief-label">Chef de Village</div>
+                                <div class="village-popup-chief-name">${village.chief_name || 'Non renseigné'}${chiefServiceYears}</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                        <div style="background: #f8f9fa; padding: 8px; border-radius: 5px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; text-transform: uppercase;">Superficie</div>
-                            <div style="font-weight: bold; color: #2c5530;">${areaText}</div>
+
+                        <div class="village-popup-stats">
+                            <div class="village-popup-stat">
+                                <div class="village-popup-stat-label">Superficie</div>
+                                <div class="village-popup-stat-value">${areaText}</div>
+                            </div>
+                            <div class="village-popup-stat">
+                                <div class="village-popup-stat-label">Population</div>
+                                <div class="village-popup-stat-value">${populationText}</div>
+                            </div>
                         </div>
-                        <div style="background: #f8f9fa; padding: 8px; border-radius: 5px; text-align: center;">
-                            <div style="font-size: 12px; color: #666; text-transform: uppercase;">Population</div>
-                            <div style="font-weight: bold; color: #2c5530;">${populationText}</div>
+
+                        <div class="village-popup-contact">
+                            <div class="village-popup-contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>${phoneText}</span>
+                            </div>
+                            ${village.email ? `
+                            <div class="village-popup-contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>${village.email}</span>
+                            </div>
+                            ` : ''}
                         </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                            <i class="fas fa-phone" style="color: #4a7c59; margin-right: 8px;"></i>
-                            <span style="color: #333;">${phoneText}</span>
+
+                        <div class="village-popup-action">
+                            <button onclick="openVillageDetails('${village.id}')">
+                                <i class="fas fa-info-circle"></i> En savoir plus
+                            </button>
                         </div>
-                        ${village.email ? `
-                        <div style="display: flex; align-items: center;">
-                            <i class="fas fa-envelope" style="color: #4a7c59; margin-right: 8px;"></i>
-                            <span style="color: #333;">${village.email}</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <button onclick="openVillageDetails('${village.id}')" 
-                                style="background: #4a7c59; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s;">
-                            <i class="fas fa-info-circle"></i> En savoir plus
-                        </button>
                     </div>
                 </div>
             `;
@@ -1818,232 +2525,218 @@
             document.body.style.overflow = '';
         }
 
-        // CHARGEMENT DES COUCHES ADMINISTRATIVES
-        async function loadRegionsOptimized() {
-            try {
-                const { data, error } = await supabase
-                    .from('regions')
-                    .select('id_region, nom_region, geom');
-                
-                if (error) throw error;
-                if (!data || data.length === 0) return;
+async function loadRegionsOptimized() {
+    try {
+        const { data, error } = await supabase
+            .from('regions')
+            .select('id_region, nom_region, geom');
+        
+        if (error) throw error;
+        if (!data || data.length === 0) return;
 
-                mapLayers.regions = L.layerGroup();
-                
-                data.forEach(region => {
-                    if (region.geom) {
-                        const geometry = parseGeometry(region.geom);
-                        if (!geometry) return;
+        mapDataCache.regions = data;
+        mapLayers.regions = L.layerGroup();
 
-                        const layer = L.geoJSON(geometry, {
-                            style: { 
-                                fillColor: 'transparent', 
-                                color: '#d62728', 
-                                weight: 2,
-                                opacity: 0.8,
-                                fillOpacity: 0 
-                            },
-                            interactive: true
-                        }).addTo(mapLayers.regions);
+        data.forEach(region => {
+            if (region.geom) {
+                const geometry = parseGeometry(region.geom);
+                if (!geometry) return;
 
-                        const area = calculateAreaFromGeometry(geometry);
-                        const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
+                const layer = L.geoJSON(geometry, {
+                    style: { 
+                        fillColor: 'transparent', 
+                        color: '#d62728', 
+                        weight: 2,
+                        opacity: 0.8,
+                        fillOpacity: 0 
+                    },
+                    interactive: true,
+                    pane: 'regionsPane'
+                }).addTo(mapLayers.regions);
 
-                        layer.bindPopup(`
-                            <div style="font-family: inherit;">
-                                <h4 style="color: #d62728; margin-bottom: 8px;">
-                                    <i class="fas fa-map"></i> ${region.nom_region}
-                                </h4>
-                                <p><strong>Type:</strong> Région</p>
-                                <p><strong>Superficie:</strong> ${areaText}</p>
-                            </div>
-                        `);
+                const area = calculateAreaFromGeometry(geometry);
+                const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
 
-                        layer.on('click', function(e) {
-                            // Vérifier si un village n'a pas déjà traité ce clic
-                            if (!e.originalEvent._processedByVillage && !isDistanceMeasuring && !isAreaMeasuring) {
-                                layer.openPopup();
-                            }
-                        });
-                    }
-                });
-                
-                map.addLayer(mapLayers.regions);
-                console.log(`${data.length} régions chargées complètement`);
-                
-            } catch (error) {
-                console.error('Erreur régions:', error);
-                throw error;
+                layer.bindPopup(`
+                    <div style="font-family: inherit;">
+                        <h4 style="color: #d62728; margin-bottom: 8px;">
+                            <i class="fas fa-map"></i> ${region.nom_region}
+                        </h4>
+                        <p><strong>Type:</strong> Région</p>
+                        <p><strong>Superficie:</strong> ${areaText}</p>
+                    </div>
+                `);
+
             }
-        }
+        });
 
-        async function loadDepartementsOptimized() {
-            try {
-                const { data, error } = await supabase
-                    .from('departements')
-                    .select('id_departement, nom_departement, geom');
-                
-                if (error) throw error;
-                if (!data || data.length === 0) return;
+        // ✅ AJOUTER LA COUCHE UNE SEULE FOIS - NE JAMAIS LA RETIRER
+        map.addLayer(mapLayers.regions);
+        console.log(`✅ ${data.length} régions ajoutées DÉFINITIVEMENT`);
+        
+    } catch (error) {
+        console.error('Erreur régions:', error);
+        throw error;
+    }
+}
 
-                mapLayers.departements = L.layerGroup();
-                
-                data.forEach(departement => {
-                    if (departement.geom) {
-                        const geometry = parseGeometry(departement.geom);
-                        if (!geometry) return;
+async function loadDepartementsOptimized() {
+    try {
+        const { data, error } = await supabase
+            .from('departements')
+            .select('id_departement, nom_departement, geom');
+        
+        if (error) throw error;
+        if (!data || data.length === 0) return;
 
-                        const layer = L.geoJSON(geometry, {
-                            style: { 
-                                fillColor: 'transparent', 
-                                color: '#000000', 
-                                weight: 1.5,
-                                opacity: 0.7,
-                                fillOpacity: 0 
-                            },
-                            interactive: true
-                        }).addTo(mapLayers.departements);
+        mapDataCache.departements = data;
+        mapLayers.departements = L.layerGroup();
 
-                        const area = calculateAreaFromGeometry(geometry);
-                        const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
+        data.forEach(departement => {
+            if (departement.geom) {
+                const geometry = parseGeometry(departement.geom);
+                if (!geometry) return;
 
-                        layer.bindPopup(`
-                            <div style="font-family: inherit;">
-                                <h4 style="color: #000000; margin-bottom: 8px;">
-                                    <i class="fas fa-map"></i> ${departement.nom_departement}
-                                </h4>
-                                <p><strong>Type:</strong> Département</p>
-                                <p><strong>Superficie:</strong> ${areaText}</p>
-                            </div>
-                        `);
+                const layer = L.geoJSON(geometry, {
+                    style: { 
+                        fillColor: 'transparent', 
+                        color: '#000000', 
+                        weight: 1.5,
+                        opacity: 0.7,  // ✅ Opacité initiale
+                        fillOpacity: 0 
+                    },
+                    interactive: true,
+                    pane: 'departementsPane'
+                }).addTo(mapLayers.departements);
 
-                        layer.on('click', function(e) {
-                            // Vérifier si un village n'a pas déjà traité ce clic
-                            if (!e.originalEvent._processedByVillage && !isDistanceMeasuring && !isAreaMeasuring) {
-                                layer.openPopup();
-                            }
-                        });
-                    }
-                });
-                
-                map.addLayer(mapLayers.departements);
-                console.log(`${data.length} départements chargés complètement`);
-                
-            } catch (error) {
-                console.error('Erreur départements:', error);
-                throw error;
+                const area = calculateAreaFromGeometry(geometry);
+                const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
+
+                layer.bindPopup(`
+                    <div style="font-family: inherit;">
+                        <h4 style="color: #000000; margin-bottom: 8px;">
+                            <i class="fas fa-map"></i> ${departement.nom_departement}
+                        </h4>
+                        <p><strong>Type:</strong> Département</p>
+                        <p><strong>Superficie:</strong> ${areaText}</p>
+                    </div>
+                `);
+
             }
-        }
+        });
 
-        async function loadArrondissementsOptimized() {
-            try {
-                const { data, error } = await supabase
-                    .from('arrondissements')
-                    .select('id_arrondissement, nom_arrondissement, geom');
-                
-                if (error) throw error;
-                if (!data || data.length === 0) return;
+        // ✅ AJOUTER LA COUCHE UNE SEULE FOIS - NE JAMAIS LA RETIRER
+        map.addLayer(mapLayers.departements);
+        console.log(`✅ ${data.length} départements ajoutés DÉFINITIVEMENT`);
+        
+    } catch (error) {
+        console.error('Erreur départements:', error);
+        throw error;
+    }
+}  
 
-                mapLayers.arrondissements = L.layerGroup();
-                
-                data.forEach(arrondissement => {
-                    if (arrondissement.geom) {
-                        const geometry = parseGeometry(arrondissement.geom);
-                        if (!geometry) return;
+async function loadArrondissementsOptimized() {
+    try {
+        const { data, error } = await supabase
+            .from('arrondissements')
+            .select('id_arrondissement, nom_arrondissement, geom');
+        
+        if (error) throw error;
+        if (!data || data.length === 0) return;
 
-                        const layer = L.geoJSON(geometry, {
-                            style: { 
-                                fillColor: 'transparent', 
-                                color: '#8B008B', 
-                                weight: 1,
-                                opacity: 0.6,
-                                fillOpacity: 0, 
-                                dashArray: '4, 4'
-                            },
-                            interactive: true
-                        }).addTo(mapLayers.arrondissements);
+        mapDataCache.arrondissements = data;
+        mapLayers.arrondissements = L.layerGroup();
 
-                        const area = calculateAreaFromGeometry(geometry);
-                        const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
+        data.forEach(arrondissement => {
+            if (arrondissement.geom) {
+                const geometry = parseGeometry(arrondissement.geom);
+                if (!geometry) return;
 
-                        layer.bindPopup(`
-                            <div style="font-family: inherit;">
-                                <h4 style="color: #8B008B; margin-bottom: 8px;">
-                                    <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
-                                </h4>
-                                <p><strong>Type:</strong> Arrondissement</p>
-                                <p><strong>Superficie:</strong> ${areaText}</p>
-                            </div>
-                        `);
+                const layer = L.geoJSON(geometry, {
+                    style: { 
+                        fillColor: 'transparent', 
+                        color: '#8B008B', 
+                        weight: 1,
+                        opacity: map.getZoom() >= 9 ? 0.6 : 0,  // ✅ Opacité conditionnelle
+                        fillOpacity: 0, 
+                        dashArray: '4, 4'
+                    },
+                    interactive: true,
+                    pane: 'arrondissementsPane'
+                }).addTo(mapLayers.arrondissements);
 
-                        // MODIFICATION : Gestion des clics avec priorité basse
-                        // Les arrondissements sont chargés AVANT les villages
-                        layer.on('click', function(e) {
-                            // Vérifier si un village n'a pas déjà traité ce clic
-                           // if (!e.originalEvent._processedByVillage && !isDistanceMeasuring && !isAreaMeasuring) {
-                               // L.DomEvent.stopPropagation(e);
-                               if (e.originalEvent._processedByVillage) return;
-                                layer.openPopup();
-                            
-                        });
-                    }
-                });
-                
-                map.addLayer(mapLayers.arrondissements);
-                console.log(`TOUS les ${data.length} arrondissements chargés complètement`);
-                sendToBack(mapLayers.arrondissements); 
-                
-            } catch (error) {
-                console.error('Erreur arrondissements:', error);
-                throw error;
+                const area = calculateAreaFromGeometry(geometry);
+                const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
+
+                layer.bindPopup(`
+                    <div style="font-family: inherit;">
+                        <h4 style="color: #8B008B; margin-bottom: 8px;">
+                            <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
+                        </h4>
+                        <p><strong>Type:</strong> Arrondissement</p>
+                        <p><strong>Superficie:</strong> ${areaText}</p>
+                    </div>
+                `);
+
             }
-        }
+        });
 
-        function loadLayersByZoom() {
+        // ✅ AJOUTER LA COUCHE UNE SEULE FOIS - NE JAMAIS LA RETIRER
+        map.addLayer(mapLayers.arrondissements);
+        console.log(`✅ ${data.length} arrondissements ajoutés DÉFINITIVEMENT`);
+        
+    } catch (error) {
+        console.error('Erreur arrondissements:', error);
+        throw error;
+    }
+}
+        
+        
+             function loadLayersByZoom() {
             const zoom = map.getZoom();
+            console.log(`🔊 Zoom: ${zoom}`);
             
-            if (zoom < 6) {
-                if (mapLayers.departements && map.hasLayer(mapLayers.departements)) {
-                    map.removeLayer(mapLayers.departements);
-                }
-                if (mapLayers.arrondissements && map.hasLayer(mapLayers.arrondissements)) {
-                    map.removeLayer(mapLayers.arrondissements);
-                }
-            } else if (zoom < 9) {
-                if (mapLayers.departements && !map.hasLayer(mapLayers.departements)) {
-                    map.addLayer(mapLayers.departements);
-                }
-                if (mapLayers.arrondissements && map.hasLayer(mapLayers.arrondissements)) {
-                    map.removeLayer(mapLayers.arrondissements);
-                }
-            } else {
-                if (mapLayers.departements && !map.hasLayer(mapLayers.departements)) {
-                    map.addLayer(mapLayers.departements);
-                }
-                if (mapLayers.arrondissements && !map.hasLayer(mapLayers.arrondissements)) {
-                    map.addLayer(mapLayers.arrondissements);
-                }
+            if (mapLayers.regions) {
+                mapLayers.regions.eachLayer(layer => {
+                    layer.setStyle({ opacity: 0.8, fillOpacity: 0 });
+                });
             }
-
-
-            if (mapLayers.villages) bringToFront(mapLayers.villages);
-            if (mapLayers.arrondissements) sendToBack(mapLayers.arrondissements);
+            
+            if (mapLayers.departements) {
+                mapLayers.departements.eachLayer(layer => {
+                    layer.setStyle({ opacity: zoom >= 6 ? 0.7 : 0, fillOpacity: 0 });
+                });
+            }
+            
+            if (mapLayers.arrondissements) {
+                mapLayers.arrondissements.eachLayer(layer => {
+                    layer.setStyle({ opacity: zoom >= 9 ? 0.6 : 0, fillOpacity: 0 });
+                });
+            }
+            
+            if (mapLayers.villages) {
+                mapLayers.villages.eachLayer(layer => {
+                    layer.setStyle({ opacity: 0.8, fillOpacity: 0 });
+                });
+            }
+            
+            // ✅ Réappliquer la hiérarchie des clics
+            applyClickHierarchy();
         }
+
 
         // GÉOLOCALISATION
+        let watchId = null;
+        let followUser = true;
+        let firstLocationFix = true;
+
         function locateUser() {
-            console.log('🔍 Demande de géolocalisation utilisateur');
-            
             const button = document.getElementById('locateUser');
-            
+
+            // Si déjà actif, désactiver le suivi
             if (isLocating) {
                 stopLocationTracking();
-                return;
-            }
-
-            if (userLocationMarker && !isLocating) {
-                clearUserLocation();
-                showNotification('Localisation désactivée', 'info', 2000);
+                showNotification('Suivi de position désactivé', 'info', 2000);
                 return;
             }
 
@@ -2053,51 +2746,66 @@
             }
 
             isLocating = true;
+            followUser = true;
+            firstLocationFix = true;
             button.classList.add('locating');
             showNotification('Recherche de votre position...', 'info');
 
-            const options = {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 60000
-            };
-
-            navigator.geolocation.getCurrentPosition(
-                onLocationSuccess,
+            // Utiliser watchPosition pour le suivi en temps réel
+            watchId = navigator.geolocation.watchPosition(
+                onLocationUpdate,
                 onLocationError,
-                options
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
             );
+
+            // Arrêter le suivi de la vue quand l'utilisateur déplace la carte manuellement
+            map.once('dragstart', () => {
+                followUser = false;
+            });
         }
 
-        function onLocationSuccess(position) {
-            console.log('✅ Position trouvée:', position.coords);
-            
+        function onLocationUpdate(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             const accuracy = position.coords.accuracy;
+            const speed = position.coords.speed;
+            const heading = position.coords.heading;
 
-            if (userLocationMarker) {
-                map.removeLayer(userLocationMarker);
-            }
+            const latlng = L.latLng(lat, lng);
+
+            // Mettre à jour ou créer le cercle de précision
             if (userLocationAccuracy) {
-                map.removeLayer(userLocationAccuracy);
+                userLocationAccuracy.setLatLng(latlng);
+                userLocationAccuracy.setRadius(accuracy);
+            } else {
+                userLocationAccuracy = L.circle(latlng, {
+                    radius: accuracy,
+                    className: 'user-location-accuracy',
+                    interactive: false
+                }).addTo(map);
             }
 
-            userLocationAccuracy = L.circle([lat, lng], {
-                radius: accuracy,
-                className: 'user-location-accuracy'
-            }).addTo(map);
+            // Mettre à jour ou créer le marqueur
+            if (userLocationMarker) {
+                userLocationMarker.setLatLng(latlng);
+            } else {
+                const locationIcon = L.divIcon({
+                    className: 'user-location-marker',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+                userLocationMarker = L.marker(latlng, {
+                    icon: locationIcon,
+                    zIndexOffset: 1000
+                }).addTo(map);
+            }
 
-            const locationIcon = L.divIcon({
-                className: 'user-location-marker',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-
-            userLocationMarker = L.marker([lat, lng], {
-                icon: locationIcon
-            }).addTo(map);
-
+            // Mettre à jour le popup
+            const speedText = speed !== null ? `${(speed * 3.6).toFixed(1)} km/h` : 'N/A';
             userLocationMarker.bindPopup(`
                 <div style="font-family: inherit; text-align: center;">
                     <h4 style="color: #007bff; margin-bottom: 8px;">
@@ -2106,31 +2814,40 @@
                     <p><strong>Latitude:</strong> ${lat.toFixed(6)}</p>
                     <p><strong>Longitude:</strong> ${lng.toFixed(6)}</p>
                     <p><strong>Précision:</strong> ±${Math.round(accuracy)}m</p>
+                    <p><strong>Vitesse:</strong> ${speedText}</p>
                     <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                        <i class="fas fa-clock"></i> ${new Date().toLocaleTimeString('fr-FR')}
+                        <i class="fas fa-satellite-dish"></i> Suivi en temps réel actif
                     </p>
                 </div>
             `);
 
-            map.setView([lat, lng], Math.max(map.getZoom(), 15));
+            // Centrer la carte sur la position (seulement si l'utilisateur n'a pas bougé la carte)
+            if (followUser) {
+                if (firstLocationFix) {
+                    map.setView(latlng, Math.max(map.getZoom(), 15));
+                    firstLocationFix = false;
+                } else {
+                    map.panTo(latlng, { animate: true, duration: 0.5 });
+                }
+            }
 
+            // Mettre à jour le bouton
             const button = document.getElementById('locateUser');
             button.classList.remove('locating');
             button.classList.add('located');
-            isLocating = false;
-            
-            showNotification(`Position trouvée avec précision de ±${Math.round(accuracy)}m`, 'success');
-            
-            setTimeout(() => {
-                userLocationMarker.openPopup();
-            }, 500);
+
+            if (firstLocationFix === false && !userLocationMarker.isPopupOpen()) {
+                // Ne pas forcer l'ouverture du popup à chaque mise à jour
+            }
+
+            if (firstLocationFix === true) {
+                showNotification(`Position trouvée (±${Math.round(accuracy)}m) — suivi actif`, 'success');
+            }
         }
 
         function onLocationError(error) {
-            console.error('❌ Erreur de géolocalisation:', error);
-            
             let message = 'Impossible de déterminer votre position';
-            
+
             switch(error.code) {
                 case error.PERMISSION_DENIED:
                     message = 'Autorisation de géolocalisation refusée';
@@ -2139,21 +2856,28 @@
                     message = 'Position non disponible';
                     break;
                 case error.TIMEOUT:
-                    message = 'Délai de géolocalisation dépassé';
+                    message = 'Délai de géolocalisation dépassé. Nouvelle tentative...';
+                    // Ne pas arrêter le watch sur timeout, il réessaiera
+                    if (isLocating) return;
                     break;
             }
-            
+
             showNotification(message, 'error');
             stopLocationTracking();
         }
 
         function stopLocationTracking() {
-            isLocating = false;
-            const button = document.getElementById('locateUser');
-            button.classList.remove('locating');
-        }
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
 
-        function clearUserLocation() {
+            isLocating = false;
+            followUser = false;
+
+            const button = document.getElementById('locateUser');
+            button.classList.remove('locating', 'located');
+
             if (userLocationMarker) {
                 map.removeLayer(userLocationMarker);
                 userLocationMarker = null;
@@ -2162,54 +2886,9 @@
                 map.removeLayer(userLocationAccuracy);
                 userLocationAccuracy = null;
             }
-            
-            const button = document.getElementById('locateUser');
-            button.classList.remove('locating', 'located');
-            isLocating = false;
         }
 
-        // OUTILS DE MESURE
-        function disableAdministrativeLayers() {
-            if (mapLayers.regions) {
-                mapLayers.regions.eachLayer(layer => {
-                    layer.off('click');
-                });
-            }
-            if (mapLayers.departements) {
-                mapLayers.departements.eachLayer(layer => {
-                    layer.off('click');
-                });
-            }
-            if (mapLayers.arrondissements) {
-                mapLayers.arrondissements.eachLayer(layer => {
-                    layer.off('click');
-                });
-            }
-        }
-
-        function enableAdministrativeLayers() {
-            if (mapLayers.regions) {
-                mapLayers.regions.eachLayer(layer => {
-                    layer.on('click', function() {
-                        layer.openPopup();
-                    });
-                });
-            }
-            if (mapLayers.departements) {
-                mapLayers.departements.eachLayer(layer => {
-                    layer.on('click', function() {
-                        layer.openPopup();
-                    });
-                });
-            }
-            if (mapLayers.arrondissements) {
-                mapLayers.arrondissements.eachLayer(layer => {
-                    layer.on('click', function() {
-                        layer.openPopup();
-                    });
-                });
-            }
-        }
+    
 
         function clearActiveMeasurements() {
             if (isDistanceMeasuring) {
@@ -2229,45 +2908,72 @@
             });
             measurementLines = [];
 
+            distanceSegmentLabels.forEach(label => {
+                if (map.hasLayer(label)) map.removeLayer(label);
+            });
+            distanceSegmentLabels = [];
+            distanceTotalDistance = 0;
+
+            if (distanceTotalLabel) {
+                if (map.hasLayer(distanceTotalLabel)) map.removeLayer(distanceTotalLabel);
+                distanceTotalLabel = null;
+            }
+
+            if (distanceTempLine) {
+                map.removeLayer(distanceTempLine);
+                distanceTempLine = null;
+            }
+
             map.closePopup();
         }
 
         function clearAllMeasurements() {
             clearActiveMeasurements();
-            
+
             measurementPolygons.forEach(item => {
                 if (map.hasLayer(item)) map.removeLayer(item);
             });
             measurementPolygons = [];
-            
+
             measurementLayer.clearLayers();
-            
+
             if (tempPolygon) {
                 map.removeLayer(tempPolygon);
                 tempPolygon = null;
             }
-            
+
             map.closePopup();
             showNotification('Toutes les mesures effacées', 'info');
         }
 
+        let distanceTempLine = null;
+        let distanceTotalDistance = 0;
+        let distanceSegmentLabels = [];
+        let distanceTotalLabel = null;
+
+        let distanceClickTimeout = null;
+
         function startDistanceMeasurement() {
             clearActiveMeasurements();
-            
+
             const button = document.getElementById('measureDistance');
             if (isDistanceMeasuring) {
-                stopDistanceMeasurement();
+                finishDistanceMeasurement();
                 return;
             }
 
             isDistanceMeasuring = true;
+            distanceTotalDistance = 0;
+            distanceSegmentLabels = [];
+            distanceTotalLabel = null;
             button.classList.add('active');
-            
-            showNotification('Cliquez sur deux points pour mesurer la distance', 'info');
-            
-            disableAdministrativeLayers();
-            
+
+            map.doubleClickZoom.disable();
+            showNotification('Cliquez pour ajouter des points. Double-clic pour terminer.', 'info');
+
             map.on('click', onDistanceClick);
+            map.on('dblclick', onDistanceFinish);
+            map.on('mousemove', onDistanceMouseMove);
             map.getContainer().style.cursor = 'crosshair';
         }
 
@@ -2275,14 +2981,50 @@
             isDistanceMeasuring = false;
             document.getElementById('measureDistance').classList.remove('active');
             map.off('click', onDistanceClick);
+            map.off('dblclick', onDistanceFinish);
+            map.off('mousemove', onDistanceMouseMove);
             map.getContainer().style.cursor = '';
-            
-            enableAdministrativeLayers();
-            
-            if (distanceMarkers.length === 1) {
-                map.removeLayer(distanceMarkers[0]);
-                distanceMarkers = [];
+            map.doubleClickZoom.enable();
+
+            if (distanceClickTimeout) {
+                clearTimeout(distanceClickTimeout);
+                distanceClickTimeout = null;
             }
+
+            if (distanceTempLine) {
+                map.removeLayer(distanceTempLine);
+                distanceTempLine = null;
+            }
+        }
+
+        function finishDistanceMeasurement() {
+            if (distanceMarkers.length < 2) {
+                stopDistanceMeasurement();
+                if (distanceMarkers.length === 1) {
+                    measurementLayer.removeLayer(distanceMarkers[0]);
+                    distanceMarkers = [];
+                }
+                return;
+            }
+
+            // Remplacer le label total temporaire par un popup final
+            if (distanceTotalLabel) {
+                measurementLayer.removeLayer(distanceTotalLabel);
+                distanceTotalLabel = null;
+            }
+
+            const lastPoint = distanceMarkers[distanceMarkers.length - 1].getLatLng();
+            L.popup({
+                closeButton: true,
+                autoClose: false,
+                className: 'measurement-tooltip'
+            })
+            .setLatLng(lastPoint)
+            .setContent(`<strong>Total: ${formatDistance(distanceTotalDistance)}</strong><br><small>${distanceMarkers.length} points, ${distanceMarkers.length - 1} segments</small>`)
+            .openOn(map);
+
+            showNotification(`Distance totale: ${formatDistance(distanceTotalDistance)}`, 'success');
+            stopDistanceMeasurement();
         }
 
         function onDistanceClick(e) {
@@ -2290,55 +3032,97 @@
 
             L.DomEvent.stopPropagation(e);
 
-            const marker = L.circleMarker(e.latlng, {
-                radius: 6,
-                color: '#ff4757',
-                fillColor: '#ff4757',
-                fillOpacity: 1,
-                weight: 2
-            }).addTo(measurementLayer);
-
-            distanceMarkers.push(marker);
-
-            if (distanceMarkers.length === 2) {
-                const distance = calculateDistance(
-                    distanceMarkers[0].getLatLng(),
-                    distanceMarkers[1].getLatLng()
-                );
-
-                const line = L.polyline([
-                    distanceMarkers[0].getLatLng(),
-                    distanceMarkers[1].getLatLng()
-                ], {
+            // Retarder l'ajout du point pour filtrer le double-clic
+            if (distanceClickTimeout) clearTimeout(distanceClickTimeout);
+            const latlng = e.latlng;
+            distanceClickTimeout = setTimeout(() => {
+                const marker = L.circleMarker(latlng, {
+                    radius: 6,
                     color: '#ff4757',
-                    weight: 3,
-                    dashArray: '8, 12'
+                    fillColor: '#ff4757',
+                    fillOpacity: 1,
+                    weight: 2
                 }).addTo(measurementLayer);
 
-                measurementLines.push(line);
+                distanceMarkers.push(marker);
 
-                const midPoint = L.latLngBounds([
-                    distanceMarkers[0].getLatLng(),
-                    distanceMarkers[1].getLatLng()
-                ]).getCenter();
+                if (distanceMarkers.length >= 2) {
+                    const prev = distanceMarkers[distanceMarkers.length - 2].getLatLng();
+                    const curr = latlng;
 
-                L.popup({
-                    closeButton: true,
-                    autoClose: false,
-                    className: 'measurement-tooltip'
-                })
-                .setLatLng(midPoint)
-                .setContent(`<strong>Distance: ${formatDistance(distance)}</strong>`)
-                .openOn(map);
+                    const line = L.polyline([prev, curr], {
+                        color: '#ff4757',
+                        weight: 3,
+                        dashArray: '8, 12'
+                    }).addTo(measurementLayer);
+                    measurementLines.push(line);
 
-                showNotification(`Distance: ${formatDistance(distance)}`, 'success');
-                stopDistanceMeasurement();
-            }
+                    const segmentDist = calculateDistance(prev, curr);
+                    distanceTotalDistance += segmentDist;
+
+                    const midPoint = L.latLngBounds([prev, curr]).getCenter();
+                    const segLabel = L.tooltip({
+                        permanent: true,
+                        direction: 'top',
+                        className: 'measurement-tooltip',
+                        offset: [0, -10]
+                    })
+                    .setLatLng(midPoint)
+                    .setContent(formatDistance(segmentDist));
+                    segLabel.addTo(measurementLayer);
+                    distanceSegmentLabels.push(segLabel);
+
+                    if (distanceTotalLabel) {
+                        measurementLayer.removeLayer(distanceTotalLabel);
+                    }
+                    distanceTotalLabel = L.tooltip({
+                        permanent: true,
+                        direction: 'right',
+                        className: 'measurement-tooltip distance-total-label',
+                        offset: [10, 0]
+                    })
+                    .setLatLng(curr)
+                    .setContent(`<strong>Total: ${formatDistance(distanceTotalDistance)}</strong>`);
+                    distanceTotalLabel.addTo(measurementLayer);
+                }
+            }, 200);
         }
+
+        function onDistanceFinish(e) {
+            if (!isDistanceMeasuring || distanceMarkers.length < 2) return;
+
+            if (distanceClickTimeout) {
+                clearTimeout(distanceClickTimeout);
+                distanceClickTimeout = null;
+            }
+
+            L.DomEvent.stopPropagation(e);
+            L.DomEvent.preventDefault(e);
+            finishDistanceMeasurement();
+        }
+
+        function onDistanceMouseMove(e) {
+            if (!isDistanceMeasuring || distanceMarkers.length === 0) return;
+
+            const lastPoint = distanceMarkers[distanceMarkers.length - 1].getLatLng();
+
+            if (distanceTempLine) {
+                map.removeLayer(distanceTempLine);
+            }
+
+            distanceTempLine = L.polyline([lastPoint, e.latlng], {
+                color: '#ff4757',
+                weight: 2,
+                opacity: 0.5,
+                dashArray: '5, 10'
+            }).addTo(map);
+        }
+
+        let areaClickTimeout = null;
 
         function startAreaMeasurement() {
             clearActiveMeasurements();
-            
+
             const button = document.getElementById('measureArea');
             if (isAreaMeasuring) {
                 stopAreaMeasurement();
@@ -2348,11 +3132,10 @@
             isAreaMeasuring = true;
             button.classList.add('active');
             polygonPoints = [];
-            
+
+            map.doubleClickZoom.disable();
             showNotification('Cliquez pour dessiner un polygone. Double-clic pour terminer.', 'info');
-            
-            disableAdministrativeLayers();
-            
+
             map.on('click', onPolygonClick);
             map.on('dblclick', onPolygonFinish);
             map.on('mousemove', onPolygonMouseMove);
@@ -2362,14 +3145,18 @@
         function stopAreaMeasurement() {
             isAreaMeasuring = false;
             document.getElementById('measureArea').classList.remove('active');
-            
+
             map.off('click', onPolygonClick);
             map.off('dblclick', onPolygonFinish);
             map.off('mousemove', onPolygonMouseMove);
             map.getContainer().style.cursor = '';
-            
-            enableAdministrativeLayers();
-            
+            map.doubleClickZoom.enable();
+
+            if (areaClickTimeout) {
+                clearTimeout(areaClickTimeout);
+                areaClickTimeout = null;
+            }
+
             if (tempPolygon) {
                 map.removeLayer(tempPolygon);
                 tempPolygon = null;
@@ -2378,58 +3165,67 @@
 
         function onPolygonClick(e) {
             if (!isAreaMeasuring) return;
-            
+
             L.DomEvent.stopPropagation(e);
-            
-            polygonPoints.push(e.latlng);
-            
-            const marker = L.circleMarker(e.latlng, {
-                radius: 5,
-                color: '#4CAF50',
-                fillColor: '#4CAF50',
-                fillOpacity: 1,
-                weight: 2
-            }).addTo(measurementLayer);
-            
-            measurementPolygons.push(marker);
-            
-            if (polygonPoints.length >= 2) {
-                if (tempPolygon) {
-                    map.removeLayer(tempPolygon);
-                }
-                
-                tempPolygon = L.polyline(polygonPoints, {
+
+            // Retarder l'ajout du point pour filtrer le double-clic
+            if (areaClickTimeout) clearTimeout(areaClickTimeout);
+            areaClickTimeout = setTimeout(() => {
+                polygonPoints.push(e.latlng);
+
+                const marker = L.circleMarker(e.latlng, {
+                    radius: 5,
                     color: '#4CAF50',
-                    weight: 3,
-                    opacity: 0.7,
-                    dashArray: '5, 10'
-                }).addTo(map);
-            }
+                    fillColor: '#4CAF50',
+                    fillOpacity: 1,
+                    weight: 2
+                }).addTo(measurementLayer);
+
+                measurementPolygons.push(marker);
+
+                if (polygonPoints.length >= 2) {
+                    if (tempPolygon) {
+                        map.removeLayer(tempPolygon);
+                    }
+                    tempPolygon = L.polyline(polygonPoints, {
+                        color: '#4CAF50',
+                        weight: 3,
+                        opacity: 0.7,
+                        dashArray: '5, 10'
+                    }).addTo(map);
+                }
+            }, 200);
         }
 
         function onPolygonFinish(e) {
             if (!isAreaMeasuring || polygonPoints.length < 3) return;
-            
+
+            // Annuler le clic en attente (le dernier clic du double-clic)
+            if (areaClickTimeout) {
+                clearTimeout(areaClickTimeout);
+                areaClickTimeout = null;
+            }
+
             L.DomEvent.stopPropagation(e);
             L.DomEvent.preventDefault(e);
-            
+
             if (tempPolygon) {
                 map.removeLayer(tempPolygon);
                 tempPolygon = null;
             }
-            
+
             const finalPolygon = L.polygon(polygonPoints, {
                 color: '#4CAF50',
                 weight: 3,
                 fillColor: '#4CAF50',
                 fillOpacity: 0.2
             }).addTo(measurementLayer);
-            
+
             measurementPolygons.push(finalPolygon);
-            
+
             const area = calculatePolygonArea(polygonPoints);
             const center = finalPolygon.getBounds().getCenter();
-            
+
             L.popup({
                 closeButton: true,
                 autoClose: false,
@@ -2440,7 +3236,7 @@
             .openOn(map);
 
             showNotification(`Surface: ${formatArea(area)}`, 'success');
-            
+
             stopAreaMeasurement();
         }
 
@@ -2460,95 +3256,451 @@
             }).addTo(map);
         }
 
-        // SYSTÈME D'IMPRESSION AVANCÉ
+        // ================================================================
+        // SYSTEME D'IMPRESSION AVANCE - MODAL & EXPORT
+        // ================================================================
+
         function openPrintModal() {
-            console.log('🖨️ Ouverture du modal d\'impression avancé');
-            
+            console.log('Ouverture du modal d\'impression');
             const modal = document.getElementById('printModal');
+            modal.classList.remove('minimized');
             modal.classList.add('active');
-            
-            // Initialiser la carte d'aperçu si elle n'existe pas
-            initializePreviewMap();
-            
+
+            // Initialize preview map
+            setTimeout(() => {
+                initPreviewMap();
+                if (previewMap) previewMap.invalidateSize();
+                if (printBounds) updatePreviewFromBounds();
+            }, 300);
+
             document.getElementById('previewDate').textContent = new Date().toLocaleDateString('fr-FR');
             updatePrintPreview();
-            showNotification('Configurez vos options d\'impression', 'info');
         }
 
         function closePrintModal() {
             const modal = document.getElementById('printModal');
             modal.classList.remove('active');
-            
-            // Arrêter la sélection de zone si active
-            if (isSelectingPrintArea) {
-                stopPrintAreaSelection();
-            }
+            modal.classList.remove('minimized');
+            let valBtn = document.getElementById('validateZoneBtn');
+            if (valBtn) valBtn.classList.remove('visible');
         }
 
         function updatePrintPreview() {
-            const title = document.getElementById('mapTitle').value || 'Carte des Villages - MonVillage';
-            document.getElementById('previewTitle').textContent = title;
+            const titleInput = document.getElementById('mapTitle');
+            const title = titleInput ? titleInput.value || 'Carte des Villages - MonVillage' : 'Carte des Villages - MonVillage';
+
+            const previewTitleEl = document.getElementById('previewTitle');
+            if (previewTitleEl) previewTitleEl.textContent = title;
             printConfig.title = title;
-            
-            const scale = document.getElementById('mapScale').value || 50000;
-            document.getElementById('previewScale').textContent = `1:${parseInt(scale).toLocaleString()}`;
-            printConfig.scale = parseInt(scale);
-            
-            document.getElementById('previewFormat').textContent = printConfig.format;
-            
+
+            const previewFormatEl = document.getElementById('previewFormat');
+            if (previewFormatEl) previewFormatEl.textContent = printConfig.format;
+
+            // Visibility of display elements
             const northArrow = document.getElementById('previewNorthArrow');
             const scaleElement = document.getElementById('previewScale');
-            
-            northArrow.style.display = document.getElementById('showNorthArrow').checked ? 'flex' : 'none';
-            scaleElement.style.display = document.getElementById('showScale').checked ? 'block' : 'none';
-            
-            document.getElementById('summaryFormat').textContent = printConfig.format;
-            document.getElementById('summaryFileType').textContent = document.getElementById('outputFormat').value.toUpperCase();
-            document.getElementById('summaryScale').textContent = `1:${parseInt(scale).toLocaleString()}`;
-            document.getElementById('summaryPrice').textContent = `${printConfig.price.toLocaleString()} XAF`;
-            
-            // Mettre à jour l'aperçu de la carte si des bornes sont sélectionnées
-            if (printBounds && previewMap) {
-                updatePreviewWithBounds(printBounds);
+            const showNorthArrowCb = document.getElementById('showNorthArrow');
+            const showScaleCb = document.getElementById('showScale');
+
+            if (northArrow && showNorthArrowCb) {
+                northArrow.style.display = showNorthArrowCb.checked ? 'flex' : 'none';
             }
+            if (scaleElement && showScaleCb) {
+                scaleElement.style.display = showScaleCb.checked ? 'block' : 'none';
+            }
+
+            // Update summary
+            updateSummaryFields();
+
+            // Update preview map if bounds exist
+            if (printBounds && previewMap) {
+                updatePreviewFromBounds();
+            }
+        }
+
+        function updateSummaryFields() {
+            const summaryFormat = document.getElementById('summaryFormat');
+            const summaryFileType = document.getElementById('summaryFileType');
+            const summaryPrice = document.getElementById('summaryPrice');
+            const outputFormat = document.getElementById('outputFormat');
+
+            if (summaryFormat) summaryFormat.textContent = printConfig.format;
+            if (summaryFileType && outputFormat) summaryFileType.textContent = outputFormat.value.toUpperCase();
+            if (summaryPrice) summaryPrice.textContent = `${printConfig.price.toLocaleString()} XAF`;
+
+            // Scale is calculated automatically
+            calculateAndDisplayScale();
         }
 
         function selectFormat(format, price) {
             document.querySelectorAll('.format-option').forEach(option => {
                 option.classList.remove('selected');
             });
-            
-            document.querySelector(`[data-format="${format}"]`).classList.add('selected');
-            
+            const el = document.querySelector(`[data-format="${format}"]`);
+            if (el) el.classList.add('selected');
+
             printConfig.format = format;
-            printConfig.price = price;
-            
+
+            // Handle custom format
+            const customGroup = document.getElementById('customSizeGroup');
+            if (format === 'custom') {
+                customGroup.style.display = 'block';
+                // Calculate custom price
+                const w = parseFloat(document.getElementById('customWidth').value) || 1;
+                const h = parseFloat(document.getElementById('customHeight').value) || 1.5;
+                printConfig.price = Math.round(w * h * 10000);
+            } else {
+                customGroup.style.display = 'none';
+                printConfig.price = price;
+            }
+
             updatePrintPreview();
+        }
+
+        function updateCustomPrice() {
+            if (printConfig.format !== 'custom') return;
+            const w = parseFloat(document.getElementById('customWidth').value) || 1;
+            const h = parseFloat(document.getElementById('customHeight').value) || 1.5;
+            // Clamp values
+            const cw = Math.max(1, Math.min(2, w));
+            const ch = Math.max(1, Math.min(2, h));
+            printConfig.price = Math.round(cw * ch * 10000);
+            updateSummaryFields();
+            calculateAndDisplayScale();
         }
 
         function setScale(scale) {
-            document.getElementById('mapScale').value = scale;
-            updatePrintPreview();
+            // Scale is now auto-calculated, but keep for compatibility
+            printConfig.scale = parseInt(scale);
+            const scaleEl = document.getElementById('summaryScale');
+            if (scaleEl) scaleEl.textContent = `1:${parseInt(scale).toLocaleString()}`;
         }
 
-        // SYSTÈME DE PAIEMENT FLUTTERWAVE AMÉLIORÉ
+        // ================================================================
+        // PAYMENT SYSTEM (Flutterwave)
+        // ================================================================
+
+        let cachedExportBlob = null;
+        let cachedExportFileName = '';
+
         async function proceedToPayment() {
-            printConfig.title = document.getElementById('mapTitle').value;
+            if (!printBounds) {
+                showNotification('Veuillez selectionner une zone avant de payer', 'warning');
+                return;
+            }
+
+            printConfig.title = document.getElementById('mapTitle').value || 'Carte des Villages - MonVillage';
             printConfig.outputFormat = document.getElementById('outputFormat').value;
             printConfig.showNorthArrow = document.getElementById('showNorthArrow').checked;
             printConfig.showScale = document.getElementById('showScale').checked;
             printConfig.showLegend = document.getElementById('showLegend').checked;
             printConfig.showCoordinates = document.getElementById('showCoordinates').checked;
             printConfig.bounds = printBounds;
-            
+
+            closePrintModal();
+
+            // Pre-generate the map export BEFORE payment
+            const success = await preGenerateExport();
+            if (!success) {
+                showNotification('Erreur lors de la preparation de la carte. Reessayez.', 'error');
+                return;
+            }
+
+            // Show payment modal
             const paymentModal = document.getElementById('paymentModal');
             paymentModal.classList.add('active');
-            
             document.getElementById('paymentAmount').textContent = `${printConfig.price.toLocaleString()} XAF`;
-            document.getElementById('paymentDetails').textContent = 
+            document.getElementById('paymentDetails').textContent =
                 `Format ${printConfig.format} - ${printConfig.outputFormat.toUpperCase()}`;
-            
-            closePrintModal();
+        }
+
+        async function preGenerateExport() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const loadingContent = loadingOverlay.querySelector('.loading-content');
+            loadingContent.innerHTML = `
+                <div class="spinner"></div>
+                <h3>Preparation de votre carte...</h3>
+                <p id="exportProgress">Ajustement de la vue...</p>
+                <div style="width:80%; margin:15px auto; background:#e0e0e0; border-radius:10px; height:10px; overflow:hidden;">
+                    <div id="exportProgressBar" style="width:0%; height:100%; background:#4a7c59; border-radius:10px; transition: width 0.3s;"></div>
+                </div>
+            `;
+            loadingOverlay.classList.add('active');
+
+            const progressEl = document.getElementById('exportProgress');
+            const progressBar = document.getElementById('exportProgressBar');
+
+            try {
+                const bounds = printBounds || map.getBounds();
+                const paperWm = getPaperWidthMeters();
+                const paperHm = getPaperHeightMeters();
+
+                // DPI and pixel dimensions matching paper proportions
+                const dpi = 150;
+                const pxWidth = Math.round(paperWm * 39.3701 * dpi);
+                const pxHeight = Math.round(paperHm * 39.3701 * dpi);
+                const maxPx = 4096;
+                const scaleFactor = Math.min(1, maxPx / Math.max(pxWidth, pxHeight));
+                const finalW = Math.round(pxWidth * scaleFactor);
+                const finalH = Math.round(pxHeight * scaleFactor);
+
+                // Margins for title and footer (legend is overlaid)
+                const titleH = Math.round(finalH * 0.05);
+                const footerH = Math.round(finalH * 0.04);
+                const mapW = finalW;
+                const mapH = finalH - titleH - footerH;
+
+                progressEl.textContent = 'Ajustement de la vue...';
+                progressBar.style.width = '10%';
+
+                // Remove print rectangle temporarily
+                if (printRect) { map.removeLayer(printRect); removeCornerHandles(); }
+
+                // Add labels to map temporarily
+                progressEl.textContent = 'Ajout des labels...';
+                progressBar.style.width = '20%';
+                const tempLabels = addExportLabels(bounds);
+
+                map.fitBounds(bounds, { animate: false, padding: [0, 0] });
+                map.invalidateSize();
+
+                progressEl.textContent = 'Chargement des tuiles...';
+                progressBar.style.width = '35%';
+                await waitForTilesLoaded();
+
+                progressEl.textContent = 'Capture de la carte...';
+                progressBar.style.width = '55%';
+
+                const mapContainer = document.getElementById('map');
+                const mapCanvas = await html2canvas(mapContainer, {
+                    useCORS: true,
+                    allowTaint: true,
+                    scale: Math.max(1, Math.ceil(mapW / mapContainer.offsetWidth)),
+                    logging: false,
+                    backgroundColor: '#ffffff'
+                });
+
+                // Remove temporary labels
+                tempLabels.forEach(l => map.removeLayer(l));
+
+                progressEl.textContent = 'Composition de la carte...';
+                progressBar.style.width = '75%';
+
+                // Create final canvas with proper paper proportions
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = finalW;
+                finalCanvas.height = finalH;
+                const ctx = finalCanvas.getContext('2d');
+
+                // Background white
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, finalW, finalH);
+
+                // Draw title bar
+                ctx.fillStyle = '#2c5530';
+                ctx.fillRect(0, 0, finalW, titleH);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `bold ${Math.round(titleH * 0.55)}px "Segoe UI", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(printConfig.title, finalW / 2, titleH / 2);
+
+                // Draw map image (cropped to paper proportions)
+                const srcRatio = mapCanvas.width / mapCanvas.height;
+                const destRatio = mapW / mapH;
+                let sx = 0, sy = 0, sw = mapCanvas.width, sh = mapCanvas.height;
+                if (srcRatio > destRatio) {
+                    sw = Math.round(mapCanvas.height * destRatio);
+                    sx = Math.round((mapCanvas.width - sw) / 2);
+                } else {
+                    sh = Math.round(mapCanvas.width / destRatio);
+                    sy = Math.round((mapCanvas.height - sh) / 2);
+                }
+                ctx.drawImage(mapCanvas, sx, sy, sw, sh, 0, titleH, mapW, mapH);
+
+                // Draw legend as overlay (bottom-left corner of map area)
+                if (printConfig.showLegend) {
+                    const legendItems = [
+                        { color: '#d62728', label: 'Regions', dash: false },
+                        { color: '#000000', label: 'Departements', dash: false },
+                        { color: '#8B008B', label: 'Arrondissements', dash: true },
+                        { color: '#cc6600', label: 'Villages', dash: true }
+                    ];
+
+                    const lFontSize = Math.round(Math.min(finalW, finalH) * 0.018);
+                    const lPad = Math.round(lFontSize * 0.8);
+                    const lItemH = Math.round(lFontSize * 1.6);
+                    const lLineW = Math.round(lFontSize * 2);
+                    const lTitleH = Math.round(lFontSize * 2);
+                    const lW = Math.round(lFontSize * 10);
+                    const lH = lTitleH + legendItems.length * lItemH + lPad * 2;
+                    const lx = lPad + 10;
+                    const ly = titleH + mapH - lH - 10;
+
+                    // Background with rounded corners
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.strokeStyle = '#ccc';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.roundRect(lx, ly, lW, lH, 6);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Title
+                    ctx.fillStyle = '#2c5530';
+                    ctx.font = `bold ${lFontSize}px "Segoe UI", sans-serif`;
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText('Legende', lx + lPad, ly + lPad);
+
+                    // Items
+                    let itemY = ly + lPad + lTitleH;
+                    ctx.font = `${Math.round(lFontSize * 0.85)}px "Segoe UI", sans-serif`;
+                    legendItems.forEach(item => {
+                        ctx.strokeStyle = item.color;
+                        ctx.lineWidth = 2;
+                        if (item.dash) ctx.setLineDash([5, 3]);
+                        else ctx.setLineDash([]);
+                        ctx.beginPath();
+                        ctx.moveTo(lx + lPad, itemY + lItemH / 2);
+                        ctx.lineTo(lx + lPad + lLineW, itemY + lItemH / 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.fillStyle = '#333';
+                        ctx.fillText(item.label, lx + lPad + lLineW + 8, itemY + 2);
+                        itemY += lItemH;
+                    });
+                }
+
+                // Draw footer
+                const fy = finalH - footerH;
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(0, fy, finalW, footerH);
+                ctx.strokeStyle = '#ccc';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(0, fy); ctx.lineTo(finalW, fy); ctx.stroke();
+
+                ctx.fillStyle = '#333';
+                ctx.font = `${Math.round(footerH * 0.45)}px "Segoe UI", sans-serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                const scaleText = printConfig.scale ? `Echelle: 1:${printConfig.scale.toLocaleString()}` : '';
+                ctx.fillText(scaleText, 10, fy + footerH / 2);
+
+                ctx.textAlign = 'center';
+                ctx.fillText(`Format: ${printConfig.format === 'custom' ? (paperWm + 'm x ' + paperHm + 'm') : printConfig.format}`, finalW / 2, fy + footerH / 2);
+
+                ctx.textAlign = 'right';
+                ctx.fillText(`MonVillage - ${new Date().toLocaleDateString('fr-FR')}`, finalW - 10, fy + footerH / 2);
+
+                // Draw north arrow if enabled
+                if (printConfig.showNorthArrow) {
+                    const naSize = Math.round(Math.min(mapW, mapH) * 0.05);
+                    const nax = mapW - naSize - 10;
+                    const nay = titleH + 10;
+                    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                    ctx.beginPath();
+                    ctx.arc(nax + naSize/2, nay + naSize/2, naSize/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.fillStyle = '#333';
+                    ctx.font = `bold ${Math.round(naSize * 0.6)}px "Segoe UI", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('N', nax + naSize/2, nay + naSize/2 - 2);
+                    // Arrow
+                    ctx.beginPath();
+                    ctx.moveTo(nax + naSize/2, nay + 3);
+                    ctx.lineTo(nax + naSize/2 - 3, nay + naSize * 0.3);
+                    ctx.lineTo(nax + naSize/2 + 3, nay + naSize * 0.3);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                progressEl.textContent = 'Generation du fichier...';
+                progressBar.style.width = '90%';
+
+                cachedExportFileName = generateFileName();
+
+                if (printConfig.outputFormat === 'pdf') {
+                    const { jsPDF } = window.jspdf;
+                    const orientation = (paperWm > paperHm) ? 'landscape' : 'portrait';
+                    const pdf = new jsPDF({
+                        orientation: orientation,
+                        unit: 'mm',
+                        format: printConfig.format !== 'custom'
+                            ? printConfig.format.toLowerCase()
+                            : [paperWm * 1000, paperHm * 1000]
+                    });
+                    const imgData = finalCanvas.toDataURL('image/jpeg', 0.95);
+                    const pdfW = pdf.internal.pageSize.getWidth();
+                    const pdfH = pdf.internal.pageSize.getHeight();
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+                    cachedExportBlob = pdf.output('blob');
+                } else {
+                    cachedExportBlob = await new Promise(resolve => {
+                        finalCanvas.toBlob(resolve, 'image/png');
+                    });
+                }
+
+                progressBar.style.width = '100%';
+                progressEl.textContent = 'Carte prete ! Passage au paiement...';
+                await new Promise(r => setTimeout(r, 800));
+                loadingOverlay.classList.remove('active');
+                return true;
+
+            } catch (error) {
+                console.error('Erreur pre-generation:', error);
+                loadingOverlay.classList.remove('active');
+                cachedExportBlob = null;
+                return false;
+            }
+        }
+
+        // Add labels for admin units visible within bounds
+        function addExportLabels(bounds) {
+            const labels = [];
+            const layerConfigs = [
+                { data: mapDataCache.regions, nameKey: 'nom_region', color: '#d62728', minArea: 0.5 },
+                { data: mapDataCache.departements, nameKey: 'nom_departement', color: '#000000', minArea: 0.1 },
+                { data: mapDataCache.arrondissements, nameKey: 'nom_arrondissement', color: '#8B008B', minArea: 0.02 },
+                { data: mapDataCache.villages, nameKey: 'village_name', color: '#cc6600', minArea: 0 }
+            ];
+
+            layerConfigs.forEach(config => {
+                if (!config.data) return;
+                config.data.forEach(item => {
+                    if (!item.geom || !item[config.nameKey]) return;
+                    const geom = parseGeometry(item.geom);
+                    if (!geom) return;
+
+                    const tempLayer = L.geoJSON(geom);
+                    const itemBounds = tempLayer.getBounds();
+                    if (!itemBounds.isValid()) return;
+
+                    // Check if this entity intersects the export bounds
+                    if (!bounds.intersects(itemBounds)) return;
+
+                    const center = itemBounds.getCenter();
+                    if (!bounds.contains(center)) return;
+
+                    // Create label with white background (halo effect)
+                    const label = L.tooltip({
+                        permanent: true,
+                        direction: 'center',
+                        className: 'export-label',
+                        offset: [0, 0]
+                    })
+                    .setLatLng(center)
+                    .setContent(`<span style="color:${config.color}; font-weight:bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 -2px 0 #fff, 0 2px 0 #fff, -2px 0 0 #fff, 2px 0 0 #fff;">${item[config.nameKey]}</span>`);
+                    label.addTo(map);
+                    labels.push(label);
+                });
+            });
+
+            return labels;
         }
 
         function cancelPayment() {
@@ -2559,96 +3711,124 @@
 
         function selectPaymentMethod(method) {
             selectedPaymentMethod = method;
-            
             document.querySelectorAll('.payment-method').forEach(el => {
                 el.classList.remove('selected');
             });
-            
-            document.querySelector(`[data-method="${method}"]`).classList.add('selected');
-            
-            // Mettre à jour le texte du bouton selon la méthode
+            const methodEl = document.querySelector(`[data-method="${method}"]`);
+            if (methodEl) methodEl.classList.add('selected');
+
+            const fieldPhone = document.getElementById('field-phone');
+            const fieldName = document.getElementById('field-name');
+            if (method === 'mobilemoney') {
+                fieldPhone.style.display = 'block';
+                fieldName.style.display = 'none';
+            } else if (method === 'card') {
+                fieldPhone.style.display = 'none';
+                fieldName.style.display = 'block';
+            }
+
             const confirmButton = document.getElementById('confirmPayment');
             if (method === 'mobilemoney') {
-                confirmButton.innerHTML = '📱 Payer par Mobile Money';
+                confirmButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Payer par Mobile Money';
             } else if (method === 'card') {
-                confirmButton.innerHTML = '💳 Payer par Carte';
+                confirmButton.innerHTML = '<i class="fas fa-credit-card"></i> Payer par Carte';
             }
         }
+
+        let paymentInitiated = false;
 
         async function processPayment() {
             try {
                 document.getElementById('paymentSpinner').style.display = 'block';
                 document.getElementById('confirmPayment').disabled = true;
-                
+                paymentInitiated = false;
+
                 const txRef = `PRINT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                
-                let paymentOptions = "card,mobilemoney,ussd";
-                let preferredOption = selectedPaymentMethod === 'card' ? 'card' : 'mobilemoney';
-                
+
+                const customerPhone = document.getElementById('customer-phone').value.trim() || '+237697182925';
+                const customerName = document.getElementById('customer-name').value.trim() || 'Client MonVillage';
+
                 FlutterwaveCheckout({
                     public_key: CONFIG.flutterwave.publicKey,
                     tx_ref: txRef,
                     amount: printConfig.price,
                     currency: "XAF",
-                    payment_options: paymentOptions,
-                    redirect_url: window.location.href,
+                    payment_options: "card,mobilemoney,ussd",
                     customer: {
                         email: "client@monvillage.cm",
-                        phone_number: "+237000000000",
-                        name: "Client MonVillage"
+                        phone_number: customerPhone,
+                        name: customerName
                     },
                     customizations: {
                         title: "MonVillage - Exportation de Carte",
-                        description: `Exportation ${printConfig.format} - ${selectedPaymentMethod === 'mobilemoney' ? 'Orange Money, MTN MoMo disponibles' : 'Visa, Mastercard acceptées'}`,
-                        logo: "https://via.placeholder.com/150x50?text=MonVillage"
+                        description: `Exportation ${printConfig.format} - ${printConfig.outputFormat.toUpperCase()}`,
+                        logo: ""
                     },
                     meta: {
                         print_format: printConfig.format,
-                        print_title: printConfig.title,
-                        payment_method: selectedPaymentMethod
+                        print_title: printConfig.title
                     },
                     callback: function(data) {
-                        console.log('Paiement réussi:', data);
+                        console.log('Paiement confirme:', data);
+                        paymentInitiated = true;
                         handlePaymentSuccess(data, txRef, data.payment_type || selectedPaymentMethod);
                     },
                     onclose: function() {
-                        console.log('Paiement fermé par l\'utilisateur');
-                        handlePaymentCancel();
+                        console.log('Fenetre Flutterwave fermee');
+                        if (!paymentInitiated) {
+                            document.getElementById('paymentSpinner').style.display = 'none';
+                            document.getElementById('confirmPayment').disabled = false;
+                            document.getElementById('paymentModal').classList.remove('active');
+                            cachedExportBlob = null;
+                            cachedExportFileName = '';
+                            showNotification('Paiement annule. La carte n\'a pas ete exportee.', 'info');
+                        }
                     }
                 });
-                
+
             } catch (error) {
-                console.error('❌ Erreur lors du paiement:', error);
+                console.error('Erreur lors du paiement:', error);
                 showNotification('Erreur lors du traitement du paiement', 'error');
-                
                 document.getElementById('paymentSpinner').style.display = 'none';
                 document.getElementById('confirmPayment').disabled = false;
             }
         }
 
         async function handlePaymentSuccess(paymentData, txRef, paymentType = 'flutterwave') {
-            console.log(`Paiement confirmé via ${paymentType}`, paymentData);
-            
-            let successMessage = 'Paiement réussi';
+            console.log(`Paiement confirme via ${paymentType}`, paymentData);
+
+            let successMessage = 'Paiement reussi';
             if (paymentType === 'mobilemoney') {
-                successMessage = 'Paiement Mobile Money réussi';
+                successMessage = 'Paiement Mobile Money reussi';
             } else if (paymentType === 'card') {
-                successMessage = 'Paiement par carte réussi';
+                successMessage = 'Paiement par carte reussi';
             } else if (paymentType === 'ussd') {
-                successMessage = 'Paiement USSD réussi';
+                successMessage = 'Paiement USSD reussi';
             }
-            
+
             try {
+                // Record payment in Supabase
                 if (supabase) {
-                    const { error } = await supabase.from('payments').insert({
+                    const customerPhone = document.getElementById('customer-phone').value.trim();
+                    const customerName = document.getElementById('customer-name').value.trim();
+                    let contactInfo = '';
+                    if (paymentType === 'mobilemoney' || paymentType === 'mobile_money') {
+                        contactInfo = customerPhone || 'Mobile';
+                    } else if (paymentType === 'card') {
+                        contactInfo = customerName || 'Carte';
+                    } else {
+                        contactInfo = customerPhone || customerName || '';
+                    }
+
+                    const paymentRecord = {
                         transaction_id: txRef,
                         amount: printConfig.price,
                         currency: 'XAF',
                         status: 'success',
-                        payment_method: 'flutterwave',
-                        payment_type: paymentType,
+                        payment_method: paymentType || 'flutterwave',
+                        user_session: contactInfo,
                         flutterwave_tx_ref: txRef,
-                        flutterwave_tx_id: paymentData.transaction_id,
+                        flutterwave_tx_id: paymentData.transaction_id?.toString() || null,
                         print_format: printConfig.format,
                         print_title: printConfig.title,
                         map_bounds: printBounds ? JSON.stringify({
@@ -2656,101 +3836,210 @@
                             south: printBounds.getSouth(),
                             east: printBounds.getEast(),
                             west: printBounds.getWest()
-                        }) : JSON.stringify(map.getBounds())
-                    });
-                    
+                        }) : null
+                    };
+                    const { error } = await supabase.from('payments').insert(paymentRecord);
                     if (error) {
                         console.error('Erreur enregistrement paiement:', error);
-                    } else {
-                        console.log('Paiement enregistré en base');
                     }
                 }
-                
+
                 document.getElementById('paymentModal').classList.remove('active');
                 showNotification(successMessage, 'success');
-                await generateMapExport();
-                
+
+                // Download the pre-generated export
+                downloadCachedExport();
+
             } catch (error) {
                 console.error('Erreur post-paiement:', error);
-                showNotification('Paiement réussi mais erreur lors de la génération', 'warning');
+                showNotification('Paiement reussi mais erreur lors de la generation', 'warning');
             }
         }
 
         function handlePaymentCancel() {
             document.getElementById('paymentSpinner').style.display = 'none';
             document.getElementById('confirmPayment').disabled = false;
-            showNotification('Paiement annulé', 'info');
+            showNotification('Paiement annule', 'info');
+            cachedExportBlob = null;
+            cachedExportFileName = '';
         }
 
-        async function generateMapExport() {
-            console.log('🗺️ Génération de l\'exportation en cours...');
-            
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            loadingOverlay.classList.add('active');
-            
-            try {
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                
-                const bounds = printBounds || map.getBounds();
-                const center = bounds.getCenter();
-                
-                const exportData = {
-                    config: printConfig,
-                    mapView: {
-                        center: [center.lat, center.lng],
-                        bounds: [
-                            [bounds.getSouth(), bounds.getWest()],
-                            [bounds.getNorth(), bounds.getEast()]
-                        ],
-                        zoom: map.getZoom()
-                    },
-                    layers: getActiveLayers(),
-                    timestamp: new Date().toISOString()
-                };
-                
-                const fileName = generateFileName();
-                simulateFileDownload(fileName);
-                
-                loadingOverlay.classList.remove('active');
-                showNotification(`Exportation réussie: ${fileName}`, 'success', 6000);
-                
-                // Nettoyer la sélection de zone après export
-                clearPrintAreaSelection();
-                
-            } catch (error) {
-                console.error('❌ Erreur lors de la génération:', error);
-                loadingOverlay.classList.remove('active');
-                showNotification('Erreur lors de la génération de la carte', 'error');
+
+        function downloadCachedExport() {
+            if (!cachedExportBlob) {
+                showNotification('Erreur: la carte n\'a pas pu etre preparee. Reessayez.', 'error');
+                return;
             }
+
+            const url = URL.createObjectURL(cachedExportBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = cachedExportFileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showNotification(`Carte exportee: ${cachedExportFileName}`, 'success', 6000);
+            cachedExportBlob = null;
+            cachedExportFileName = '';
+            clearPrintAreaSelection();
+        }
+
+        // ================================================================
+        // MAP EXPORT - captures the visible map directly
+        // ================================================================
+
+        async function generateMapExport() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const loadingContent = loadingOverlay.querySelector('.loading-content');
+            loadingContent.innerHTML = `
+                <div class="spinner"></div>
+                <h3>Generation de votre carte...</h3>
+                <p id="exportProgress">Preparation de la zone...</p>
+                <div style="width:80%; margin:15px auto; background:#e0e0e0; border-radius:10px; height:10px; overflow:hidden;">
+                    <div id="exportProgressBar" style="width:0%; height:100%; background:#4a7c59; border-radius:10px; transition: width 0.3s;"></div>
+                </div>
+            `;
+            loadingOverlay.classList.add('active');
+
+            const progressEl = document.getElementById('exportProgress');
+            const progressBar = document.getElementById('exportProgressBar');
+
+            try {
+                const bounds = printBounds || map.getBounds();
+
+                // Step 1: Fit map to selected bounds
+                progressEl.textContent = 'Ajustement de la vue...';
+                progressBar.style.width = '10%';
+
+                // Remove print rectangle temporarily
+                const hadRect = !!printRect;
+                if (printRect) { map.removeLayer(printRect); removeCornerHandles(); }
+
+                map.fitBounds(bounds, { animate: false, padding: [10, 10] });
+
+                // Step 2: Wait for tiles to render
+                progressEl.textContent = 'Chargement des tuiles...';
+                progressBar.style.width = '30%';
+                await waitForTilesLoaded();
+
+                progressEl.textContent = 'Capture de la carte...';
+                progressBar.style.width = '60%';
+
+                // Step 3: Capture the map container
+                const mapContainer = document.getElementById('map');
+                const canvas = await html2canvas(mapContainer, {
+                    useCORS: true,
+                    allowTaint: true,
+                    scale: 2,
+                    logging: false,
+                    backgroundColor: '#ffffff'
+                });
+
+                progressEl.textContent = 'Generation du fichier...';
+                progressBar.style.width = '85%';
+
+                const fileName = generateFileName();
+
+                if (printConfig.outputFormat === 'pdf') {
+                    const { jsPDF } = window.jspdf;
+                    const paperWidthM = getPaperWidthMeters();
+                    const paperHeightM = getPaperHeightMeters();
+                    const orientation = (canvas.width > canvas.height) ? 'landscape' : 'portrait';
+                    const pdf = new jsPDF({
+                        orientation: orientation,
+                        unit: 'mm',
+                        format: printConfig.format !== 'custom'
+                            ? printConfig.format.toLowerCase()
+                            : [paperWidthM * 1000, paperHeightM * 1000]
+                    });
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                    pdf.setFontSize(14);
+                    pdf.text(printConfig.title, pdfWidth / 2, 8, { align: 'center' });
+
+                    pdf.addImage(imgData, 'JPEG', 3, 12, pdfWidth - 6, pdfHeight - 20);
+
+                    pdf.setFontSize(7);
+                    const scaleText = printConfig.scale ? `Echelle: 1:${printConfig.scale.toLocaleString()}` : '';
+                    pdf.text(scaleText, 5, pdfHeight - 3);
+                    pdf.text(`MonVillage - ${new Date().toLocaleDateString('fr-FR')}`, pdfWidth - 40, pdfHeight - 3);
+
+                    pdf.save(fileName);
+                } else {
+                    // PNG download
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = fileName;
+                        link.href = url;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 'image/png');
+                }
+
+                progressBar.style.width = '100%';
+                progressEl.textContent = 'Terminé !';
+
+                await new Promise(r => setTimeout(r, 500));
+                loadingOverlay.classList.remove('active');
+                showNotification(`Exportation reussie: ${fileName}`, 'success', 6000);
+                clearPrintAreaSelection();
+
+            } catch (error) {
+                console.error('Erreur export:', error);
+                loadingOverlay.classList.remove('active');
+                showNotification('Erreur lors de l\'export. Les tuiles cross-origin peuvent bloquer la capture. Essayez le format PDF ou la vue satellite.', 'error', 8000);
+            }
+        }
+
+        function waitForTilesLoaded() {
+            return new Promise(resolve => {
+                let checks = 0;
+                const maxChecks = 30;
+                function check() {
+                    checks++;
+                    const tiles = document.querySelectorAll('#map .leaflet-tile-loaded');
+                    const loading = document.querySelectorAll('#map .leaflet-tile:not(.leaflet-tile-loaded)');
+                    if (loading.length === 0 || checks >= maxChecks) {
+                        setTimeout(resolve, 500);
+                    } else {
+                        setTimeout(check, 200);
+                    }
+                }
+                setTimeout(check, 500);
+            });
+        }
+
+        function getPaperHeightMeters() {
+            if (printConfig.format === 'custom') {
+                return parseFloat(document.getElementById('customHeight').value) || 1.5;
+            }
+            const selectedOption = document.querySelector('.format-option.selected');
+            if (selectedOption) {
+                return parseFloat(selectedOption.dataset.h) || 0.594;
+            }
+            return 0.594; // default A2 height
         }
 
         function getActiveLayers() {
             const activeLayers = [];
-            
             document.querySelectorAll('.layer-toggle.active').forEach(toggle => {
                 activeLayers.push(toggle.dataset.layer);
             });
-            
             return activeLayers;
         }
 
         function generateFileName() {
             const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-            const title = printConfig.title.replace(/[^a-zA-Z0-9]/g, '_');
-            
+            const title = printConfig.title.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
             return `${title}_${printConfig.format}_${timestamp}.${printConfig.outputFormat}`;
-        }
-
-        function simulateFileDownload(fileName) {
-            const link = document.createElement('a');
-            link.href = '#';
-            link.download = fileName;
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            console.log(`📥 Téléchargement simulé: ${fileName}`);
         }
 
         // AUTRES FONCTIONS
@@ -2810,57 +4099,102 @@
             document.getElementById('measureArea').addEventListener('click', startAreaMeasurement);
             document.getElementById('clearMeasurements').addEventListener('click', clearAllMeasurements);
             
-            // Impression
+            // Impression - Modal
             document.getElementById('printMap').addEventListener('click', openPrintModal);
             document.getElementById('closePrintModal').addEventListener('click', closePrintModal);
             document.getElementById('cancelPrint').addEventListener('click', closePrintModal);
             document.getElementById('proceedToPay').addEventListener('click', proceedToPayment);
-            
-            // Sélection de zone d'impression
-            document.getElementById('selectPrintArea').addEventListener('click', startPrintAreaSelection);
+
+            // Impression - Zone selection (manual mode)
+            document.getElementById('selectPrintArea').addEventListener('click', togglePrintSelector);
             document.getElementById('useCurrentView').addEventListener('click', useCurrentMapView);
             document.getElementById('clearPrintArea').addEventListener('click', clearPrintAreaSelection);
-            
-            // Modal village
-            document.getElementById('closeVillageModal').addEventListener('click', closeVillageModal);
-            
-            // Paiement
-            document.getElementById('cancelPayment').addEventListener('click', cancelPayment);
-            document.getElementById('confirmPayment').addEventListener('click', processPayment);
-            
-            // Sélection des méthodes de paiement
-            document.querySelectorAll('.payment-method').forEach(method => {
-                method.addEventListener('click', function() {
-                    selectPaymentMethod(this.dataset.method);
-                });
-            });
-            
-            // Sélectionner Mobile Money par défaut
-            selectPaymentMethod('mobilemoney');
 
-            // Événements pour l'impression
+            // Impression - Source mode switching
+            document.getElementById('printSourceMode').addEventListener('change', function() {
+                const mode = this.value;
+                const adminGroup = document.getElementById('adminSelectGroup');
+                const manualGroup = document.getElementById('manualSelectGroup');
+                if (mode === 'admin') {
+                    adminGroup.style.display = 'block';
+                    manualGroup.style.display = 'none';
+                } else {
+                    adminGroup.style.display = 'none';
+                    manualGroup.style.display = 'block';
+                }
+            });
+
+            // Impression - Admin type change
+            document.getElementById('adminType').addEventListener('change', function() {
+                const adminType = this.value;
+                if (adminType) {
+                    loadAdminEntities(adminType);
+                } else {
+                    document.getElementById('adminEntity').style.display = 'none';
+                }
+            });
+
+            // Impression - Admin entity selection
+            document.getElementById('adminEntity').addEventListener('change', function() {
+                const val = this.value;
+                if (val !== '') {
+                    selectAdminEntity(val);
+                }
+            });
+
+            // Impression - Custom dimensions
+            document.getElementById('customWidth').addEventListener('input', updateCustomPrice);
+            document.getElementById('customHeight').addEventListener('input', updateCustomPrice);
+
+            // Impression - Display options
             document.getElementById('mapTitle').addEventListener('input', updatePrintPreview);
             document.getElementById('outputFormat').addEventListener('change', updatePrintPreview);
-            document.getElementById('mapScale').addEventListener('input', updatePrintPreview);
             document.getElementById('showNorthArrow').addEventListener('change', updatePrintPreview);
             document.getElementById('showScale').addEventListener('change', updatePrintPreview);
             document.getElementById('showLegend').addEventListener('change', updatePrintPreview);
             document.getElementById('showCoordinates').addEventListener('change', updatePrintPreview);
 
+            // Echelle utilisateur
+            const userScaleEl = document.getElementById('userScale');
+            if (userScaleEl) {
+                userScaleEl.addEventListener('input', function() {
+                    calculateAndDisplayScale();
+                });
+            }
+            document.querySelectorAll('.scale-preset').forEach(preset => {
+                preset.addEventListener('click', function() {
+                    const scaleVal = this.dataset.scale;
+                    const userScaleField = document.getElementById('userScale');
+                    if (userScaleField) userScaleField.value = scaleVal;
+                    calculateAndDisplayScale();
+                });
+            });
+
+            // Impression - Format options
             document.querySelectorAll('.format-option').forEach(option => {
                 option.addEventListener('click', function() {
                     const format = this.dataset.format;
-                    const price = parseInt(this.dataset.price);
+                    const price = parseInt(this.dataset.price) || 0;
                     selectFormat(format, price);
                 });
             });
 
-            document.querySelectorAll('.scale-preset').forEach(preset => {
-                preset.addEventListener('click', function() {
-                    const scale = this.dataset.scale;
-                    setScale(scale);
+            // Modal village
+            document.getElementById('closeVillageModal').addEventListener('click', closeVillageModal);
+
+            // Paiement
+            document.getElementById('cancelPayment').addEventListener('click', cancelPayment);
+            document.getElementById('confirmPayment').addEventListener('click', processPayment);
+
+            // Selection des methodes de paiement
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.addEventListener('click', function() {
+                    selectPaymentMethod(this.dataset.method);
                 });
             });
+
+            // Selectionner Mobile Money par defaut
+            selectPaymentMethod('mobilemoney');
 
             document.querySelectorAll('.layer-toggle').forEach(toggle => {
                 toggle.addEventListener('click', function() {
@@ -2907,11 +4241,16 @@
                         cancelPayment();
                     } else if (isLocating) {
                         stopLocationTracking();
-                    } else if (isSelectingPrintArea) {
-                        stopPrintAreaSelection();
                     }
                 }
             });
+
+            map.on('zoomend moveend', function() {
+                // Réappliquer la hiérarchie après chaque interaction
+                setTimeout(() => applyLayerHierarchy(), 100);
+            });
+
+
         }
 
         // ADMINISTRATION
@@ -2919,10 +4258,86 @@
             window.location.href = 'login.html';
         };
 
+
+
+        function trackPageVisit() {
+            if (!supabase) return;
+            try {
+                const sessionId = sessionStorage.getItem('mv_session');
+                if (sessionId) return;
+                const newSession = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36);
+                sessionStorage.setItem('mv_session', newSession);
+                supabase.from('user_sessions').insert({
+                    session_token: newSession,
+                    user_agent: navigator.userAgent,
+                    expires_at: new Date(Date.now() + 24*60*60*1000).toISOString(),
+                    is_active: true
+                }).then(({ error }) => {
+                    if (error) console.error('Erreur tracking visite:', error);
+                });
+            } catch (e) {
+                console.error('Erreur tracking:', e);
+            }
+        }
+
+        // FONCTIONS D'INITIALISATION (à placer AVANT DOMContentLoaded)
+            function initializeSupabase() {
+                try {
+                    supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
+                    console.log('✅ Supabase initialisé avec variables d\'environnement');
+                } catch (error) {
+                    console.error('❌ Erreur Supabase:', error);
+                    showNotification('Mode hors ligne - données démo', 'warning');
+                }
+            }
+
+            function initializeMap() {
+                console.log('🗺️ Initialisation de la carte avec panes personnalisés');
+                
+                map = L.map('map', { 
+                    center: CONFIG.map.center, 
+                    zoom: CONFIG.map.zoom, 
+                    zoomControl: false,
+                    preferCanvas: true,
+                    renderer: L.canvas({ padding: 0.5 }),
+                });
+                
+                L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+                baseLayers.standard = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19,
+                    updateWhenIdle: true,
+                    updateWhenZooming: false
+                });
+
+                baseLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri',
+                    maxZoom: 20,
+                    updateWhenIdle: true,
+                    updateWhenZooming: false
+                });
+
+                baseLayers.standard.addTo(map);
+                
+                // ✅ AJOUTER CETTE LIGNE
+                createCustomPanes();
+                
+                map.on('zoomend', loadLayersByZoom);
+                
+                console.log('✅ Carte initialisée avec panes personnalisés');
+            }
+
+            function initializeNativeMeasurementTools() {
+                measurementLayer = new L.FeatureGroup();
+                map.addLayer(measurementLayer);
+            }
+
+
         // INITIALISATION PRINCIPALE
         document.addEventListener('DOMContentLoaded', function() {
             try {
-                console.log('🚀 Initialisation MonVillage avec priorités de clic et recherche intelligente');
+                console.log('🚀 Initialisation MonVillage avec panes personnalisés');
                 
                 initializeSupabase();
                 initializeMap();
@@ -2930,7 +4345,8 @@
                 initializeEventListeners();
                 initializeIntelligentSearch();
                 loadInitialData();
-                
+                trackPageVisit();
+
                 showNotification('MonVillage chargé avec succès', 'success');
                 
             } catch (error) {
@@ -2938,6 +4354,14 @@
                 showNotification('Erreur lors du chargement de l\'application', 'error');
             }
         });
+
+
+
+
+        // (print event listeners moved to initializeEventListeners)
+
+
+
 
         window.addEventListener('resize', function() {
             const sidebar = document.getElementById('sidebar');
@@ -2969,30 +4393,52 @@
             showNotification('Erreur de connexion - vérifiez votre réseau', 'warning');
         });
 
-        function suspendArrondissements() {
-            if (!suspended && map.hasLayer(mapLayers.arrondissements)) {
-                map.removeLayer(mapLayers.arrondissements);
-                suspended = true;
-            }
-            }
 
-            function restoreArrondissements() {
-            if (suspended) {
-                map.addLayer(mapLayers.arrondissements);
-                suspended = false;
-            }
-            
-            }
-       
 
         /* ----------  z-index helpers  ---------- */
-                function bringToFront(layerGroup) {
-                layerGroup.eachLayer(l => l.bringToFront?.());
-                }
+               function bringToFront(layerGroup) {
+    if (!layerGroup) return;
+    
+    layerGroup.eachLayer(layer => {
+        // Ramener au premier plan
+        if (layer.bringToFront) {
+            layer.bringToFront();
+        }
+        
+        // Appliquer un z-index très élevé
+        if (layer.setZIndexOffset) {
+            layer.setZIndexOffset(1000);
+        }
+        
+        // Forcer l'interactivité
+        if (layer.setStyle) {
+            layer.setStyle({
+                interactive: true
+            });
+        }
+        
+        // Si c'est un groupe, traiter récursivement
+        if (layer.eachLayer) {
+            bringToFront(layer);
+        }
+    });
+}
+
 
                 function sendToBack(layerGroup) {
-                layerGroup.eachLayer(l => l.bringToBack?.());
+                    if (!layerGroup) return;
+                    layerGroup.eachLayer(layer => {
+                        if (layer.bringToBack) {
+                            layer.bringToBack();
+                        }
+                        if (layer.setZIndexOffset) {
+                            // Remettre à 0
+                            layer.setZIndexOffset(0);
+                        }
+                    });
                 }
+
+    
 
     </script>
 </body>

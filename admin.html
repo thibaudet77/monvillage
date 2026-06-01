@@ -135,6 +135,37 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md mt-6">
+                    <h2 class="text-lg sm:text-xl font-semibold mb-4">Visites par jour (7 derniers jours)</h2>
+                    <div id="visits-chart" class="w-full" style="min-height: 200px;">
+                        <div class="flex items-end justify-between gap-2 h-48 px-2" id="visits-bars"></div>
+                        <div class="flex justify-between px-2 mt-2 text-xs text-gray-500" id="visits-labels"></div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Total cette semaine : <span id="visits-total" class="font-semibold">-</span></p>
+                </div>
+
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md mt-6">
+                    <h2 class="text-lg sm:text-xl font-semibold mb-4">Historique des paiements (7 derniers jours)</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-200">
+                                    <th class="p-2 text-left">Date</th>
+                                    <th class="p-2 text-left">Montant</th>
+                                    <th class="p-2 text-left">Méthode</th>
+                                    <th class="p-2 text-left">Contact</th>
+                                    <th class="p-2 text-left">Format</th>
+                                    <th class="p-2 text-left">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payments-table">
+                                <tr><td colspan="6" class="p-4 text-center text-gray-500">Chargement...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Revenu cette semaine : <span id="payments-total" class="font-semibold">-</span></p>
+                </div>
             </section>
 
             <section id="villages" class="hidden">
@@ -190,6 +221,24 @@
                                 <div class="form-group">
                                     <label class="block mb-1 font-medium">Population estimée</label>
                                     <input type="number" id="village-population" class="w-full p-2 border rounded">
+                                </div>
+                                <div class="form-group">
+                                    <label class="block mb-1 font-medium">Catégorie de chefferie</label>
+                                    <select id="village-category" class="w-full p-2 border rounded">
+                                        <option value="">Sélectionner une catégorie...</option>
+                                        <option value="Chefferie 1er degré">Chefferie 1er degré</option>
+                                        <option value="Chefferie 2ème degré">Chefferie 2ème degré</option>
+                                        <option value="Chefferie 3ème degré">Chefferie 3ème degré</option>
+                                    </select>
+                                </div>
+
+                                <!-- 2. Afficher la superficie existante (lecture seule) -->
+                                <div class="form-group">
+                                    <label class="block mb-1 font-medium">Superficie (hectares)</label>
+                                    <div id="existing-area" class="w-full p-2 border rounded bg-gray-50 text-gray-700 font-medium">
+                                        Non calculée
+                                    </div>
+                                    <small class="text-gray-600">Superficie calculée automatiquement à partir de la géométrie</small>
                                 </div>
                                 <div class="form-group">
                                     <label class="block mb-1 font-medium">Méthode de saisie de la géométrie *</label>
@@ -436,7 +485,7 @@
     <script>
         const supabaseUrl = 'https://hrlufnjhwhgddxkpyzst.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         const mapboxToken = 'pk.eyJ1IjoiZWthbnNvbiIsImEiOiJjbWUyeDFxZDUwMTVrMmlvcHMzaDlwOXRvIn0.r7nOAUE0YU8c4miQFeJZWg';
 
         let currentSection = 'dashboard';
@@ -446,7 +495,7 @@
 
         async function checkAuth() {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data: { user } } = await supabaseClient.auth.getUser();
                 if (!user) {
                     window.location.href = 'login.html';
                 } else {
@@ -535,30 +584,71 @@
         }
 
         function resetForm(modalId) {
-            const form = document.querySelector(`#${modalId} form`);
-            form.reset();
-            editingId = null;
-            if (modalId === 'village-form') {
-                document.getElementById('village-form-title').textContent = 'Ajouter un Village';
-                document.getElementById('description-form').classList.add('hidden');
-                if (drawnLayer) map.removeLayer(drawnLayer);
-                drawnLayer = null;
-            } else if (modalId === 'poi-form') {
-                document.getElementById('poi-form-title').textContent = 'Ajouter un Point d\'Intérêt';
-                if (drawnLayer) poiMap.removeLayer(drawnLayer);
-                drawnLayer = null;
-            } else if (modalId === 'geoname-form') {
-                document.getElementById('geoname-form-title').textContent = 'Ajouter un Géonyme';
-                if (drawnLayer) geonameMap.removeLayer(drawnLayer);
-                drawnLayer = null;
-            } else if (modalId === 'user-form') {
-                document.getElementById('user-form-title').textContent = 'Ajouter un Utilisateur';
-            }
+    const form = document.querySelector(`#${modalId} form`);
+    if (form) {
+        form.reset();
+    }
+    
+    editingId = null;
+    
+    if (modalId === 'village-form') {
+        document.getElementById('village-form-title').textContent = 'Ajouter un Village';
+        
+        // Réinitialiser l'affichage de la superficie
+        const areaDisplay = document.getElementById('existing-area');
+        if (areaDisplay) {
+            areaDisplay.textContent = 'Sera calculée automatiquement après saisie de la géométrie';
+            areaDisplay.style.color = '#666';
+            areaDisplay.style.fontWeight = 'normal';
         }
+        
+        // Masquer le formulaire de description
+        const descForm = document.getElementById('description-form');
+        if (descForm) {
+            descForm.classList.add('hidden');
+        }
+        
+        // Nettoyer la carte si elle existe
+        if (drawnLayer && map) {
+            map.removeLayer(drawnLayer);
+            drawnLayer = null;
+        }
+    } else if (modalId === 'poi-form') {
+        document.getElementById('poi-form-title').textContent = 'Ajouter un Point d\'Intérêt';
+        if (drawnLayer && poiMap) {
+            poiMap.removeLayer(drawnLayer);
+            drawnLayer = null;
+        }
+    } else if (modalId === 'geoname-form') {
+        document.getElementById('geoname-form-title').textContent = 'Ajouter un Géonyme';
+        if (drawnLayer && geonameMap) {
+            geonameMap.removeLayer(drawnLayer);
+            drawnLayer = null;
+        }
+    } else if (modalId === 'user-form') {
+        document.getElementById('user-form-title').textContent = 'Ajouter un Utilisateur';
+    }
+}
+///
+window.addEventListener('error', function(e) {
+    console.error('Erreur globale détaillée:', {
+        message: e.message,
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno,
+        error: e.error
+    });
+    
+    // Éviter d'afficher l'alerte pour les erreurs nulles ou mineures
+    if (e.error && e.message !== 'null') {
+        console.warn('Erreur non critique ignorée pour l\'UX');
+    }
+});
+     ////
 
         async function loadArrondissements() {
             try {
-                const { data, error } = await supabase.from('arrondissements').select('id_arrondissement, nom_arrondissement');
+                const { data, error } = await supabaseClient.from('arrondissements').select('id_arrondissement, nom_arrondissement');
                 if (error) throw error;
                 const select = document.getElementById('arrondissement-id');
                 select.innerHTML = '<option value="">Sélectionner...</option>';
@@ -572,7 +662,7 @@
 
         async function loadVillagesForSelect(selectId) {
             try {
-                const { data, error } = await supabase.from('villages').select('id, village_name');
+                const { data, error } = await supabaseClient.from('villages').select('id, village_name');
                 if (error) throw error;
                 const select = document.getElementById(selectId);
                 select.innerHTML = '<option value="">Aucun village spécifique</option>';
@@ -586,7 +676,7 @@
 
         async function loadPoiTypes() {
             try {
-                const { data, error } = await supabase.from('poi_types').select('type, label');
+                const { data, error } = await supabaseClient.from('poi_types').select('type, label');
                 if (error) throw error;
                 const select = document.getElementById('poi-type');
                 select.innerHTML = '';
@@ -618,37 +708,174 @@
         async function loadDashboard() {
             try {
                 const [villages, poi, geonames, descriptions] = await Promise.all([
-                    supabase.from('villages').select('count', { count: 'exact' }),
-                    supabase.from('poi').select('count', { count: 'exact' }),
-                    supabase.from('geonames').select('count', { count: 'exact' }),
-                    supabase.from('village_descriptions').select('count', { count: 'exact' })
+                    supabaseClient.from('villages').select('count', { count: 'exact' }),
+                    supabaseClient.from('poi').select('count', { count: 'exact' }),
+                    supabaseClient.from('geonames').select('count', { count: 'exact' }),
+                    supabaseClient.from('village_descriptions').select('count', { count: 'exact' })
                 ]);
 
                 document.getElementById('villages-count').textContent = villages.data.count;
                 document.getElementById('poi-count').textContent = poi.data.count;
                 document.getElementById('geonames-count').textContent = geonames.data.count;
                 document.getElementById('descriptions-count').textContent = descriptions.data.count;
+
+                await loadWeeklyVisits();
+                await loadWeeklyPayments();
             } catch (error) {
                 console.error('Error loading dashboard:', error);
                 alert('Erreur lors du chargement du tableau de bord');
             }
         }
 
-        async function loadVillages() {
+        async function loadWeeklyVisits() {
             try {
-                const { data, error } = await supabase.from('villages_complete').select('*');
+                const now = new Date();
+                const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const { data, error } = await supabaseClient
+                    .from('user_sessions')
+                    .select('created_at')
+                    .gte('created_at', sevenDaysAgo.toISOString())
+                    .order('created_at', { ascending: true });
+
                 if (error) throw error;
-                const tbody = document.querySelector('#villages-table');
+
+                const days = {};
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                    const key = d.toISOString().split('T')[0];
+                    days[key] = 0;
+                }
+                (data || []).forEach(row => {
+                    const key = row.created_at.split('T')[0];
+                    if (days.hasOwnProperty(key)) days[key]++;
+                });
+
+                const values = Object.values(days);
+                const labels = Object.keys(days);
+                const max = Math.max(...values, 1);
+                const total = values.reduce((a, b) => a + b, 0);
+
+                const barsEl = document.getElementById('visits-bars');
+                const labelsEl = document.getElementById('visits-labels');
+                barsEl.innerHTML = '';
+                labelsEl.innerHTML = '';
+
+                values.forEach((v, i) => {
+                    const pct = (v / max) * 100;
+                    const bar = document.createElement('div');
+                    bar.className = 'flex flex-col items-center flex-1';
+                    bar.innerHTML = `
+                        <span class="text-xs font-medium mb-1">${v}</span>
+                        <div class="w-full rounded-t" style="height: ${Math.max(pct, 4)}%; background: #3b82f6; min-height: 4px;"></div>
+                    `;
+                    barsEl.appendChild(bar);
+
+                    const lbl = document.createElement('span');
+                    const date = new Date(labels[i]);
+                    lbl.textContent = date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+                    lbl.className = 'text-center flex-1';
+                    labelsEl.appendChild(lbl);
+                });
+
+                document.getElementById('visits-total').textContent = total + ' visites';
+            } catch (error) {
+                console.error('Erreur chargement visites:', error);
+                document.getElementById('visits-bars').innerHTML = '<p class="text-red-500 text-sm">Erreur de chargement</p>';
+            }
+        }
+
+        async function loadWeeklyPayments() {
+            try {
+                const now = new Date();
+                const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const { data, error } = await supabaseClient
+                    .from('payments')
+                    .select('*')
+                    .gte('created_at', sevenDaysAgo.toISOString())
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('payments-table');
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Aucun paiement cette semaine</td></tr>';
+                    document.getElementById('payments-total').textContent = '0 XAF';
+                    return;
+                }
+
+                let totalRevenue = 0;
                 tbody.innerHTML = '';
-                data.forEach(v => {
+                data.forEach(p => {
+                    totalRevenue += parseFloat(p.amount) || 0;
+                    const date = new Date(p.created_at).toLocaleDateString('fr-FR', {
+                        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    const method = p.payment_method || '-';
+                    let contact = p.user_session || '-';
+                    if (!p.user_session || p.user_session === '') {
+                        if (method === 'mobilemoney' || method === 'mobile_money') {
+                            contact = 'Mobile (non renseigné)';
+                        } else if (method === 'card') {
+                            contact = 'Carte (non renseigné)';
+                        }
+                    }
+                    const statusClass = p.status === 'success' ? 'text-green-600' : 'text-yellow-600';
                     tbody.innerHTML += `
                         <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2" data-label="Nom">${v.village_name}</td>
+                            <td class="p-2">${date}</td>
+                            <td class="p-2 font-medium">${parseFloat(p.amount).toLocaleString()} ${p.currency || 'XAF'}</td>
+                            <td class="p-2"><span class="px-2 py-1 rounded text-xs ${method === 'mobilemoney' ? 'bg-yellow-100 text-yellow-800' : method === 'card' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">${method}</span></td>
+                            <td class="p-2">${contact}</td>
+                            <td class="p-2">${p.print_format || '-'}</td>
+                            <td class="p-2 ${statusClass} font-medium">${p.status || '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('payments-total').textContent = totalRevenue.toLocaleString() + ' XAF';
+            } catch (error) {
+                console.error('Erreur chargement paiements:', error);
+                document.getElementById('payments-table').innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">Erreur de chargement</td></tr>';
+            }
+        }
+
+        async function loadVillages() {
+            try {
+                const { data, error } = await supabaseClient.from('villages_complete').select('*');
+                if (error) throw error;
+                
+                const tbody = document.querySelector('#villages-table');
+                tbody.innerHTML = '';
+                
+                data.forEach(v => {
+                    let categoryBadge = '<span style="color: #999; font-size: 10px;">Non définie</span>';
+                    
+                    if (v.categorie) {
+                        let bgColor = '#4CAF50'; // Par défaut
+                        if (v.categorie === 'Chefferie 1er degré') bgColor = '#FFD700';
+                        else if (v.categorie === 'Chefferie 2ème degré') bgColor = '#FFA500';
+                        else if (v.categorie === 'Chefferie 3ème degré') bgColor = '#FF6347';
+                        
+                        categoryBadge = `<span style="background: ${bgColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">${v.categorie}</span>`;
+                    }
+                    
+                    const areaDisplay = v.area_hectares ? 
+                        `${v.area_hectares.toFixed(2)} ha` : '<span style="color: #999;">Non calculée</span>';
+                    
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-2" data-label="Nom">
+                                <div style="font-weight: 500;">${v.village_name}</div>
+                                <div style="margin-top: 2px;">${categoryBadge}</div>
+                            </td>
                             <td class="p-2" data-label="Arrondissement">${v.arrondissement_name}</td>
                             <td class="p-2" data-label="Chef">${v.chief_name || '-'}</td>
-                            <td class="p-2" data-label="Population">${v.population || '-'}</td>
+                            <td class="p-2" data-label="Population">
+                                <div>${v.population ? v.population.toLocaleString() + ' hab.' : '-'}</div>
+                                <div style="color: #666; font-size: 12px; margin-top: 2px;">${areaDisplay}</div>
+                            </td>
                             <td class="p-2" data-label="Actions">
-                                <button onclick="editVillage('${v.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
+                                <button onclick="editVillage('${v.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 mr-1">Éditer</button>
                                 <button onclick="deleteVillage('${v.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
                             </td>
                         </tr>
@@ -662,7 +889,7 @@
 
         async function loadPoi() {
             try {
-                const { data, error } = await supabase.from('poi_with_location').select('*');
+                const { data, error } = await supabaseClient.from('poi_with_location').select('*');
                 if (error) throw error;
                 const tbody = document.querySelector('#poi-table');
                 tbody.innerHTML = '';
@@ -687,7 +914,7 @@
 
         async function loadGeonames() {
             try {
-                const { data, error } = await supabase.from('geonames').select('*');
+                const { data, error } = await supabaseClient.from('geonames').select('*');
                 if (error) throw error;
                 const tbody = document.querySelector('#geonames-table');
                 tbody.innerHTML = '';
@@ -711,7 +938,7 @@
 
         async function loadUsers() {
             try {
-                const { data, error } = await supabase.from('admin_profiles').select('*');
+                const { data, error } = await supabaseClient.from('admin_profiles').select('*');
                 if (error) throw error;
                 const tbody = document.querySelector('#users-table');
                 tbody.innerHTML = '';
@@ -744,51 +971,112 @@
         }
 
         async function saveVillage(e) {
-        e.preventDefault();
-        try {
-            const geometry = await getGeom();
-            
-            const data = {
-                village_name: document.getElementById('village-name').value,
-                id_arrondissement: parseInt(document.getElementById('arrondissement-id').value),
-                chief_name: document.getElementById('chief-name').value || null,
-                chief_start_date: document.getElementById('chief-start-date').value || null,
-                email: document.getElementById('village-email').value || null,
-                telephone: document.getElementById('village-telephone').value || null,
-                population: parseInt(document.getElementById('village-population').value) || null,
-                geom: geometry // Directement la géométrie GeoJSON
-            };
+            e.preventDefault();
+            try {
+                const geometry = await getGeom();
+                
+                // Valider la catégorie
+                const categoryValue = document.getElementById('village-category').value;
+                const validCategories = ['Chefferie 1er degré', 'Chefferie 2ème degré', 'Chefferie 3ème degré'];
+                
+                const data = {
+                    village_name: document.getElementById('village-name').value,
+                    id_arrondissement: parseInt(document.getElementById('arrondissement-id').value),
+                    chief_name: document.getElementById('chief-name').value || null,
+                    chief_start_date: document.getElementById('chief-start-date').value || null,
+                    email: document.getElementById('village-email').value || null,
+                    telephone: document.getElementById('village-telephone').value || null,
+                    population: parseInt(document.getElementById('village-population').value) || null,
+                    categorie: categoryValue && validCategories.includes(categoryValue) ? categoryValue : null,
+                    geom: geometry
+                };
 
-            const { data: { user }, error: userError } = await supabase.auth.getUser();
-            if (user) {
-                data.created_by = user.id;
-                data.updated_by = user.id;
+                console.log('Données village à sauvegarder:', data);
+
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                if (user) {
+                    data.created_by = user.id;
+                    data.updated_by = user.id;
+                } else {
+                    console.warn('Aucun utilisateur connecté trouvé');
+                }
+
+                let result;
+                if (editingId) {
+                    console.log('Mise à jour village ID:', editingId);
+                    result = await supabaseClient.from('villages').update(data).eq('id', editingId);
+                } else {
+                    console.log('Création nouveau village');
+                    result = await supabaseClient.from('villages').insert(data).select().single();
+                }
+                
+                if (result.error) {
+                    console.error('Erreur Supabase villages:', result.error);
+                    throw result.error;
+                }
+
+                const villageId = editingId || result.data.id;
+                console.log('Village sauvegardé avec ID:', villageId);
+
+                // Upload des photos avec gestion d'erreur séparée
+                let photoErrors = [];
+                
+                try {
+                    await uploadChiefPhoto(villageId);
+                    console.log('Photo chef uploadée avec succès');
+                } catch (photoError) {
+                    console.error('Erreur upload photo chef:', photoError);
+                    photoErrors.push('Photo chef: ' + photoError.message);
+                }
+                
+                try {
+                    await uploadVillagePhotos(villageId);
+                    console.log('Photos village uploadées avec succès');
+                } catch (photoError) {
+                    console.error('Erreur upload photos village:', photoError);
+                    photoErrors.push('Photos village: ' + photoError.message);
+                }
+                
+                try {
+                    await saveDescription(villageId);
+                    console.log('Description sauvegardée avec succès');
+                } catch (descError) {
+                    console.error('Erreur sauvegarde description:', descError);
+                    photoErrors.push('Description: ' + descError.message);
+                }
+
+                // Message de succès
+                let successMessage = 'Village enregistré avec succès !';
+                if (photoErrors.length > 0) {
+                    successMessage += '\n\nAvertissements:\n' + photoErrors.join('\n');
+                    console.warn('Erreurs photos/description:', photoErrors);
+                }
+                
+                alert(successMessage);
+                hideModal('village-form');
+                loadVillages();
+                
+            } catch (error) {
+                console.error('Erreur saveVillage:', error);
+                
+                let errorMessage = 'Erreur lors de l\'enregistrement du village: ';
+                
+                if (error.message && error.message.includes('check_categorie')) {
+                    errorMessage += 'Catégorie de chefferie invalide.';
+                } else if (error.message && error.message.includes('duplicate')) {
+                    errorMessage += 'Un village avec ce nom existe déjà.';
+                } else if (error.message && error.message.includes('foreign key')) {
+                    errorMessage += 'Arrondissement sélectionné invalide.';
+                } else if (error.message && error.message.includes('row-level security')) {
+                    errorMessage += 'Problème d\'autorisation. Vérifiez votre connexion.';
+                } else {
+                    errorMessage += error.message || 'Erreur inconnue';
+                }
+                
+                alert(errorMessage);
             }
+}
 
-            let result;
-            if (editingId) {
-                result = await supabase.from('villages').update(data).eq('id', editingId);
-            } else {
-                result = await supabase.from('villages').insert(data).select().single();
-            }
-            
-            if (result.error) throw result.error;
-
-            const villageId = editingId || result.data.id;
-
-            // Continuer avec l'upload des photos et descriptions...
-            await uploadChiefPhoto(villageId);
-            await uploadVillagePhotos(villageId);
-            await saveDescription(villageId);
-
-            hideModal('village-form');
-            loadVillages();
-            
-        } catch (error) {
-            console.error('Error saving village:', error);
-            alert('Erreur lors de l\'enregistrement du village: ' + error.message);
-        }
-    }
 
         async function getGeom() {
             const method = document.getElementById('geom-method').value;
@@ -818,119 +1106,342 @@
         async function uploadChiefPhoto(villageId) {
             const file = document.getElementById('chief-photo').files[0];
             if (!file) return;
-            const { data, error } = await supabase.storage.from('village-photos').upload(`${villageId}/chief_${file.name}`, file);
-            if (error) throw error;
-            const url = supabase.storage.from('village-photos').getPublicUrl(data.path).data.publicUrl;
-            await supabase.from('villages').update({ chief_photo_url: url }).eq('id', villageId);
+            
+            try {
+                console.log('Upload photo chef pour village:', villageId);
+                
+                // Générer un nom de fichier unique
+                const fileExt = file.name.split('.').pop();
+                const fileName = `chief_${villageId}_${Date.now()}.${fileExt}`;
+                
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from('village-photos')
+                    .upload(fileName, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+                
+                if (uploadError) {
+                    console.error('Erreur upload storage:', uploadError);
+                    throw uploadError;
+                }
+                
+                console.log('Photo uploadée:', uploadData);
+                
+                // Obtenir l'URL publique
+                const { data: urlData } = supabaseClient.storage
+                    .from('village-photos')
+                    .getPublicUrl(fileName);
+                
+                if (!urlData?.publicUrl) {
+                    throw new Error('Impossible d\'obtenir l\'URL publique');
+                }
+                
+                console.log('URL publique:', urlData.publicUrl);
+                
+                // Mettre à jour le village avec l'URL de la photo
+                const { error: updateError } = await supabaseClient
+                    .from('villages')
+                    .update({ 
+                        chief_photo_url: urlData.publicUrl,
+                        chief_photo_uploaded_at: new Date().toISOString()
+                    })
+                    .eq('id', villageId);
+                
+                if (updateError) {
+                    console.error('Erreur mise à jour village:', updateError);
+                    throw updateError;
+                }
+                
+                console.log('Photo chef mise à jour avec succès');
+                
+            } catch (error) {
+                console.error('Erreur uploadChiefPhoto:', error);
+                throw error;
+            }
         }
 
         async function uploadVillagePhotos(villageId) {
             const files = document.getElementById('village-photos').files;
+            if (files.length === 0) return;
+            
             if (files.length > 2) {
-                alert('Maximum 2 photos');
-                return;
+                throw new Error('Maximum 2 photos autorisées');
             }
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const { data, error } = await supabase.storage.from('village-photos').upload(`${villageId}/photo_${i+1}_${file.name}`, file);
-                if (error) throw error;
-                const url = supabase.storage.from('village-photos').getPublicUrl(data.path).data.publicUrl;
-                await supabase.from('village_photos').insert({
-                    village_id: villageId,
-                    photo_url: url,
-                    photo_name: file.name,
-                    photo_order: i + 1
-                });
+            
+            try {
+                console.log(`Upload de ${files.length} photos pour village:`, villageId);
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    
+                    // Générer un nom de fichier unique
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `village_${villageId}_photo_${i + 1}_${Date.now()}.${fileExt}`;
+                    
+                    // Upload vers le storage
+                    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                        .from('village-photos')
+                        .upload(fileName, file, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
+                    
+                    if (uploadError) {
+                        console.error(`Erreur upload photo ${i + 1}:`, uploadError);
+                        throw uploadError;
+                    }
+                    
+                    console.log(`Photo ${i + 1} uploadée:`, uploadData);
+                    
+                    // Obtenir l'URL publique
+                    const { data: urlData } = supabaseClient.storage
+                        .from('village-photos')
+                        .getPublicUrl(fileName);
+                    
+                    if (!urlData?.publicUrl) {
+                        throw new Error(`Impossible d'obtenir l'URL publique pour photo ${i + 1}`);
+                    }
+                    
+                    // Obtenir l'utilisateur connecté
+                    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                    if (userError) {
+                        console.error('Erreur utilisateur:', userError);
+                    }
+                    
+                    // Insérer dans la table village_photos
+                    const { error: insertError } = await supabaseClient
+                        .from('village_photos')
+                        .insert({
+                            village_id: villageId,
+                            photo_url: urlData.publicUrl,
+                            photo_name: file.name,
+                            photo_order: i + 1,
+                            file_size: file.size,
+                            uploaded_by: user?.id || null
+                        });
+                    
+                    if (insertError) {
+                        console.error(`Erreur insertion photo ${i + 1}:`, insertError);
+                        throw insertError;
+                    }
+                    
+                    console.log(`Photo ${i + 1} enregistrée en base avec succès`);
+                }
+                
+                console.log('Toutes les photos village uploadées avec succès');
+                
+            } catch (error) {
+                console.error('Erreur uploadVillagePhotos:', error);
+                throw error;
             }
         }
 
         async function saveDescription(villageId) {
-            if (document.getElementById('description-form').classList.contains('hidden')) return;
-            const data = {
-                village_id: villageId,
-                histoire_origine: document.getElementById('histoire-origine').value || null,
-                description_limites: document.getElementById('description-limites').value || null,
-                importance_region: document.getElementById('importance-region').value || null,
-                danses_musiques_rites: document.getElementById('danses-musiques-rites').value || null,
-                gastronomie_locale: document.getElementById('gastronomie-locale').value || null,
-                fetes_traditionnelles: document.getElementById('fetes-traditionnelles').value || null,
-                structure_demographique: document.getElementById('structure-demographique').value || null,
-                groupes_ethniques: document.getElementById('groupes-ethniques').value || null,
-                activites_generatrices: document.getElementById('activites-generatrices').value || null,
-                produits_terroir: document.getElementById('produits-terroir').value || null,
-                infrastructures_scolaires: document.getElementById('infrastructures-scolaires').value || null,
-                infrastructures_sante: document.getElementById('infrastructures-sante').value || null,
-                infrastructures_routes: document.getElementById('infrastructures-routes').value || null,
-                acces_electricite_eau: document.getElementById('acces-electricite-eau').value || null,
-                sites_naturels: document.getElementById('sites-naturels').value || null,
-                sites_culturels: document.getElementById('sites-culturels').value || null,
-                personnalites_originaires: document.getElementById('personnalites-originaires').value || null,
-                is_published: document.getElementById('is-published').checked
-            };
+    // Vérifier si le formulaire de description est visible
+    const descriptionForm = document.getElementById('description-form');
+    if (!descriptionForm || descriptionForm.classList.contains('hidden')) {
+        console.log('Aucune description à sauvegarder (formulaire masqué)');
+        return; // Pas de description à sauvegarder
+    }
 
-            const { user } = await supabase.auth.getUser();
-            data.created_by = user.id;
+    try {
+        const data = {
+            village_id: villageId,
+            histoire_origine: document.getElementById('histoire-origine')?.value || null,
+            description_limites: document.getElementById('description-limites')?.value || null,
+            importance_region: document.getElementById('importance-region')?.value || null,
+            danses_musiques_rites: document.getElementById('danses-musiques-rites')?.value || null,
+            gastronomie_locale: document.getElementById('gastronomie-locale')?.value || null,
+            fetes_traditionnelles: document.getElementById('fetes-traditionnelles')?.value || null,
+            structure_demographique: document.getElementById('structure-demographique')?.value || null,
+            groupes_ethniques: document.getElementById('groupes-ethniques')?.value || null,
+            activites_generatrices: document.getElementById('activites-generatrices')?.value || null,
+            produits_terroir: document.getElementById('produits-terroir')?.value || null,
+            infrastructures_scolaires: document.getElementById('infrastructures-scolaires')?.value || null,
+            infrastructures_sante: document.getElementById('infrastructures-sante')?.value || null,
+            infrastructures_routes: document.getElementById('infrastructures-routes')?.value || null,
+            acces_electricite_eau: document.getElementById('acces-electricite-eau')?.value || null,
+            sites_naturels: document.getElementById('sites-naturels')?.value || null,
+            sites_culturels: document.getElementById('sites-culturels')?.value || null,
+            personnalites_originaires: document.getElementById('personnalites-originaires')?.value || null,
+            is_published: document.getElementById('is-published')?.checked || false
+        };
 
-            const existing = await supabase.from('village_descriptions').select('id').eq('village_id', villageId).single();
-            if (existing.data) {
-                await supabase.from('village_descriptions').update(data).eq('id', existing.data.id);
-            } else {
-                await supabase.from('village_descriptions').insert(data);
-            }
+        // Vérifier qu'au moins un champ contient des données
+        const hasContent = Object.values(data).some(value => 
+            value !== null && value !== false && value !== villageId && value !== ''
+        );
+
+        if (!hasContent) {
+            console.log('Aucun contenu de description à sauvegarder');
+            return;
         }
+
+        // Obtenir l'utilisateur connecté avec vérification
+        let userId = null;
+        try {
+            const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+            if (!userError && user) {
+                userId = user.id;
+            }
+        } catch (userError) {
+            console.warn('Impossible d\'obtenir l\'utilisateur:', userError);
+        }
+
+        if (userId) {
+            data.created_by = userId;
+        }
+
+        console.log('Données description à sauvegarder:', data);
+
+        // Vérifier si une description existe déjà
+        const { data: existing, error: selectError } = await supabaseClient
+            .from('village_descriptions')
+            .select('id')
+            .eq('village_id', villageId)
+            .single();
+
+        if (selectError && selectError.code !== 'PGRST116') {
+            // PGRST116 = pas de résultat, ce qui est normal pour une nouvelle description
+            throw selectError;
+        }
+
+        if (existing && existing.id) {
+            // Mettre à jour la description existante
+            const { error: updateError } = await supabaseClient
+                .from('village_descriptions')
+                .update(data)
+                .eq('id', existing.id);
+            
+            if (updateError) throw updateError;
+            console.log('Description mise à jour avec succès');
+        } else {
+            // Créer une nouvelle description
+            const { error: insertError } = await supabaseClient
+                .from('village_descriptions')
+                .insert(data);
+            
+            if (insertError) throw insertError;
+            console.log('Nouvelle description créée avec succès');
+        }
+
+    } catch (error) {
+        console.error('Erreur sauvegarde description:', error);
+        throw new Error('Erreur lors de la sauvegarde de la description: ' + error.message);
+    }
+}
+
 
         async function editVillage(id) {
-            editingId = id;
+    editingId = id;
+    try {
+        console.log('Chargement village pour édition:', id);
+        
+        // Utiliser la vue complète ou la table villages directement
+        const { data, error } = await supabaseClient
+            .from('villages_complete_extended')
+            .select('*')
+            .eq('id', id)
+            .single();
+        
+        if (error) {
+            console.error('Erreur chargement village:', error);
+            // Essayer avec la table villages directement
+            const fallbackResult = await supabaseClient
+                .from('villages')
+                .select('*, arrondissements(nom_arrondissement)')
+                .eq('id', id)
+                .single();
+            
+            if (fallbackResult.error) throw fallbackResult.error;
+            data = fallbackResult.data;
+        }
+        
+        console.log('Données village chargées:', data);
+        
+        document.getElementById('village-form-title').textContent = 'Éditer le Village';
+        document.getElementById('village-name').value = data.village_name || '';
+        document.getElementById('arrondissement-id').value = data.id_arrondissement || '';
+        document.getElementById('chief-name').value = data.chief_name || '';
+        document.getElementById('chief-start-date').value = data.chief_start_date || '';
+        document.getElementById('village-email').value = data.email || '';
+        document.getElementById('village-telephone').value = data.telephone || '';
+        document.getElementById('village-population').value = data.population || '';
+        
+        // Catégorie avec validation
+        const category = data.categorie || '';
+        console.log('Catégorie chargée:', category);
+        document.getElementById('village-category').value = category;
+
+        // Afficher la superficie existante
+        if (data.area_hectares) {
+            document.getElementById('existing-area').textContent = `${data.area_hectares.toFixed(2)} hectares`;
+            document.getElementById('existing-area').style.color = '#2c5530';
+            document.getElementById('existing-area').style.fontWeight = 'bold';
+        } else {
+            document.getElementById('existing-area').textContent = 'Non calculée';
+            document.getElementById('existing-area').style.color = '#666';
+        }
+
+        // Géométrie
+        if (data.geom) {
             try {
-                const { data, error } = await supabase.from('villages_with_full_info').select('*').eq('id', id).single();
-                if (error) throw error;
-                document.getElementById('village-form-title').textContent = 'Éditer le Village';
-                document.getElementById('village-name').value = data.village_name;
-                document.getElementById('arrondissement-id').value = data.id_arrondissement;
-                document.getElementById('chief-name').value = data.chief_name || '';
-                document.getElementById('chief-start-date').value = data.chief_start_date || '';
-                document.getElementById('village-email').value = data.email || '';
-                document.getElementById('village-telephone').value = data.telephone || '';
-                document.getElementById('village-population').value = data.population || '';
-
-                if (data.description_limites) {
-                    document.getElementById('description-form').classList.remove('hidden');
-                    document.getElementById('histoire-origine').value = data.histoire_origine || '';
-                    document.getElementById('description-limites').value = data.description_limites || '';
-                    document.getElementById('importance-region').value = data.importance_region || '';
-                    document.getElementById('danses-musiques-rites').value = data.danses_musiques_rites || '';
-                    document.getElementById('gastronomie-locale').value = data.gastronomie_locale || '';
-                    document.getElementById('fetes-traditionnelles').value = data.fetes_traditionnelles || '';
-                    document.getElementById('structure-demographique').value = data.structure_demographique || '';
-                    document.getElementById('groupes-ethniques').value = data.groupes_ethniques || '';
-                    document.getElementById('activites-generatrices').value = data.activites_generatrices || '';
-                    document.getElementById('produits-terroir').value = data.produits_terroir || '';
-                    document.getElementById('infrastructures-scolaires').value = data.infrastructures_scolaires || '';
-                    document.getElementById('infrastructures-sante').value = data.infrastructures_sante || '';
-                    document.getElementById('infrastructures-routes').value = data.infrastructures_routes || '';
-                    document.getElementById('acces-electricite-eau').value = data.acces_electricite_eau || '';
-                    document.getElementById('sites-naturels').value = data.sites_naturels || '';
-                    document.getElementById('sites-culturels').value = data.sites_culturels || '';
-                    document.getElementById('personnalites-originaires').value = data.personnalites_originaires || '';
-                    document.getElementById('is-published').checked = data.description_published;
-                }
-
-                const geom = await supabase.rpc('st_asgeojson', { geom: data.geom });
+                const geomText = typeof data.geom === 'string' ? data.geom : JSON.stringify(data.geom);
                 document.getElementById('geom-method').value = 'upload';
                 document.getElementById('geom-format').value = 'geojson';
-                document.getElementById('geom-text').value = geom.data || '';
-
-                showModal('village-form');
-            } catch (error) {
-                console.error('Error editing village:', error);
-                alert('Erreur lors du chargement du village');
+                document.getElementById('geom-text').value = geomText;
+                
+                document.getElementById('geom-upload').classList.remove('hidden');
+                document.getElementById('geom-draw').classList.add('hidden');
+            } catch (geomError) {
+                console.error('Erreur traitement géométrie:', geomError);
             }
         }
 
+        // Charger les descriptions si disponibles
+        try {
+            const { data: descData, error: descError } = await supabaseClient
+                .from('village_descriptions')
+                .select('*')
+                .eq('village_id', id)
+                .single();
+            
+            if (!descError && descData) {
+                document.getElementById('description-form').classList.remove('hidden');
+                document.getElementById('histoire-origine').value = descData.histoire_origine || '';
+                document.getElementById('description-limites').value = descData.description_limites || '';
+                document.getElementById('importance-region').value = descData.importance_region || '';
+                document.getElementById('danses-musiques-rites').value = descData.danses_musiques_rites || '';
+                document.getElementById('gastronomie-locale').value = descData.gastronomie_locale || '';
+                document.getElementById('fetes-traditionnelles').value = descData.fetes_traditionnelles || '';
+                document.getElementById('structure-demographique').value = descData.structure_demographique || '';
+                document.getElementById('groupes-ethniques').value = descData.groupes_ethniques || '';
+                document.getElementById('activites-generatrices').value = descData.activites_generatrices || '';
+                document.getElementById('produits-terroir').value = descData.produits_terroir || '';
+                document.getElementById('infrastructures-scolaires').value = descData.infrastructures_scolaires || '';
+                document.getElementById('infrastructures-sante').value = descData.infrastructures_sante || '';
+                document.getElementById('infrastructures-routes').value = descData.infrastructures_routes || '';
+                document.getElementById('acces-electricite-eau').value = descData.acces_electricite_eau || '';
+                document.getElementById('sites-naturels').value = descData.sites_naturels || '';
+                document.getElementById('sites-culturels').value = descData.sites_culturels || '';
+                document.getElementById('personnalites-originaires').value = descData.personnalites_originaires || '';
+                document.getElementById('is-published').checked = descData.is_published || false;
+            }
+        } catch (descError) {
+            console.log('Aucune description trouvée pour ce village');
+        }
+
+        showModal('village-form');
+    } catch (error) {
+        console.error('Erreur lors du chargement du village:', error);
+        alert('Erreur lors du chargement du village: ' + error.message);
+    }
+}
         async function deleteVillage(id) {
             if (!confirm('Confirmer la suppression?')) return;
             try {
-                await supabase.from('villages').delete().eq('id', id);
+                await supabaseClient.from('villages').delete().eq('id', id);
                 loadVillages();
             } catch (error) {
                 console.error('Error deleting village:', error);
@@ -949,14 +1460,14 @@
                     geom: await getPointGeom('poi')
                 };
 
-                const { user } = await supabase.auth.getUser();
+                const { user } = await supabaseClient.auth.getUser();
                 data.created_by = user.id;
 
                 let error;
                 if (editingId) {
-                    ({ error } = await supabase.from('poi').update(data).eq('id', editingId));
+                    ({ error } = await supabaseClient.from('poi').update(data).eq('id', editingId));
                 } else {
-                    ({ error } = await supabase.from('poi').insert(data));
+                    ({ error } = await supabaseClient.from('poi').insert(data));
                 }
                 if (error) throw error;
 
@@ -989,14 +1500,14 @@
         async function editPoi(id) {
             editingId = id;
             try {
-                const { data, error } = await supabase.from('poi').select('*').eq('id', id).single();
+                const { data, error } = await supabaseClient.from('poi').select('*').eq('id', id).single();
                 if (error) throw error;
                 document.getElementById('poi-name').value = data.name;
                 document.getElementById('poi-type').value = data.type;
                 document.getElementById('poi-description').value = data.description || '';
                 document.getElementById('poi-village-id').value = data.village_id || '';
 
-                const point = await supabase.rpc('st_astext', { geom: data.geom });
+                const point = await supabaseClient.rpc('st_astext', { geom: data.geom });
                 const coords = point.data.match(/POINT\((.*) (.*)\)/);
                 if (coords) {
                     document.getElementById('poi-geom-method').value = 'coords';
@@ -1014,7 +1525,7 @@
         async function deletePoi(id) {
             if (!confirm('Confirmer la suppression?')) return;
             try {
-                await supabase.from('poi').delete().eq('id', id);
+                await supabaseClient.from('poi').delete().eq('id', id);
                 loadPoi();
             } catch (error) {
                 console.error('Error deleting POI:', error);
@@ -1032,14 +1543,14 @@
                     geom: await getPointGeom('geoname')
                 };
 
-                const { user } = await supabase.auth.getUser();
+                const { user } = await supabaseClient.auth.getUser();
                 data.created_by = user.id;
 
                 let error;
                 if (editingId) {
-                    ({ error } = await supabase.from('geonames').update(data).eq('id', editingId));
+                    ({ error } = await supabaseClient.from('geonames').update(data).eq('id', editingId));
                 } else {
-                    ({ error } = await supabase.from('geonames').insert(data));
+                    ({ error } = await supabaseClient.from('geonames').insert(data));
                 }
                 if (error) throw error;
 
@@ -1054,13 +1565,13 @@
         async function editGeoname(id) {
             editingId = id;
             try {
-                const { data, error } = await supabase.from('geonames').select('*').eq('id', id).single();
+                const { data, error } = await supabaseClient.from('geonames').select('*').eq('id', id).single();
                 if (error) throw error;
                 document.getElementById('geoname-nom').value = data.nom;
                 document.getElementById('geoname-type').value = data.type;
                 document.getElementById('geoname-description').value = data.description || '';
 
-                const point = await supabase.rpc('st_astext', { geom: data.geom });
+                const point = await supabaseClient.rpc('st_astext', { geom: data.geom });
                 const coords = point.data.match(/POINT\((.*) (.*)\)/);
                 if (coords) {
                     document.getElementById('geoname-geom-method').value = 'coords';
@@ -1078,7 +1589,7 @@
         async function deleteGeoname(id) {
             if (!confirm('Confirmer la suppression?')) return;
             try {
-                await supabase.from('geonames').delete().eq('id', id);
+                await supabaseClient.from('geonames').delete().eq('id', id);
                 loadGeonames();
             } catch (error) {
                 console.error('Error deleting geoname:', error);
@@ -1097,9 +1608,9 @@
 
                 let error;
                 if (editingId) {
-                    ({ error } = await supabase.from('admin_profiles').update(data).eq('id', editingId));
+                    ({ error } = await supabaseClient.from('admin_profiles').update(data).eq('id', editingId));
                 } else {
-                    ({ error } = await supabase.from('admin_profiles').insert(data));
+                    ({ error } = await supabaseClient.from('admin_profiles').insert(data));
                 }
                 if (error) throw error;
 
@@ -1114,7 +1625,7 @@
         async function editUser(id) {
             editingId = id;
             try {
-                const { data, error } = await supabase.from('admin_profiles').select('*').eq('id', id).single();
+                const { data, error } = await supabaseClient.from('admin_profiles').select('*').eq('id', id).single();
                 if (error) throw error;
                 document.getElementById('user-full-name').value = data.full_name;
                 document.getElementById('user-role').value = data.role;
@@ -1130,7 +1641,7 @@
         async function deleteUser(id) {
             if (!confirm('Confirmer la suppression?')) return;
             try {
-                await supabase.from('admin_profiles').delete().eq('id', id);
+                await supabaseClient.from('admin_profiles').delete().eq('id', id);
                 loadUsers();
             } catch (error) {
                 console.error('Error deleting user:', error);
@@ -1139,138 +1650,603 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        console.log('Initialisation admin panel...');
+        
+        // Vérifications de sécurité initiales
+        if (!supabaseClient) {
+            throw new Error('Supabase non initialisé');
+        }
+
+        // Test de connexion Supabase
+        try {
+            await testConnection();
+        } catch (connectionError) {
+            console.error('Erreur connexion:', connectionError);
+            alert('Problème de connexion à la base de données. Vérifiez votre connexion internet.');
+            return;
+        }
+        
+        // Authentification et chargement des données de base
+        await checkAuth();
+        await loadArrondissements();
+        await loadPoiTypes();
+        await loadVillagesForSelect('poi-village-id');
+        loadDashboard();
+
+        // Initialisation des cartes avec gestion d'erreur
+        console.log('Initialisation des cartes...');
+        try {
+            map = initMap('map');
+            poiMap = initMap('poi-map', true);
+            geonameMap = initMap('geoname-map', true);
+            console.log('Cartes initialisées avec succès');
+        } catch (mapError) {
+            console.error('Erreur initialisation cartes:', mapError);
+            alert('Erreur lors de l\'initialisation des cartes: ' + mapError.message);
+        }
+
+        // Configuration des event listeners de navigation
+        console.log('Configuration des event listeners de navigation...');
+        const navLinks = document.querySelectorAll('nav a');
+        console.log(`Found ${navLinks.length} navigation links`);
+        navLinks.forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const sectionId = a.getAttribute('href').slice(1);
+                console.log(`Navigation link clicked: ${sectionId}`);
+                showSection(sectionId);
+            });
+        });
+
+        // Event listeners pour l'interface utilisateur
+        const addEventListenerSafe = (id, event, handler, context = '') => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener(event, handler);
+                console.log(`Event listener ${event} ajouté pour ${id}`);
+            } else {
+                console.warn(`Élément ${id} non trouvé pour event listener ${context}`);
+            }
+        };
+
+        // Interface principale
+        addEventListenerSafe('hamburger-btn', 'click', () => {
+            console.log('Hamburger button clicked');
+            document.querySelector('.sidebar').classList.add('open');
+        }, 'interface');
+
+        addEventListenerSafe('close-sidebar', 'click', () => {
+            console.log('Close sidebar button clicked');
+            document.querySelector('.sidebar').classList.remove('open');
+        }, 'interface');
+
+        addEventListenerSafe('logout-btn', 'click', async () => {
+            console.log('Logout button clicked');
             try {
-                console.log('DOM fully loaded, initializing...');
-                await checkAuth();
-                await loadArrondissements();
-                await loadPoiTypes();
-                await loadVillagesForSelect('poi-village-id');
-                loadDashboard();
+                await supabaseClient.auth.signOut();
+                window.location.href = 'login.html';
+            } catch (logoutError) {
+                console.error('Erreur déconnexion:', logoutError);
+                alert('Erreur lors de la déconnexion');
+            }
+        }, 'auth');
 
-                // Initialize maps
-                console.log('Initializing maps...');
-                map = initMap('map');
-                poiMap = initMap('poi-map', true);
-                geonameMap = initMap('geoname-map', true);
+        // Boutons d'ajout d'entités
+        addEventListenerSafe('new-village-btn', 'click', () => {
+            console.log('New village button clicked');
+            showModal('village-form');
+        }, 'villages');
 
-                // Navigation event listeners
-                console.log('Setting up navigation event listeners...');
-                const navLinks = document.querySelectorAll('nav a');
-                console.log(`Found ${navLinks.length} navigation links`);
-                navLinks.forEach(a => {
-                    a.addEventListener('click', e => {
-                        e.preventDefault();
-                        const sectionId = a.getAttribute('href').slice(1);
-                        console.log(`Navigation link clicked: ${sectionId}`);
-                        showSection(sectionId);
-                    });
-                });
+        addEventListenerSafe('new-poi-btn', 'click', () => {
+            console.log('New POI button clicked');
+            showModal('poi-form');
+        }, 'POI');
 
-                document.getElementById('hamburger-btn').addEventListener('click', () => {
-                    console.log('Hamburger button clicked');
-                    document.querySelector('.sidebar').classList.add('open');
-                });
+        addEventListenerSafe('new-geoname-btn', 'click', () => {
+            console.log('New geoname button clicked');
+            showModal('geoname-form');
+        }, 'geonames');
 
-                document.getElementById('close-sidebar').addEventListener('click', () => {
-                    console.log('Close sidebar button clicked');
-                    document.querySelector('.sidebar').classList.remove('open');
-                });
+        addEventListenerSafe('new-user-btn', 'click', () => {
+            console.log('New user button clicked');
+            showModal('user-form');
+        }, 'users');
 
-                document.getElementById('logout-btn').addEventListener('click', async () => {
-                    console.log('Logout button clicked');
-                    await supabase.auth.signOut();
-                    window.location.href = 'login.html';
-                });
+        // Boutons de fermeture des modales
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modalId = btn.closest('.modal').id;
+                console.log(`Close modal button clicked for ${modalId}`);
+                hideModal(modalId);
+            });
+        });
 
-                document.getElementById('new-village-btn').addEventListener('click', () => {
-                    console.log('New village button clicked');
-                    showModal('village-form');
-                });
-                document.getElementById('new-poi-btn').addEventListener('click', () => {
-                    console.log('New POI button clicked');
-                    showModal('poi-form');
-                });
-                document.getElementById('new-geoname-btn').addEventListener('click', () => {
-                    console.log('New geoname button clicked');
-                    showModal('geoname-form');
-                });
-                document.getElementById('new-user-btn').addEventListener('click', () => {
-                    console.log('New user button clicked');
-                    showModal('user-form');
-                });
+        // Event listeners pour les formulaires
+        const villageForm = document.querySelector('#village-form form');
+        if (villageForm) {
+            villageForm.addEventListener('submit', saveVillage);
+            console.log('Event listener submit ajouté pour village form');
+        } else {
+            console.warn('Formulaire village non trouvé');
+        }
 
-                document.querySelectorAll('.close-modal').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const modalId = btn.closest('.modal').id;
-                        console.log(`Close modal button clicked for ${modalId}`);
-                        hideModal(modalId);
-                    });
-                });
+        const poiForm = document.querySelector('#poi-form form');
+        if (poiForm) {
+            poiForm.addEventListener('submit', savePoi);
+            console.log('Event listener submit ajouté pour POI form');
+        }
 
-                document.querySelector('#village-form form').addEventListener('submit', saveVillage);
-                document.querySelector('#poi-form form').addEventListener('submit', savePoi);
-                document.querySelector('#geoname-form form').addEventListener('submit', saveGeoname);
-                document.querySelector('#user-form form').addEventListener('submit', saveUser);
+        const geonameForm = document.querySelector('#geoname-form form');
+        if (geonameForm) {
+            geonameForm.addEventListener('submit', saveGeoname);
+            console.log('Event listener submit ajouté pour geoname form');
+        }
 
-                document.getElementById('geom-method').addEventListener('change', e => {
-                    console.log(`Geometry method changed to: ${e.target.value}`);
-                    document.getElementById('geom-upload').classList.toggle('hidden', e.target.value !== 'upload');
-                    document.getElementById('geom-draw').classList.toggle('hidden', e.target.value !== 'draw');
-                });
+        const userForm = document.querySelector('#user-form form');
+        if (userForm) {
+            userForm.addEventListener('submit', saveUser);
+            console.log('Event listener submit ajouté pour user form');
+        }
 
-                document.getElementById('poi-geom-method').addEventListener('change', e => {
-                    console.log(`POI geometry method changed to: ${e.target.value}`);
-                    document.getElementById('poi-coords').classList.toggle('hidden', e.target.value !== 'coords');
-                    document.getElementById('poi-map').classList.toggle('hidden', e.target.value !== 'click');
-                });
+        // Event listeners pour les méthodes de géométrie
+        addEventListenerSafe('geom-method', 'change', e => {
+            console.log(`Geometry method changed to: ${e.target.value}`);
+            document.getElementById('geom-upload').classList.toggle('hidden', e.target.value !== 'upload');
+            document.getElementById('geom-draw').classList.toggle('hidden', e.target.value !== 'draw');
+        }, 'geometry');
 
-                document.getElementById('geoname-geom-method').addEventListener('change', e => {
-                    console.log(`Geoname geometry method changed to: ${e.target.value}`);
-                    document.getElementById('geoname-coords').classList.toggle('hidden', e.target.value !== 'coords');
-                    document.getElementById('geoname-map').classList.toggle('hidden', e.target.value !== 'click');
-                });
+        addEventListenerSafe('poi-geom-method', 'change', e => {
+            console.log(`POI geometry method changed to: ${e.target.value}`);
+            document.getElementById('poi-coords').classList.toggle('hidden', e.target.value !== 'coords');
+            document.getElementById('poi-map').classList.toggle('hidden', e.target.value !== 'click');
+        }, 'POI geometry');
 
-                document.getElementById('start-draw').addEventListener('click', () => {
-                    console.log('Start draw button clicked');
-                    drawControl.enable();
-                });
+        addEventListenerSafe('geoname-geom-method', 'change', e => {
+            console.log(`Geoname geometry method changed to: ${e.target.value}`);
+            document.getElementById('geoname-coords').classList.toggle('hidden', e.target.value !== 'coords');
+            document.getElementById('geoname-map').classList.toggle('hidden', e.target.value !== 'click');
+        }, 'geoname geometry');
 
-                document.getElementById('clear-draw').addEventListener('click', () => {
-                    console.log('Clear draw button clicked');
-                    if (drawnLayer) map.removeLayer(drawnLayer);
-                    drawnLayer = null;
-                });
+        // Event listeners pour le dessin
+        addEventListenerSafe('start-draw', 'click', () => {
+            console.log('Start draw button clicked');
+            if (drawControl) {
+                drawControl.enable();
+            } else {
+                console.warn('drawControl non initialisé');
+            }
+        }, 'drawing');
 
-                map.on('draw:created', e => {
-                    console.log('Draw created on village map');
-                    if (drawnLayer) map.removeLayer(drawnLayer);
-                    drawnLayer = e.layer;
-                    map.addLayer(drawnLayer);
-                });
+        addEventListenerSafe('clear-draw', 'click', () => {
+            console.log('Clear draw button clicked');
+            if (drawnLayer && map) {
+                map.removeLayer(drawnLayer);
+                drawnLayer = null;
+            }
+        }, 'drawing');
 
-                poiMap.on('draw:created', e => {
-                    console.log('Draw created on POI map');
-                    if (drawnLayer) poiMap.removeLayer(drawnLayer);
-                    drawnLayer = e.layer;
-                    poiMap.addLayer(drawnLayer);
-                });
+        addEventListenerSafe('add-description-btn', 'click', () => {
+            console.log('Add description button clicked');
+            const descForm = document.getElementById('description-form');
+            if (descForm) {
+                descForm.classList.remove('hidden');
+            }
+        }, 'descriptions');
 
-                geonameMap.on('draw:created', e => {
-                    console.log('Draw created on geoname map');
-                    if (drawnLayer) geonameMap.removeLayer(drawnLayer);
-                    drawnLayer = e.layer;
-                    geonameMap.addLayer(drawnLayer);
-                });
+        // Event listeners pour les cartes avec vérifications
+        if (map) {
+            map.on('draw:created', e => {
+                console.log('Draw created on village map');
+                if (drawnLayer) map.removeLayer(drawnLayer);
+                drawnLayer = e.layer;
+                map.addLayer(drawnLayer);
+                
+                // Mettre à jour la superficie calculée si c'est un polygone
+                if (drawnLayer && drawnLayer.toGeoJSON) {
+                    try {
+                        const geojson = drawnLayer.toGeoJSON();
+                        const area = calculateAreaFromGeoJSON(geojson.geometry);
+                        if (area > 0) {
+                            const areaDisplay = document.getElementById('existing-area');
+                            if (areaDisplay) {
+                                areaDisplay.textContent = `${area.toFixed(2)} hectares (calculée)`;
+                                areaDisplay.style.color = '#2c5530';
+                                areaDisplay.style.fontWeight = 'bold';
+                            }
+                        }
+                    } catch (areaError) {
+                        console.error('Erreur calcul superficie:', areaError);
+                    }
+                }
+            });
+        } else {
+            console.warn('Map principale non initialisée pour les events draw');
+        }
 
-                document.getElementById('add-description-btn').addEventListener('click', () => {
-                    console.log('Add description button clicked');
-                    document.getElementById('description-form').classList.remove('hidden');
-                });
+        if (poiMap) {
+            poiMap.on('draw:created', e => {
+                console.log('Draw created on POI map');
+                if (drawnLayer) poiMap.removeLayer(drawnLayer);
+                drawnLayer = e.layer;
+                poiMap.addLayer(drawnLayer);
+            });
+        }
+
+        if (geonameMap) {
+            geonameMap.on('draw:created', e => {
+                console.log('Draw created on geoname map');
+                if (drawnLayer) geonameMap.removeLayer(drawnLayer);
+                drawnLayer = e.layer;
+                geonameMap.addLayer(drawnLayer);
+            });
+        }
+
+        // Event listener pour mise à jour superficie lors saisie manuelle
+        addEventListenerSafe('geom-text', 'input', function() {
+            try {
+                const geomText = this.value.trim();
+                const areaDisplay = document.getElementById('existing-area');
+                if (!areaDisplay) return;
+                
+                if (geomText) {
+                    const geometry = JSON.parse(geomText);
+                    const area = calculateAreaFromGeoJSON(geometry);
+                    if (area > 0) {
+                        areaDisplay.textContent = `${area.toFixed(2)} hectares (calculée)`;
+                        areaDisplay.style.color = '#2c5530';
+                        areaDisplay.style.fontWeight = 'bold';
+                    } else {
+                        areaDisplay.textContent = 'Géométrie invalide pour le calcul';
+                        areaDisplay.style.color = '#dc3545';
+                    }
+                } else {
+                    areaDisplay.textContent = 'Non calculée';
+                    areaDisplay.style.color = '#666';
+                }
             } catch (error) {
-                console.error('Initialization error:', error);
-                alert('Erreur lors de l\'initialisation de la page');
+                const areaDisplay = document.getElementById('existing-area');
+                if (areaDisplay) {
+                    areaDisplay.textContent = 'Format JSON invalide';
+                    areaDisplay.style.color = '#dc3545';
+                }
+            }
+        }, 'superficie');
+
+        console.log('Admin panel initialisé avec succès');
+        
+    } catch (error) {
+        console.error('Erreur critique lors de l\'initialisation:', error);
+        alert('Erreur critique lors de l\'initialisation de la page: ' + error.message);
+    }
+});
+
+// Fonction de test de connexion (à placer avant le DOMContentLoaded)
+async function testConnection() {
+    try {
+        const { data, error } = await supabaseClient.from('villages').select('count').limit(1);
+        if (error) throw error;
+        console.log('Connexion Supabase OK');
+        return true;
+    } catch (error) {
+        console.error('Erreur connexion Supabase:', error);
+        throw new Error('Problème de connexion à la base de données');
+    }
+}
+
+// Fonctions de calcul de superficie (à placer avant le DOMContentLoaded)
+function calculateAreaFromGeoJSON(geometry) {
+    if (!geometry || !geometry.coordinates) {
+        return 0;
+    }
+    
+    try {
+        let totalArea = 0;
+        
+        if (geometry.type === 'Polygon') {
+            const coordinates = geometry.coordinates[0];
+            if (coordinates && coordinates.length > 3) {
+                const latlngs = coordinates.map(coord => ({lat: coord[1], lng: coord[0]}));
+                totalArea = calculatePolygonAreaHectares(latlngs);
+            }
+        } else if (geometry.type === 'MultiPolygon') {
+            geometry.coordinates.forEach(polygon => {
+                const coordinates = polygon[0];
+                if (coordinates && coordinates.length > 3) {
+                    const latlngs = coordinates.map(coord => ({lat: coord[1], lng: coord[0]}));
+                    totalArea += calculatePolygonAreaHectares(latlngs);
+                }
+            });
+        }
+        
+        return totalArea;
+    } catch (error) {
+        console.error('Erreur calcul superficie:', error);
+        return 0;
+    }
+}
+
+function calculatePolygonAreaHectares(latlngs) {
+    if (latlngs.length < 3) return 0;
+    
+    const R = 6371000; // Rayon de la Terre en mètres
+    let area = 0;
+    const n = latlngs.length;
+    
+    for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        const lat1 = latlngs[i].lat * Math.PI / 180;
+        const lat2 = latlngs[j].lat * Math.PI / 180;
+        const deltaLng = (latlngs[j].lng - latlngs[i].lng) * Math.PI / 180;
+        
+        area += deltaLng * (2 + Math.sin(lat1) + Math.sin(lat2));
+    }
+    
+    area = Math.abs(area) * R * R / 2;
+    return area / 10000; // Convertir de m² à hectares
+}
+
+
+// setupEvent 
+
+    function setupEventListeners() {
+    // Navigation
+    const navLinks = document.querySelectorAll('nav a');
+    navLinks.forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            const sectionId = a.getAttribute('href').slice(1);
+            showSection(sectionId);
+        });
+    });
+
+    // Boutons principaux avec vérification d'existence
+    const addEventListenerSafe = (id, event, handler) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener(event, handler);
+        } else {
+            console.warn(`Élément ${id} non trouvé pour event listener`);
+        }
+    };
+
+    addEventListenerSafe('hamburger-btn', 'click', () => {
+        document.querySelector('.sidebar').classList.add('open');
+    });
+
+    addEventListenerSafe('close-sidebar', 'click', () => {
+        document.querySelector('.sidebar').classList.remove('open');
+    });
+
+    addEventListenerSafe('logout-btn', 'click', async () => {
+        await supabaseClient.auth.signOut();
+        window.location.href = 'login.html';
+    });
+
+    // Boutons d'ajout
+    addEventListenerSafe('new-village-btn', 'click', () => showModal('village-form'));
+    addEventListenerSafe('new-poi-btn', 'click', () => showModal('poi-form'));
+    addEventListenerSafe('new-geoname-btn', 'click', () => showModal('geoname-form'));
+    addEventListenerSafe('new-user-btn', 'click', () => showModal('user-form'));
+
+    // Fermeture modales
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const modalId = btn.closest('.modal').id;
+            hideModal(modalId);
+        });
+    });
+
+    // Formulaires
+    const villageForm = document.querySelector('#village-form form');
+    if (villageForm) {
+        villageForm.addEventListener('submit', saveVillage);
+    }
+
+    const poiForm = document.querySelector('#poi-form form');
+    if (poiForm) {
+        poiForm.addEventListener('submit', savePoi);
+    }
+
+    const geonameForm = document.querySelector('#geoname-form form');
+    if (geonameForm) {
+        geonameForm.addEventListener('submit', saveGeoname);
+    }
+
+    const userForm = document.querySelector('#user-form form');
+    if (userForm) {
+        userForm.addEventListener('submit', saveUser);
+    }
+
+    // Méthodes de géométrie
+    addEventListenerSafe('geom-method', 'change', e => {
+        document.getElementById('geom-upload').classList.toggle('hidden', e.target.value !== 'upload');
+        document.getElementById('geom-draw').classList.toggle('hidden', e.target.value !== 'draw');
+    });
+
+    addEventListenerSafe('poi-geom-method', 'change', e => {
+        document.getElementById('poi-coords').classList.toggle('hidden', e.target.value !== 'coords');
+        document.getElementById('poi-map').classList.toggle('hidden', e.target.value !== 'click');
+    });
+
+    addEventListenerSafe('geoname-geom-method', 'change', e => {
+        document.getElementById('geoname-coords').classList.toggle('hidden', e.target.value !== 'coords');
+        document.getElementById('geoname-map').classList.toggle('hidden', e.target.value !== 'click');
+    });
+
+    // Dessin
+    addEventListenerSafe('start-draw', 'click', () => {
+        if (drawControl) drawControl.enable();
+    });
+
+    addEventListenerSafe('clear-draw', 'click', () => {
+        if (drawnLayer && map) {
+            map.removeLayer(drawnLayer);
+            drawnLayer = null;
+        }
+    });
+
+    addEventListenerSafe('add-description-btn', 'click', () => {
+        document.getElementById('description-form').classList.remove('hidden');
+    });
+
+    // Events cartes avec vérification
+    if (map) {
+        map.on('draw:created', e => {
+            if (drawnLayer) map.removeLayer(drawnLayer);
+            drawnLayer = e.layer;
+            map.addLayer(drawnLayer);
+            
+            // Mettre à jour la superficie
+            if (drawnLayer && drawnLayer.toGeoJSON) {
+                try {
+                    const geojson = drawnLayer.toGeoJSON();
+                    const area = calculateAreaFromGeoJSON(geojson.geometry);
+                    if (area > 0) {
+                        const areaDisplay = document.getElementById('existing-area');
+                        if (areaDisplay) {
+                            areaDisplay.textContent = `${area.toFixed(2)} hectares (calculée)`;
+                            areaDisplay.style.color = '#2c5530';
+                            areaDisplay.style.fontWeight = 'bold';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erreur calcul superficie:', error);
+                }
             }
         });
+    }
+
+    if (poiMap) {
+        poiMap.on('draw:created', e => {
+            if (drawnLayer) poiMap.removeLayer(drawnLayer);
+            drawnLayer = e.layer;
+            poiMap.addLayer(drawnLayer);
+        });
+    }
+
+    if (geonameMap) {
+        geonameMap.on('draw:created', e => {
+            if (drawnLayer) geonameMap.removeLayer(drawnLayer);
+            drawnLayer = e.layer;
+            geonameMap.addLayer(drawnLayer);
+        });
+    }
+
+    // Mise à jour superficie lors de la saisie manuelle
+    addEventListenerSafe('geom-text', 'input', function() {
+        try {
+            const geomText = this.value.trim();
+            const areaDisplay = document.getElementById('existing-area');
+            if (!areaDisplay) return;
+            
+            if (geomText) {
+                const geometry = JSON.parse(geomText);
+                const area = calculateAreaFromGeoJSON(geometry);
+                if (area > 0) {
+                    areaDisplay.textContent = `${area.toFixed(2)} hectares (calculée)`;
+                    areaDisplay.style.color = '#2c5530';
+                    areaDisplay.style.fontWeight = 'bold';
+                } else {
+                    areaDisplay.textContent = 'Géométrie invalide pour le calcul';
+                    areaDisplay.style.color = '#dc3545';
+                }
+            } else {
+                areaDisplay.textContent = 'Non calculée';
+                areaDisplay.style.color = '#666';
+            }
+        } catch (error) {
+            const areaDisplay = document.getElementById('existing-area');
+            if (areaDisplay) {
+                areaDisplay.textContent = 'Format JSON invalide';
+                areaDisplay.style.color = '#dc3545';
+            }
+        }
+    });
+}
+
+
+
+
+// FONCTION DE TEST DE CONNEXION (à ajouter avant le DOMContentLoaded)
+async function testConnection() {
+    try {
+        const { data, error } = await supabaseClient.from('villages').select('count').limit(1);
+        if (error) throw error;
+        console.log('Connexion Supabase OK');
+        return true;
+    } catch (error) {
+        console.error('Erreur connexion Supabase:', error);
+        throw new Error('Problème de connexion à la base de données');
+    }
+}
+
+// FONCTION DE CALCUL DE SUPERFICIE (à ajouter avant le DOMContentLoaded)
+function calculateAreaFromGeoJSON(geometry) {
+    if (!geometry || !geometry.coordinates) {
+        return 0;
+    }
+    
+    try {
+        let totalArea = 0;
+        
+        if (geometry.type === 'Polygon') {
+            const coordinates = geometry.coordinates[0];
+            if (coordinates && coordinates.length > 3) {
+                const latlngs = coordinates.map(coord => ({lat: coord[1], lng: coord[0]}));
+                totalArea = calculatePolygonAreaHectares(latlngs);
+            }
+        } else if (geometry.type === 'MultiPolygon') {
+            geometry.coordinates.forEach(polygon => {
+                const coordinates = polygon[0];
+                if (coordinates && coordinates.length > 3) {
+                    const latlngs = coordinates.map(coord => ({lat: coord[1], lng: coord[0]}));
+                    totalArea += calculatePolygonAreaHectares(latlngs);
+                }
+            });
+        }
+        
+        return totalArea;
+    } catch (error) {
+        console.error('Erreur calcul superficie:', error);
+        return 0;
+    }
+}
+
+function calculatePolygonAreaHectares(latlngs) {
+    if (latlngs.length < 3) return 0;
+    
+    const R = 6371000;
+    let area = 0;
+    const n = latlngs.length;
+    
+    for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        const lat1 = latlngs[i].lat * Math.PI / 180;
+        const lat2 = latlngs[j].lat * Math.PI / 180;
+        const deltaLng = (latlngs[j].lng - latlngs[i].lng) * Math.PI / 180;
+        
+        area += deltaLng * (2 + Math.sin(lat1) + Math.sin(lat2));
+    }
+    
+    area = Math.abs(area) * R * R / 2;
+    return area / 10000; // Convertir en hectares
+}
+
+        async function testConnection() {
+            try {
+                const { data, error } = await supabaseClient.from('villages').select('count').limit(1);
+                if (error) throw error;
+                console.log('✅ Connexion Supabase OK');
+                return true;
+            } catch (error) {
+                console.error('❌ Erreur connexion Supabase:', error);
+                alert('Problème de connexion à la base de données');
+                return false;
+            }
+        }
+
+
     </script>
 </body>
 </html>
