@@ -35,6 +35,12 @@ Principle of least privilege in database permissions
 Regular dependency vulnerability scanning
 
 
+
+--lien youtube pour caulde ai en cmd
+
+https://www.youtube.com/watch?v=qdltyxbNkgs
+
+
 -- à propos de monvillage: 
 
 https://claude.ai/chat/5da22dcf-4299-4539-9bd9-3483be718b37
@@ -54,9 +60,10 @@ corrections acceptées, état actuelet trois prochaines étapes.
 
 --prompt pour recommencer claude en cmd :
 
- > voici le projet sur lequel je travaillais: C:\Users\LENOVO\Desktop\monvillage2. 
+ > voici le projet sur lequel je travaillais: C:\Users\LENOVO\Desktop\monvillage2.
   accède entièrement à la bd de supabase. voici la clé du servic_role of my supabase project:
-   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6InNlcnZp  
-    Y2Vfcm9sZSIsImlhdCI6MTc1MjczMjAzNywiZXhwIjoyMDY4MzA4MDM3fQ.VQW8bJ_2DVlHXavcxzcSYR6Pn_IxsZqSQWuTZunIKZo   
+   [CLÉ SERVICE_ROLE - voir dashboard Supabase]
 
  mets mon application à jour ici: https://github.com/thibaudet77/monvillage
+
+ Github PAT : [voir GitHub Settings > Developer settings > Personal access tokens]
