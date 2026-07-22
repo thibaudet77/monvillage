@@ -3769,9 +3769,16 @@ async function loadArrondissementsOptimized() {
                         print_title: printConfig.title
                     },
                     callback: function(data) {
-                        console.log('Paiement confirme:', data);
-                        paymentInitiated = true;
-                        handlePaymentSuccess(data, txRef, data.payment_type || selectedPaymentMethod);
+                        console.log('Reponse Flutterwave:', data);
+                        if (data.status === 'successful' || data.status === 'completed') {
+                            paymentInitiated = true;
+                            handlePaymentSuccess(data, txRef, data.payment_type || selectedPaymentMethod);
+                        } else {
+                            console.warn('Paiement non abouti, statut:', data.status);
+                            document.getElementById('paymentSpinner').style.display = 'none';
+                            document.getElementById('confirmPayment').disabled = false;
+                            showNotification('Le paiement n\'a pas abouti. Veuillez reessayer.', 'error');
+                        }
                     },
                     onclose: function() {
                         console.log('Fenetre Flutterwave fermee');
