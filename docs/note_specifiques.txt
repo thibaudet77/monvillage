@@ -66,4 +66,3 @@ corrections acceptées, état actuelet trois prochaines étapes.
 
  mets mon application à jour ici: https://github.com/thibaudet77/monvillage
 
- Github PAT : [voir GitHub Settings > Developer settings > Personal access tokens]
