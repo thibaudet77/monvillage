@@ -11,6 +11,10 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
+    <!-- MapLibre GL JS for 3D view -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
  
     
     <style>
@@ -613,9 +617,21 @@
                     <button class="tool-btn" id="printMap" title="Imprimer la carte"><i class="fas fa-print"></i></button>
                     <button class="tool-btn" id="zoomHome" title="Vue d'ensemble"><i class="fas fa-home"></i></button>
                     <button class="tool-btn" id="toggleSatellite" title="Vue satellite"><i class="fas fa-satellite"></i></button>
+                    <button class="tool-btn" id="toggle3D" title="Vue 3D"><i class="fas fa-cube"></i></button>
                 </div>
                 <button class="locate-btn" id="locateUser" title="Ma position"><i class="fas fa-crosshairs"></i></button>
                 <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- Modal Vue 3D -->
+        <div id="modal3D" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background:#000;">
+            <div id="map3d" style="width:100%; height:100%;"></div>
+            <button id="close3D" style="position:absolute; top:15px; right:15px; z-index:10000; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:40px; height:40px; font-size:18px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-times"></i>
+            </button>
+            <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:white; padding:8px 16px; border-radius:20px; font-size:13px; pointer-events:none;">
+                Clic droit + glisser pour incliner | Molette pour zoomer
             </div>
         </div>
 
@@ -4090,6 +4106,71 @@ async function loadArrondissementsOptimized() {
             }
         }
 
+        // VUE 3D
+        let map3dInstance = null;
+
+        function open3DView() {
+            const modal = document.getElementById('modal3D');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+
+            if (map3dInstance) {
+                map3dInstance.remove();
+                map3dInstance = null;
+            }
+
+            map3dInstance = new maplibregl.Map({
+                container: 'map3d',
+                style: {
+                    version: 8,
+                    sources: {
+                        osm: {
+                            type: 'raster',
+                            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                            tileSize: 256,
+                            attribution: '&copy; OpenStreetMap contributors'
+                        },
+                        terrain: {
+                            type: 'raster-dem',
+                            tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+                            tileSize: 256,
+                            encoding: 'terrarium'
+                        }
+                    },
+                    layers: [{
+                        id: 'osm-tiles',
+                        type: 'raster',
+                        source: 'osm',
+                        minzoom: 0,
+                        maxzoom: 19
+                    }],
+                    terrain: {
+                        source: 'terrain',
+                        exaggeration: 1.5
+                    }
+                },
+                center: [center.lng, center.lat],
+                zoom: zoom,
+                pitch: 60,
+                bearing: -20,
+                maxPitch: 85
+            });
+
+            map3dInstance.addControl(new maplibregl.NavigationControl());
+        }
+
+        function close3DView() {
+            document.getElementById('modal3D').style.display = 'none';
+            document.body.style.overflow = 'hidden';
+            if (map3dInstance) {
+                map3dInstance.remove();
+                map3dInstance = null;
+            }
+        }
+
         // GESTION DES ÉVÉNEMENTS
         function initializeEventListeners() {
             // Navigation et interface
@@ -4098,7 +4179,9 @@ async function loadArrondissementsOptimized() {
             document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
             document.getElementById('zoomHome').addEventListener('click', () => map.setView(CONFIG.map.center, CONFIG.map.zoom));
             document.getElementById('toggleSatellite').addEventListener('click', toggleSatelliteView);
-            
+            document.getElementById('toggle3D').addEventListener('click', open3DView);
+            document.getElementById('close3D').addEventListener('click', close3DView);
+
             // Géolocalisation
             document.getElementById('locateUser').addEventListener('click', locateUser);
             
