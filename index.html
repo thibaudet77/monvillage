@@ -11,9 +11,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
-    <!-- MapLibre GL JS for 3D view -->
-    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
-    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <!-- Mapbox GL JS for 3D view -->
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
 
  
     
@@ -627,12 +627,9 @@
         <!-- Modal Vue 3D -->
         <div id="modal3D" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background:#000;">
             <div id="map3d" style="width:100%; height:100%;"></div>
-            <button id="close3D" style="position:absolute; top:15px; right:15px; z-index:10000; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:40px; height:40px; font-size:18px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
-                <i class="fas fa-times"></i>
+            <button id="close3D" style="position:absolute; top:15px; left:15px; z-index:10000; background:rgba(255,255,255,0.95); border:none; border-radius:8px; width:40px; height:40px; font-size:18px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-arrow-left"></i>
             </button>
-            <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:white; padding:8px 16px; border-radius:20px; font-size:13px; pointer-events:none;">
-                Clic droit + glisser pour incliner | Molette pour zoomer
-            </div>
         </div>
 
         <!-- Footer -->
@@ -4122,44 +4119,55 @@ async function loadArrondissementsOptimized() {
                 map3dInstance = null;
             }
 
-            map3dInstance = new maplibregl.Map({
+            mapboxgl.accessToken = CONFIG.mapbox.accessToken;
+
+            map3dInstance = new mapboxgl.Map({
                 container: 'map3d',
-                style: {
-                    version: 8,
-                    sources: {
-                        osm: {
-                            type: 'raster',
-                            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                            tileSize: 256,
-                            attribution: '&copy; OpenStreetMap contributors'
-                        },
-                        terrain: {
-                            type: 'raster-dem',
-                            tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-                            tileSize: 256,
-                            encoding: 'terrarium'
-                        }
-                    },
-                    layers: [{
-                        id: 'osm-tiles',
-                        type: 'raster',
-                        source: 'osm',
-                        minzoom: 0,
-                        maxzoom: 19
-                    }],
-                    terrain: {
-                        source: 'terrain',
-                        exaggeration: 1.5
-                    }
-                },
+                style: 'mapbox://styles/mapbox/streets-v12',
                 center: [center.lng, center.lat],
-                zoom: zoom,
+                zoom: Math.max(zoom, 14),
                 pitch: 60,
                 bearing: -20,
-                maxPitch: 85
+                antialias: true
             });
 
-            map3dInstance.addControl(new maplibregl.NavigationControl());
+            map3dInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+            map3dInstance.on('style.load', () => {
+                map3dInstance.addSource('mapbox-dem', {
+                    type: 'raster-dem',
+                    url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                    tileSize: 512,
+                    maxzoom: 14
+                });
+                map3dInstance.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+                map3dInstance.setFog({
+                    range: [0.8, 8],
+                    color: '#d0e8f0',
+                    'horizon-blend': 0.1,
+                    'high-color': '#245bde',
+                    'space-color': '#000000',
+                    'star-intensity': 0.15
+                });
+
+                const layers = map3dInstance.getStyle().layers;
+                const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field'])?.id;
+
+                map3dInstance.addLayer({
+                    id: '3d-buildings',
+                    source: 'composite',
+                    'source-layer': 'building',
+                    filter: ['==', 'extrude', 'true'],
+                    type: 'fill-extrusion',
+                    minzoom: 13,
+                    paint: {
+                        'fill-extrusion-color': '#aaa',
+                        'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 13, 0, 13.05, ['get', 'height']],
+                        'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 13, 0, 13.05, ['get', 'min_height']],
+                        'fill-extrusion-opacity': 0.7
+                    }
+                }, labelLayerId);
+            });
         }
 
         function close3DView() {
