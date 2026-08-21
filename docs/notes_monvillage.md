@@ -49,8 +49,7 @@ C:\Users\LENOVO> psql   "postgresql://postgres.hrlufnjhwhgddxkpyzst:nefertyty586
 ## importation de PostgreSQL
   
 
-  pg_dump -h localhost -U postgres -d telecom -t arrondissements --data-only --column-inserts -f 
-   C:\Users\LENOVO\Desktop\projet_foncier_app_data\data_bon\arrondissements_data.sql
+  ## pg_dump -h localhost -U postgres -d telecom -t arrondissements --data-only --column-inserts -f  C:\Users\LENOVO\Desktop\projet_foncier_app_data\data_bon\arrondissements_data.sql
 
    ## mise à jour :  
 
