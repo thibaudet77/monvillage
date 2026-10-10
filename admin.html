@@ -95,6 +95,7 @@
                 <ul>
                     <li><a href="#dashboard" class="block p-4 text-gray-700 hover:bg-blue-100 active">Tableau de bord</a></li>
                     <li><a href="#villages" class="block p-4 text-gray-700 hover:bg-blue-100">Villages</a></li>
+                    <li><a href="#villages-ponctuels" class="block p-4 text-gray-700 hover:bg-blue-100">Villages ponctuels</a></li>
                     <li><a href="#poi" class="block p-4 text-gray-700 hover:bg-blue-100">Points d'intérêt</a></li>
                     <li><a href="#geonames" class="block p-4 text-gray-700 hover:bg-blue-100">Géonymes</a></li>
                     <li><a href="#users" class="block p-4 text-gray-700 hover:bg-blue-100">Utilisateurs</a></li>
@@ -431,6 +432,57 @@
                             </div>
                             <div id="geoname-map" class="form-group hidden map-container"></div>
                             <button type="submit" id="save-geoname-btn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700">Enregistrer le Géonyme</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="villages-ponctuels" class="hidden">
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                        <h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">Villages Ponctuels</h2>
+                        <button id="new-vp-btn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Nouveau Village Ponctuel</button>
+                    </div>
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="p-2 text-left">Nom</th>
+                                <th class="p-2 text-left">Arrondissement</th>
+                                <th class="p-2 text-left">Population</th>
+                                <th class="p-2 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vp-table"></tbody>
+                    </table>
+                </div>
+
+                <div id="vp-form" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div class="modal-content bg-white p-4 sm:p-6 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <h2 id="vp-form-title" class="text-lg sm:text-xl font-semibold mb-4">Ajouter un Village Ponctuel</h2>
+                        <button class="close-modal float-right px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Annuler</button>
+                        <form>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="form-group mb-4">
+                                    <label class="block mb-1 font-medium">Nom du village *</label>
+                                    <input type="text" id="vp-name" class="w-full p-2 border rounded" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label class="block mb-1 font-medium">Arrondissement</label>
+                                    <select id="vp-arrondissement" class="w-full p-2 border rounded">
+                                        <option value="">Sélectionner...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label class="block mb-1 font-medium">Population</label>
+                                    <input type="number" id="vp-population" class="w-full p-2 border rounded" min="0">
+                                </div>
+                            </div>
+                            <div class="form-group mb-4">
+                                <label class="block mb-1 font-medium">Position (cliquez sur la carte) *</label>
+                                <div id="vp-map" class="map-container" style="height:350px;"></div>
+                                <p class="text-sm text-gray-500 mt-1">Lat: <span id="vp-lat">-</span> | Lng: <span id="vp-lng">-</span></p>
+                            </div>
+                            <button type="submit" id="save-vp-btn" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-blue-700">Enregistrer</button>
                         </form>
                     </div>
                 </div>
@@ -965,6 +1017,7 @@ window.addEventListener('error', function(e) {
             console.log(`Loading data for section: ${currentSection}`);
             if (currentSection === 'dashboard') loadDashboard();
             else if (currentSection === 'villages') loadVillages();
+            else if (currentSection === 'villages-ponctuels') loadVillagesPonctuels();
             else if (currentSection === 'poi') loadPoi();
             else if (currentSection === 'geonames') loadGeonames();
             else if (currentSection === 'users') loadUsers();
@@ -1449,6 +1502,164 @@ window.addEventListener('error', function(e) {
             }
         }
 
+        // ============================================================
+        // VILLAGES PONCTUELS CRUD
+        // ============================================================
+        let vpMap, vpMarker, vpEditingId = null;
+
+        async function loadVillagesPonctuels() {
+            try {
+                const { data, error } = await supabaseClient.from('village_ponctuel').select('*').order('name');
+                if (error) throw error;
+                const tbody = document.getElementById('vp-table');
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Aucun village ponctuel</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(vp => `
+                    <tr class="border-t">
+                        <td class="p-2">${vp.name || '<em>Sans nom</em>'}</td>
+                        <td class="p-2">${vp.arrondissement_name || '-'}</td>
+                        <td class="p-2">${vp.population || '-'}</td>
+                        <td class="p-2">
+                            <button onclick="editVP(${vp.id})" class="px-2 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600">Modifier</button>
+                            <button onclick="deleteVP(${vp.id})" class="px-2 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">Supprimer</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Erreur chargement villages ponctuels:', error);
+            }
+        }
+
+        function initVPMap() {
+            if (vpMap) return;
+            vpMap = L.map('vp-map').setView([5.0, 12.0], 6);
+            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
+                id: 'mapbox/streets-v11', tileSize: 512, zoomOffset: -1
+            }).addTo(vpMap);
+
+            vpMap.on('click', function(e) {
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                if (vpMarker) vpMap.removeLayer(vpMarker);
+                vpMarker = L.marker([lat, lng]).addTo(vpMap);
+                document.getElementById('vp-lat').textContent = lat.toFixed(6);
+                document.getElementById('vp-lng').textContent = lng.toFixed(6);
+            });
+        }
+
+        function loadVPArrondissements() {
+            const select = document.getElementById('vp-arrondissement');
+            if (select.options.length > 1) return;
+            const srcSelect = document.getElementById('arrondissement-id');
+            if (srcSelect) {
+                for (let i = 0; i < srcSelect.options.length; i++) {
+                    const opt = srcSelect.options[i].cloneNode(true);
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        async function saveVP(e) {
+            e.preventDefault();
+            const name = document.getElementById('vp-name').value.trim();
+            const latText = document.getElementById('vp-lat').textContent;
+            const lngText = document.getElementById('vp-lng').textContent;
+
+            if (!name) { alert('Le nom est requis'); return; }
+            if (latText === '-' || lngText === '-') { alert('Cliquez sur la carte pour placer le village'); return; }
+
+            const lat = parseFloat(latText);
+            const lng = parseFloat(lngText);
+            const arrSelect = document.getElementById('vp-arrondissement');
+            const arrName = arrSelect.options[arrSelect.selectedIndex]?.text || null;
+
+            const data = {
+                name: name,
+                population: parseInt(document.getElementById('vp-population').value) || null,
+                arrondissement_name: arrSelect.value ? arrName : null,
+                geom: JSON.stringify({ type: 'Point', coordinates: [lng, lat] })
+            };
+
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (vpEditingId) {
+                    data.updated_by = user.id;
+                    data.updated_at = new Date().toISOString();
+                    const { error } = await supabaseClient.from('village_ponctuel').update(data).eq('id', vpEditingId);
+                    if (error) throw error;
+                } else {
+                    data.created_by = user.id;
+                    const { error } = await supabaseClient.from('village_ponctuel').insert(data);
+                    if (error) throw error;
+                }
+                hideModal('vp-form');
+                loadVillagesPonctuels();
+                alert(vpEditingId ? 'Village ponctuel modifié' : 'Village ponctuel ajouté');
+            } catch (error) {
+                console.error('Erreur sauvegarde VP:', error);
+                alert('Erreur: ' + error.message);
+            }
+        }
+
+        async function editVP(id) {
+            vpEditingId = id;
+            try {
+                const { data, error } = await supabaseClient.from('village_ponctuel').select('*').eq('id', id).single();
+                if (error) throw error;
+
+                document.getElementById('vp-form-title').textContent = 'Modifier le Village Ponctuel';
+                document.getElementById('vp-name').value = data.name || '';
+                document.getElementById('vp-population').value = data.population || '';
+
+                showModal('vp-form');
+                setTimeout(() => {
+                    initVPMap();
+                    loadVPArrondissements();
+                    vpMap.invalidateSize();
+
+                    if (data.arrondissement_name) {
+                        const sel = document.getElementById('vp-arrondissement');
+                        for (let i = 0; i < sel.options.length; i++) {
+                            if (sel.options[i].text === data.arrondissement_name) {
+                                sel.selectedIndex = i; break;
+                            }
+                        }
+                    }
+
+                    if (data.geom) {
+                        const geom = typeof data.geom === 'string' ? JSON.parse(data.geom) : data.geom;
+                        let lat, lng;
+                        if (geom.type === 'Point') { lng = geom.coordinates[0]; lat = geom.coordinates[1]; }
+                        else if (geom.type === 'MultiPoint') { lng = geom.coordinates[0][0]; lat = geom.coordinates[0][1]; }
+                        if (lat && lng) {
+                            if (vpMarker) vpMap.removeLayer(vpMarker);
+                            vpMarker = L.marker([lat, lng]).addTo(vpMap);
+                            vpMap.setView([lat, lng], 12);
+                            document.getElementById('vp-lat').textContent = lat.toFixed(6);
+                            document.getElementById('vp-lng').textContent = lng.toFixed(6);
+                        }
+                    }
+                }, 200);
+            } catch (error) {
+                console.error('Erreur édition VP:', error);
+                alert('Erreur chargement du village');
+            }
+        }
+
+        async function deleteVP(id) {
+            if (!confirm('Confirmer la suppression de ce village ponctuel?')) return;
+            try {
+                const { error } = await supabaseClient.from('village_ponctuel').delete().eq('id', id);
+                if (error) throw error;
+                loadVillagesPonctuels();
+            } catch (error) {
+                console.error('Erreur suppression VP:', error);
+                alert('Erreur lors de la suppression');
+            }
+        }
+
         async function savePoi(e) {
             e.preventDefault();
             try {
@@ -1748,6 +1959,18 @@ window.addEventListener('error', function(e) {
             showModal('geoname-form');
         }, 'geonames');
 
+        addEventListenerSafe('new-vp-btn', 'click', () => {
+            vpEditingId = null;
+            document.getElementById('vp-form-title').textContent = 'Ajouter un Village Ponctuel';
+            document.getElementById('vp-name').value = '';
+            document.getElementById('vp-population').value = '';
+            document.getElementById('vp-lat').textContent = '-';
+            document.getElementById('vp-lng').textContent = '-';
+            if (vpMarker && vpMap) { vpMap.removeLayer(vpMarker); vpMarker = null; }
+            showModal('vp-form');
+            setTimeout(() => { initVPMap(); loadVPArrondissements(); vpMap.invalidateSize(); }, 200);
+        }, 'villages-ponctuels');
+
         addEventListenerSafe('new-user-btn', 'click', () => {
             console.log('New user button clicked');
             showModal('user-form');
@@ -1781,6 +2004,11 @@ window.addEventListener('error', function(e) {
         if (geonameForm) {
             geonameForm.addEventListener('submit', saveGeoname);
             console.log('Event listener submit ajouté pour geoname form');
+        }
+
+        const vpForm = document.querySelector('#vp-form form');
+        if (vpForm) {
+            vpForm.addEventListener('submit', saveVP);
         }
 
         const userForm = document.querySelector('#user-form form');

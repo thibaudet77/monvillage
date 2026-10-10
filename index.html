@@ -344,6 +344,18 @@
             max-width: 420px;
             text-align: justify;
         }
+        .vp-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: #7b2d00;
+            font-weight: 600;
+            font-size: 10px;
+            padding: 0 !important;
+            white-space: nowrap;
+            text-shadow: 1px 1px 2px #fff, -1px -1px 2px #fff, 1px -1px 2px #fff, -1px 1px 2px #fff;
+        }
+        .vp-label::before { display: none !important; }
         .village-popup .leaflet-popup-content-wrapper {
             padding: 0;
             overflow: hidden;
@@ -591,6 +603,7 @@
                     <div class="layer-control-item"><span>Départements</span><div class="layer-toggle active" data-layer="departements"></div></div>
                     <div class="layer-control-item"><span>Arrondissements</span><div class="layer-toggle active" data-layer="arrondissements"></div></div>
                     <div class="layer-control-item"><span>Villages</span><div class="layer-toggle active" data-layer="villages"></div></div>
+                    <div class="layer-control-item"><span>Villages ponctuels</span><div class="layer-toggle active" data-layer="villagesPonctuels"></div></div>
                     <div class="layer-control-item"><span>Points d'intérêt</span><div class="layer-toggle active" data-layer="poi"></div></div>
                     <div class="layer-control-item"><span>Géonymes</span><div class="layer-toggle active" data-layer="geonames"></div></div>
                 </div>
@@ -1073,8 +1086,8 @@
         };
 
         let map, supabase, previewMap;
-        let mapLayers = { regions: null, departements: null, arrondissements: null, villages: null, poi: null, geonames: null };
-        let mapDataCache = { regions: [], departements: [], arrondissements: [], villages: [] };
+        let mapLayers = { regions: null, departements: null, arrondissements: null, villages: null, villagesPonctuels: null, poi: null, geonames: null };
+        let mapDataCache = { regions: [], departements: [], arrondissements: [], villages: [], villagesPonctuels: [] };
         let baseLayers = { standard: null, satellite: null };
         let currentBaseLayer = 'standard';
         let suspended = false;
@@ -1261,8 +1274,9 @@
                 const panes = [
                     { name: 'regionsPane', zIndex: 400 },
                     { name: 'departementsPane', zIndex: 410 },
-                    { name: 'arrondissementsPane', zIndex: 650 },   // ✅ ÉLEVÉ
-                    { name: 'villagesPane', zIndex: 660 }           // ✅ Maximum
+                    { name: 'arrondissementsPane', zIndex: 650 },
+                    { name: 'villagesPane', zIndex: 660 },
+                    { name: 'villagesPonctuelsPane', zIndex: 655 }
                 ];
                 
                 panes.forEach(pane => {
@@ -1434,21 +1448,30 @@
                 showNotification('Recherche hors ligne limitée', 'warning');
                 return;
             }
-            
+
             try {
-                // Recherche dans les villages et noms de chefs
-                const { data, error } = await supabase
-                    .from('villages_complete')
-                    .select('*')
-                    .or(`village_name.ilike.%${query}%,chief_name.ilike.%${query}%`)
-                    .eq('is_active', true)
-                    .limit(10);
-                
-                if (error) throw error;
-                
-                currentSearchResults = data || [];
+                const [polygonRes, ponctuelRes] = await Promise.all([
+                    supabase
+                        .from('villages_complete')
+                        .select('*')
+                        .or(`village_name.ilike.%${query}%,chief_name.ilike.%${query}%`)
+                        .eq('is_active', true)
+                        .limit(8),
+                    supabase
+                        .from('village_ponctuel')
+                        .select('*')
+                        .ilike('name', `%${query}%`)
+                        .limit(5)
+                ]);
+
+                if (polygonRes.error) throw polygonRes.error;
+
+                const polygonResults = (polygonRes.data || []).map(v => ({ ...v, _type: 'polygon' }));
+                const ponctuelResults = (ponctuelRes.data || []).map(vp => ({ ...vp, _type: 'ponctuel' }));
+
+                currentSearchResults = [...polygonResults, ...ponctuelResults].slice(0, 10);
                 displaySearchResults(currentSearchResults, query);
-                
+
             } catch (error) {
                 console.error('Erreur recherche:', error);
                 showNotification('Erreur lors de la recherche', 'error');
@@ -1457,19 +1480,35 @@
 
         function displaySearchResults(results, query) {
             const searchResults = document.getElementById('searchResults');
-            
+
             if (!results || results.length === 0) {
                 searchResults.innerHTML = '<div class="search-result-item">Aucun résultat trouvé</div>';
                 searchResults.style.display = 'block';
                 return;
             }
-            
-            const resultsHTML = results.map((village, index) => {
-                const villageName = highlightMatch(village.village_name, query);
-                const chiefName = village.chief_name ? highlightMatch(village.chief_name, query) : 'Non renseigné';
-                
+
+            const resultsHTML = results.map((item, index) => {
+                if (item._type === 'ponctuel') {
+                    const vpName = highlightMatch(item.name || 'Sans nom', query);
+                    const arrName = item.arrondissement_name || '';
+                    return `
+                        <div class="search-result-item" data-index="${index}">
+                            <div class="search-result-main">
+                                <strong>${vpName}</strong>
+                                <span class="search-result-badge" style="background:#e74c3c;color:#fff;">Ponctuel</span>
+                            </div>
+                            <div class="search-result-details">
+                                <div class="search-result-location">
+                                    <i class="fas fa-map-pin"></i> ${arrName || 'Village ponctuel'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                const villageName = highlightMatch(item.village_name, query);
+                const chiefName = item.chief_name ? highlightMatch(item.chief_name, query) : 'Non renseigné';
                 return `
-                    <div class="search-result-item" data-village-id="${village.id}" data-index="${index}">
+                    <div class="search-result-item" data-index="${index}">
                         <div class="search-result-main">
                             <strong>${villageName}</strong>
                             <span class="search-result-badge">Village</span>
@@ -1479,22 +1518,21 @@
                                 <i class="fas fa-user-tie"></i> ${chiefName}
                             </div>
                             <div class="search-result-location">
-                                <i class="fas fa-map-marker-alt"></i> 
-                                ${village.arrondissement_name} → ${village.departement_name} → ${village.region_name}
+                                <i class="fas fa-map-marker-alt"></i>
+                                ${item.arrondissement_name} → ${item.departement_name} → ${item.region_name}
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
-            
+
             searchResults.innerHTML = resultsHTML;
             searchResults.style.display = 'block';
-            
-            // Ajouter les événements de clic
-            document.querySelectorAll('.search-result-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const villageId = this.getAttribute('data-village-id');
-                    selectSearchResult(results.find(r => r.id === villageId));
+
+            document.querySelectorAll('.search-result-item').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.getAttribute('data-index'));
+                    selectSearchResult(results[idx]);
                 });
             });
         }
@@ -1521,16 +1559,41 @@
 
         function selectSearchResult(village) {
             if (!village) return;
-            
+
             hideSearchResults();
+
+            if (village._type === 'ponctuel') {
+                document.getElementById('searchInput').value = village.name || 'Village ponctuel';
+                const geom = parseGeometry(village.geom);
+                if (!geom) return;
+                let lat, lng;
+                if (geom.type === 'MultiPoint') { lng = geom.coordinates[0][0]; lat = geom.coordinates[0][1]; }
+                else if (geom.type === 'Point') { lng = geom.coordinates[0]; lat = geom.coordinates[1]; }
+                else return;
+
+                map.setView([lat, lng], 15);
+                setTimeout(() => {
+                    if (mapLayers.villagesPonctuels) {
+                        if (!map.hasLayer(mapLayers.villagesPonctuels)) map.addLayer(mapLayers.villagesPonctuels);
+                        mapLayers.villagesPonctuels.eachLayer(marker => {
+                            if (marker.vpData && marker.vpData.id === village.id) {
+                                marker.openPopup();
+                            }
+                        });
+                    }
+                }, 600);
+                showNotification(`Village "${village.name || 'ponctuel'}" trouvé`, 'success');
+                return;
+            }
+
             document.getElementById('searchInput').value = village.village_name;
-            
+
             // Zoomer sur le village
             if (village.centroid) {
                 const centroid = parseGeometry(village.centroid);
                 if (centroid && centroid.coordinates) {
                     map.setView([centroid.coordinates[1], centroid.coordinates[0]], 15);
-                    
+
                     // Ouvrir le popup après un délai
                     setTimeout(() => {
                         if (mapLayers.villages) {
@@ -2129,6 +2192,7 @@
                     await loadDepartementsOptimized();      // Niveau 2
                     await loadArrondissementsOptimized();   // Niveau 3
                     await loadVillagesOptimized();          // Niveau 4
+                    await loadVillagesPonctuels();          // Niveau 4b - Points
                     // await loadPOIOptimized();            // Niveau 5 - À activer plus tard
                     // await loadGeonamesOptimized();       // Niveau 6 - À activer plus tard
                     
@@ -2150,6 +2214,7 @@
                     { name: 'regionsPane', expectedZ: 400 },
                     { name: 'departementsPane', expectedZ: 410 },
                     { name: 'arrondissementsPane', expectedZ: 420 },
+                    { name: 'villagesPonctuelsPane', expectedZ: 655 },
                     { name: 'villagesPane', expectedZ: 650 }
                 ];
                 
@@ -2214,7 +2279,114 @@
         throw error;
     }
 }
-     
+
+async function loadVillagesPonctuels() {
+    try {
+        const { data, error } = await supabase
+            .from('village_ponctuel')
+            .select('*');
+
+        if (error) throw error;
+        if (!data || data.length === 0) return;
+
+        mapDataCache.villagesPonctuels = data;
+        mapLayers.villagesPonctuels = L.layerGroup();
+
+        for (const vp of data) {
+            if (!vp.geom) continue;
+            const geometry = parseGeometry(vp.geom);
+            if (!geometry || !geometry.coordinates || geometry.coordinates.length === 0) continue;
+
+            let lat, lng;
+            if (geometry.type === 'MultiPoint') {
+                lng = geometry.coordinates[0][0];
+                lat = geometry.coordinates[0][1];
+            } else if (geometry.type === 'Point') {
+                lng = geometry.coordinates[0];
+                lat = geometry.coordinates[1];
+            } else continue;
+
+            const marker = L.circleMarker([lat, lng], {
+                radius: 4,
+                fillColor: '#e74c3c',
+                color: '#c0392b',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.85,
+                pane: 'villagesPonctuelsPane'
+            }).addTo(mapLayers.villagesPonctuels);
+
+            const arrondissement = vp.arrondissement_name || findArrondissementForPoint(lat, lng);
+            const popupContent = createVillagePonctuelPopup(vp, arrondissement);
+            marker.bindPopup(popupContent, {
+                maxWidth: window.innerWidth < 480 ? (window.innerWidth - 60) : 280,
+                minWidth: 180,
+                className: 'village-popup'
+            });
+
+            marker.vpData = vp;
+            marker.vpData._arrondissement = arrondissement;
+        }
+
+        console.log(`✅ ${data.length} villages ponctuels chargés`);
+    } catch (error) {
+        console.error('Erreur villages ponctuels:', error);
+    }
+}
+
+function findArrondissementForPoint(lat, lng) {
+    if (!mapDataCache.arrondissements) return 'Non déterminé';
+    const latlng = L.latLng(lat, lng);
+    for (const arr of mapDataCache.arrondissements) {
+        if (!arr.geom) continue;
+        const geometry = parseGeometry(arr.geom);
+        if (!geometry) continue;
+        try {
+            const geoLayer = L.geoJSON(geometry);
+            let found = false;
+            geoLayer.eachLayer(layer => {
+                if (found) return;
+                if (layer.getBounds && layer.getBounds().contains(latlng)) {
+                    if (layer.getLatLngs) {
+                        found = isPointInLayer(latlng, layer);
+                    } else {
+                        found = true;
+                    }
+                }
+            });
+            if (found) return arr.nom_arrondissement;
+        } catch (e) { continue; }
+    }
+    return 'Non déterminé';
+}
+
+function createVillagePonctuelPopup(vp, arrondissement) {
+    const populationText = vp.population ?
+        vp.population.toLocaleString() + ' habitants' : 'Non renseignée';
+
+    return `
+        <div class="village-popup-inner">
+            <div class="village-popup-header">
+                <h3 class="village-popup-title">
+                    <i class="fas fa-map-pin"></i> ${vp.name || 'Village sans nom'}
+                </h3>
+                <p class="village-popup-location">${arrondissement}</p>
+            </div>
+            <div class="village-popup-body">
+                <div class="village-popup-stats">
+                    <div class="village-popup-stat">
+                        <div class="village-popup-stat-label">Population</div>
+                        <div class="village-popup-stat-value">${populationText}</div>
+                    </div>
+                    <div class="village-popup-stat">
+                        <div class="village-popup-stat-label">Type</div>
+                        <div class="village-popup-stat-value">Village ponctuel</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
 function createVillagePopup(village) {
             const areaText = village.area_hectares ? 
@@ -2733,7 +2905,36 @@ async function loadArrondissementsOptimized() {
                     layer.setStyle({ opacity: 0.8, fillOpacity: 0 });
                 });
             }
-            
+
+            if (mapLayers.villagesPonctuels) {
+                const vpVisible = zoom >= 12;
+                if (vpVisible && !map.hasLayer(mapLayers.villagesPonctuels)) {
+                    map.addLayer(mapLayers.villagesPonctuels);
+                } else if (!vpVisible && map.hasLayer(mapLayers.villagesPonctuels)) {
+                    map.removeLayer(mapLayers.villagesPonctuels);
+                }
+                if (vpVisible) {
+                    const radius = zoom <= 12 ? 3 : zoom <= 14 ? 5 : zoom <= 16 ? 7 : 9;
+                    const fontSize = zoom <= 12 ? 9 : zoom <= 14 ? 11 : zoom <= 16 ? 13 : 15;
+                    mapLayers.villagesPonctuels.eachLayer(marker => {
+                        if (marker.setRadius) marker.setRadius(radius);
+                        if (marker.vpData && marker.vpData.name && zoom >= 14) {
+                            if (!marker.getTooltip()) {
+                                marker.bindTooltip(marker.vpData.name, {
+                                    permanent: true,
+                                    direction: 'right',
+                                    offset: [8, 0],
+                                    className: 'vp-label'
+                                });
+                            }
+                            marker.getTooltip().getElement().style.fontSize = fontSize + 'px';
+                        } else if (marker.getTooltip() && zoom < 14) {
+                            marker.unbindTooltip();
+                        }
+                    });
+                }
+            }
+
             // ✅ Réappliquer la hiérarchie des clics
             applyClickHierarchy();
         }
