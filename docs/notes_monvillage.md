@@ -70,3 +70,7 @@ C:\Users\LENOVO> psql   "postgresql://postgres.accawudgrlhrsiwepnfw:nefertyty586
 
 
  psql "postgresql://postgres.accawudgrlhrsiwepnfw:nefertyty586@aws-1-eu-north-1.pooler.supabase.com:5432/postgres" -f C:\Users\LENOVO\Desktop\projet_foncier_app_data\data_bon\road_l_data.sql
+
+
+
+
