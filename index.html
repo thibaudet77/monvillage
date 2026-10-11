@@ -276,8 +276,8 @@
             transition: background-color 0.2s;
         }
 
-        .search-result-item:hover {
-            background-color: #f8f9fa;
+        .search-result-item:hover, .search-result-item.selected {
+            background-color: #f0f4f8;
         }
 
         .search-result-item:last-child {
@@ -362,6 +362,38 @@
             letter-spacing: 0.3px;
         }
         .vp-label::before { display: none !important; }
+        .vp-edit-mode { cursor: crosshair !important; }
+        .vp-admin-btn {
+            position: absolute; bottom: 30px; right: 10px; z-index: 1000;
+            background: #e74c3c; color: #fff; border: none; border-radius: 8px;
+            padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: none;
+        }
+        .vp-admin-btn.active { background: #27ae60; }
+        .vp-admin-btn:hover { opacity: 0.9; }
+        .vp-edit-modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .vp-edit-form {
+            background: #fff; border-radius: 12px; padding: 24px; width: 340px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .vp-edit-form h3 { margin: 0 0 16px; font-size: 16px; color: #333; }
+        .vp-edit-form label { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600; color: #555; }
+        .vp-edit-form input, .vp-edit-form select {
+            width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px;
+            font-size: 13px; margin-bottom: 12px; box-sizing: border-box;
+        }
+        .vp-edit-form .vp-btn-row { display: flex; gap: 8px; margin-top: 8px; }
+        .vp-edit-form .vp-btn-row button {
+            flex: 1; padding: 8px; border: none; border-radius: 6px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .vp-btn-save { background: #27ae60; color: #fff; }
+        .vp-btn-cancel { background: #eee; color: #333; }
+        .vp-btn-delete { background: #e74c3c; color: #fff; }
         .village-popup .leaflet-popup-content-wrapper {
             padding: 0;
             overflow: hidden;
@@ -640,6 +672,9 @@
                 </div>
                 <button class="locate-btn" id="locateUser" title="Ma position"><i class="fas fa-crosshairs"></i></button>
                 <div id="map"></div>
+                <button class="vp-admin-btn" id="vpAdminBtn" title="Mode édition villages ponctuels">
+                    <i class="fas fa-map-pin"></i> Mode édition
+                </button>
             </div>
         </div>
 
@@ -1145,6 +1180,7 @@
         // Variables pour la recherche intelligente
         let searchTimeout;
         let currentSearchResults = [];
+        let searchSelectedIndex = -1;
 
 
         function applyClickHierarchy() {
@@ -1429,15 +1465,23 @@
                 }
             });
             
-            // Événement de touche Entrée
             searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
+                const items = document.querySelectorAll('.search-result-item');
+                if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    if (currentSearchResults.length > 0) {
-                        selectSearchResult(currentSearchResults[0]);
-                    }
+                    searchSelectedIndex = Math.min(searchSelectedIndex + 1, items.length - 1);
+                    updateSearchSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    searchSelectedIndex = Math.max(searchSelectedIndex - 1, 0);
+                    updateSearchSelection(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const idx = searchSelectedIndex >= 0 ? searchSelectedIndex : 0;
+                    if (currentSearchResults.length > 0) selectSearchResult(currentSearchResults[idx]);
                 } else if (e.key === 'Escape') {
                     hideSearchResults();
+                    searchSelectedIndex = -1;
                 }
             });
             
@@ -1453,19 +1497,56 @@
             return str.normalize('NFD').replace(/[̀-ͯ]/g, '');
         }
 
+        function normalizeSearch(str) {
+            return removeAccents(str.toLowerCase()).replace(/[''`\-\s]/g, '');
+        }
+
+        function searchScore(nameNorm, arrNorm, queryNorm) {
+            if (nameNorm === queryNorm) return 100;
+            if (nameNorm.startsWith(queryNorm)) return 80;
+            if (nameNorm.includes(queryNorm)) return 60;
+            if (arrNorm && arrNorm.includes(queryNorm)) return 30;
+            const words = queryNorm.split(/\s+/);
+            if (words.length > 1 && words.every(w => nameNorm.includes(w) || (arrNorm && arrNorm.includes(w)))) return 40;
+            if (queryNorm.length >= 3 && fuzzyMatch(nameNorm, queryNorm)) return 20;
+            return 0;
+        }
+
+        function fuzzyMatch(text, query) {
+            let ti = 0, qi = 0, gaps = 0, lastMatch = -1;
+            while (ti < text.length && qi < query.length) {
+                if (text[ti] === query[qi]) {
+                    if (lastMatch >= 0 && ti - lastMatch > 1) gaps++;
+                    lastMatch = ti;
+                    qi++;
+                }
+                ti++;
+            }
+            return qi === query.length && gaps <= Math.floor(query.length / 3);
+        }
+
         let vpSearchCache = null;
         async function getVpSearchCache() {
             if (vpSearchCache) return vpSearchCache;
-            const { data } = await supabase
-                .from('village_ponctuel')
-                .select('id,name,arrondissement_name,geom,population');
-            if (data) {
-                vpSearchCache = data.map(vp => ({
-                    ...vp,
-                    _nameNorm: vp.name ? removeAccents(vp.name.toLowerCase()) : ''
-                }));
+            let all = [], offset = 0;
+            const PAGE = 1000;
+            while (true) {
+                const { data, error } = await supabase
+                    .from('village_ponctuel')
+                    .select('id,name,arrondissement_name,geom,population')
+                    .range(offset, offset + PAGE - 1);
+                if (error || !data || data.length === 0) break;
+                all = all.concat(data);
+                if (data.length < PAGE) break;
+                offset += PAGE;
             }
-            return vpSearchCache || [];
+            vpSearchCache = all.map(vp => ({
+                ...vp,
+                _nameNorm: vp.name ? normalizeSearch(vp.name) : '',
+                _arrNorm: vp.arrondissement_name ? normalizeSearch(vp.arrondissement_name) : ''
+            }));
+            console.log(`Cache recherche: ${vpSearchCache.length} villages ponctuels`);
+            return vpSearchCache;
         }
 
         async function performIntelligentSearch(query) {
@@ -1475,7 +1556,7 @@
             }
 
             try {
-                const queryNorm = removeAccents(query.toLowerCase());
+                const queryNorm = normalizeSearch(query);
 
                 const [polygonRes, vpCache] = await Promise.all([
                     supabase
@@ -1491,12 +1572,14 @@
 
                 const polygonResults = (polygonRes.data || []).map(v => ({ ...v, _type: 'polygon' }));
 
-                const ponctuelResults = vpCache
-                    .filter(vp => vp._nameNorm && vp._nameNorm.includes(queryNorm))
+                const scored = vpCache
+                    .map(vp => ({ vp, score: searchScore(vp._nameNorm, vp._arrNorm, queryNorm) }))
+                    .filter(s => s.score > 0)
+                    .sort((a, b) => b.score - a.score)
                     .slice(0, 10)
-                    .map(vp => ({ ...vp, _type: 'ponctuel' }));
+                    .map(s => ({ ...s.vp, _type: 'ponctuel' }));
 
-                currentSearchResults = [...polygonResults, ...ponctuelResults].slice(0, 10);
+                currentSearchResults = [...polygonResults, ...scored].slice(0, 12);
                 displaySearchResults(currentSearchResults, query);
 
             } catch (error) {
@@ -1556,6 +1639,7 @@
             searchResults.innerHTML = resultsHTML;
             searchResults.style.display = 'block';
 
+            searchSelectedIndex = -1;
             document.querySelectorAll('.search-result-item').forEach(el => {
                 el.addEventListener('click', function() {
                     const idx = parseInt(this.getAttribute('data-index'));
@@ -1564,16 +1648,29 @@
             });
         }
 
+        function updateSearchSelection(items) {
+            items.forEach((el, i) => el.classList.toggle('selected', i === searchSelectedIndex));
+            if (items[searchSelectedIndex]) items[searchSelectedIndex].scrollIntoView({ block: 'nearest' });
+        }
+
         function highlightMatch(text, query) {
             if (!text) return '';
-            const textNorm = removeAccents(text.toLowerCase());
-            const queryNorm = removeAccents(query.toLowerCase());
-            const idx = textNorm.indexOf(queryNorm);
-            if (idx === -1) return text;
-            const before = text.slice(0, idx);
-            const match = text.slice(idx, idx + query.length);
-            const after = text.slice(idx + query.length);
-            return before + '<mark>' + match + '</mark>' + after;
+            const textNorm = normalizeSearch(text);
+            const queryNorm = normalizeSearch(query);
+            const normIdx = textNorm.indexOf(queryNorm);
+            if (normIdx === -1) return text;
+            let ni = 0, startOrig = 0, endOrig = text.length;
+            for (let i = 0; i < text.length; i++) {
+                if (ni === normIdx) { startOrig = i; break; }
+                if (normalizeSearch(text[i])) ni++;
+            }
+            ni = 0;
+            let matchedChars = 0;
+            for (let i = startOrig; i < text.length; i++) {
+                if (normalizeSearch(text[i])) matchedChars++;
+                if (matchedChars === queryNorm.length) { endOrig = i + 1; break; }
+            }
+            return text.slice(0, startOrig) + '<mark>' + text.slice(startOrig, endOrig) + '</mark>' + text.slice(endOrig);
         }
 
         function hideSearchResults() {
@@ -2315,14 +2412,23 @@
 
 async function loadVillagesPonctuels() {
     try {
-        const { data, error } = await supabase
-            .from('village_ponctuel')
-            .select('*');
+        let all = [], offset = 0;
+        const PAGE = 1000;
+        while (true) {
+            const { data, error } = await supabase
+                .from('village_ponctuel')
+                .select('*')
+                .range(offset, offset + PAGE - 1);
+            if (error) throw error;
+            if (!data || data.length === 0) break;
+            all = all.concat(data);
+            if (data.length < PAGE) break;
+            offset += PAGE;
+        }
+        if (all.length === 0) return;
 
-        if (error) throw error;
-        if (!data || data.length === 0) return;
-
-        mapDataCache.villagesPonctuels = data;
+        mapDataCache.villagesPonctuels = all;
+        const data = all;
         mapLayers.villagesPonctuels = L.layerGroup();
 
         for (const vp of data) {
@@ -2340,12 +2446,12 @@ async function loadVillagesPonctuels() {
             } else continue;
 
             const marker = L.circleMarker([lat, lng], {
-                radius: 4,
-                fillColor: '#e74c3c',
-                color: '#c0392b',
+                radius: 1.3,
+                fillColor: '#000000',
+                color: '#000000',
                 weight: 1,
                 opacity: 1,
-                fillOpacity: 0.85,
+                fillOpacity: 1,
                 pane: 'villagesPonctuelsPane'
             }).addTo(mapLayers.villagesPonctuels);
 
@@ -2947,7 +3053,7 @@ async function loadArrondissementsOptimized() {
                     map.removeLayer(mapLayers.villagesPonctuels);
                 }
                 if (vpVisible) {
-                    const radius = zoom <= 11 ? 2 : zoom <= 13 ? 3 : zoom <= 15 ? 5 : zoom <= 17 ? 7 : 9;
+                    const radius = zoom <= 11 ? 0.7 : zoom <= 13 ? 1 : zoom <= 15 ? 1.7 : zoom <= 17 ? 2.3 : 3;
                     const showLabels = zoom >= 12;
                     const fontSize = zoom <= 12 ? 8 : zoom <= 13 ? 9 : zoom <= 14 ? 10 : zoom <= 15 ? 11 : zoom <= 16 ? 13 : zoom <= 17 ? 15 : 17;
                     mapLayers.villagesPonctuels.eachLayer(marker => {
@@ -4593,7 +4699,270 @@ async function loadArrondissementsOptimized() {
             window.location.href = 'login.html';
         };
 
+        // ================================================================
+        // MODE ÉDITION ADMIN - Villages ponctuels
+        // ================================================================
+        let vpEditMode = false;
+        let vpAdminUser = null;
 
+        async function checkAdminSession() {
+            if (!supabase) return;
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
+                const { data: profile } = await supabase
+                    .from('admin_profiles')
+                    .select('id, is_active')
+                    .eq('id', session.user.id)
+                    .eq('is_active', true)
+                    .single();
+                if (profile) {
+                    vpAdminUser = session.user;
+                    document.getElementById('vpAdminBtn').style.display = 'block';
+                }
+            } catch (e) { }
+        }
+
+        function toggleVpEditMode() {
+            vpEditMode = !vpEditMode;
+            const btn = document.getElementById('vpAdminBtn');
+            btn.classList.toggle('active', vpEditMode);
+            btn.innerHTML = vpEditMode
+                ? '<i class="fas fa-check"></i> Fin édition'
+                : '<i class="fas fa-map-pin"></i> Mode édition';
+            document.getElementById('map').classList.toggle('vp-edit-mode', vpEditMode);
+
+            if (mapLayers.villagesPonctuels) {
+                mapLayers.villagesPonctuels.eachLayer(marker => {
+                    if (!marker.vpData) return;
+                    if (vpEditMode) {
+                        marker.on('contextmenu', onVpRightClick);
+                        enableVpDrag(marker);
+                    } else {
+                        marker.off('contextmenu', onVpRightClick);
+                        disableVpDrag(marker);
+                    }
+                });
+            }
+        }
+
+        function enableVpDrag(marker) {
+            if (marker._vpDragEnabled) return;
+            marker._vpDragEnabled = true;
+            let dragging = false, startLatLng;
+            marker._vpMouseDown = function(e) {
+                if (!vpEditMode) return;
+                dragging = true;
+                startLatLng = marker.getLatLng();
+                map.dragging.disable();
+                L.DomEvent.stopPropagation(e);
+            };
+            marker._vpMouseMove = function(e) {
+                if (!dragging) return;
+                marker.setLatLng(e.latlng);
+            };
+            marker._vpMouseUp = async function(e) {
+                if (!dragging) return;
+                dragging = false;
+                map.dragging.enable();
+                const newLL = marker.getLatLng();
+                const geom = { type: 'Point', coordinates: [newLL.lng, newLL.lat] };
+                const { error } = await supabase
+                    .from('village_ponctuel')
+                    .update({ geom: geom })
+                    .eq('id', marker.vpData.id);
+                if (error) {
+                    marker.setLatLng(startLatLng);
+                    showNotification('Erreur déplacement', 'error');
+                } else {
+                    marker.vpData.geom = geom;
+                    showNotification('Village déplacé', 'success', 1500);
+                }
+            };
+            marker.on('mousedown', marker._vpMouseDown);
+            map.on('mousemove', marker._vpMouseMove);
+            map.on('mouseup', marker._vpMouseUp);
+        }
+
+        function disableVpDrag(marker) {
+            if (!marker._vpDragEnabled) return;
+            marker._vpDragEnabled = false;
+            marker.off('mousedown', marker._vpMouseDown);
+            map.off('mousemove', marker._vpMouseMove);
+            map.off('mouseup', marker._vpMouseUp);
+        }
+
+        function onVpRightClick(e) {
+            L.DomEvent.stopPropagation(e);
+            L.DomEvent.preventDefault(e);
+            openVpEditForm(this.vpData, this);
+        }
+
+        function onMapClickAddVp(e) {
+            if (!vpEditMode) return;
+            const newVp = {
+                name: '',
+                arrondissement_name: findArrondissementForPoint(e.latlng.lat, e.latlng.lng),
+                population: null,
+                geom: { type: 'Point', coordinates: [e.latlng.lng, e.latlng.lat] }
+            };
+            openVpEditForm(newVp, null, true);
+        }
+
+        function openVpEditForm(vp, marker, isNew) {
+            const arrOptions = (mapDataCache.arrondissements || [])
+                .map(a => a.nom_arrondissement)
+                .filter(Boolean)
+                .sort()
+                .map(n => `<option value="${n}" ${n === vp.arrondissement_name ? 'selected' : ''}>${n}</option>`)
+                .join('');
+
+            const deleteBtn = isNew ? '' : '<button type="button" class="vp-btn-delete" onclick="deleteVpFromForm()">Supprimer</button>';
+
+            const modal = document.createElement('div');
+            modal.className = 'vp-edit-modal';
+            modal.id = 'vpEditModal';
+            modal.innerHTML = `
+                <div class="vp-edit-form">
+                    <h3>${isNew ? 'Ajouter un village' : 'Modifier le village'}</h3>
+                    <label>Nom</label>
+                    <input type="text" id="vpEditName" value="${vp.name || ''}" placeholder="Nom du village">
+                    <label>Arrondissement</label>
+                    <select id="vpEditArr"><option value="">—</option>${arrOptions}</select>
+                    <label>Population</label>
+                    <input type="number" id="vpEditPop" value="${vp.population || ''}" min="0" placeholder="0">
+                    <div class="vp-btn-row">
+                        <button type="button" class="vp-btn-save" onclick="saveVpFromForm()">Enregistrer</button>
+                        <button type="button" class="vp-btn-cancel" onclick="closeVpEditForm()">Annuler</button>
+                        ${deleteBtn}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            window._vpEditCtx = { vp, marker, isNew };
+            document.getElementById('vpEditName').focus();
+        }
+
+        window.closeVpEditForm = function() {
+            const m = document.getElementById('vpEditModal');
+            if (m) m.remove();
+        };
+
+        window.saveVpFromForm = async function() {
+            const ctx = window._vpEditCtx;
+            if (!ctx) return;
+            const name = document.getElementById('vpEditName').value.trim();
+            const arr = document.getElementById('vpEditArr').value;
+            const pop = parseInt(document.getElementById('vpEditPop').value) || null;
+
+            if (!name) { showNotification('Le nom est requis', 'warning'); return; }
+
+            const data = {
+                name,
+                arrondissement_name: arr || null,
+                population: pop
+            };
+
+            try {
+                if (ctx.isNew) {
+                    data.geom = ctx.vp.geom;
+                    const { data: inserted, error } = await supabase
+                        .from('village_ponctuel')
+                        .insert(data)
+                        .select()
+                        .single();
+                    if (error) throw error;
+                    addVpMarkerToMap(inserted);
+                    if (vpSearchCache) {
+                        vpSearchCache.push({ ...inserted, _nameNorm: removeAccents(inserted.name.toLowerCase()) });
+                    }
+                    showNotification('Village ajouté', 'success', 1500);
+                } else {
+                    const { error } = await supabase
+                        .from('village_ponctuel')
+                        .update(data)
+                        .eq('id', ctx.vp.id);
+                    if (error) throw error;
+                    Object.assign(ctx.vp, data);
+                    if (ctx.marker) {
+                        ctx.marker.vpData = ctx.vp;
+                        if (ctx.marker.getTooltip()) ctx.marker.unbindTooltip();
+                        const zoom = map.getZoom();
+                        if (zoom >= 12 && name) {
+                            ctx.marker.bindTooltip(name, { permanent: true, direction: 'right', offset: [6, 0], className: 'vp-label' });
+                        }
+                    }
+                    if (vpSearchCache) {
+                        const idx = vpSearchCache.findIndex(v => v.id === ctx.vp.id);
+                        if (idx >= 0) Object.assign(vpSearchCache[idx], data, { _nameNorm: removeAccents(name.toLowerCase()) });
+                    }
+                    showNotification('Village modifié', 'success', 1500);
+                }
+                closeVpEditForm();
+            } catch (e) {
+                console.error(e);
+                showNotification('Erreur: ' + e.message, 'error');
+            }
+        };
+
+        window.deleteVpFromForm = async function() {
+            const ctx = window._vpEditCtx;
+            if (!ctx || ctx.isNew) return;
+            if (!confirm('Supprimer ce village ?')) return;
+            try {
+                const { error } = await supabase
+                    .from('village_ponctuel')
+                    .delete()
+                    .eq('id', ctx.vp.id);
+                if (error) throw error;
+                if (ctx.marker && mapLayers.villagesPonctuels) {
+                    mapLayers.villagesPonctuels.removeLayer(ctx.marker);
+                }
+                if (vpSearchCache) {
+                    vpSearchCache = vpSearchCache.filter(v => v.id !== ctx.vp.id);
+                }
+                showNotification('Village supprimé', 'success', 1500);
+                closeVpEditForm();
+            } catch (e) {
+                showNotification('Erreur suppression', 'error');
+            }
+        };
+
+        function addVpMarkerToMap(vp) {
+            if (!mapLayers.villagesPonctuels) return;
+            const geom = typeof vp.geom === 'string' ? JSON.parse(vp.geom) : vp.geom;
+            if (!geom) return;
+            const lng = geom.type === 'MultiPoint' ? geom.coordinates[0][0] : geom.coordinates[0];
+            const lat = geom.type === 'MultiPoint' ? geom.coordinates[0][1] : geom.coordinates[1];
+
+            const marker = L.circleMarker([lat, lng], {
+                radius: 1.3,
+                fillColor: '#000000',
+                color: '#000000',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 1,
+                pane: 'villagesPonctuelsPane'
+            }).addTo(mapLayers.villagesPonctuels);
+
+            marker.vpData = vp;
+            const arrondissement = vp.arrondissement_name || findArrondissementForPoint(lat, lng);
+            marker.bindPopup(createVillagePonctuelPopup(vp, arrondissement), {
+                maxWidth: window.innerWidth < 480 ? (window.innerWidth - 60) : 280,
+                minWidth: 180,
+                className: 'village-popup'
+            });
+
+            if (vpEditMode) {
+                marker.on('contextmenu', onVpRightClick);
+                enableVpDrag(marker);
+            }
+
+            const zoom = map.getZoom();
+            if (zoom >= 12 && vp.name) {
+                marker.bindTooltip(vp.name, { permanent: true, direction: 'right', offset: [6, 0], className: 'vp-label' });
+            }
+        }
 
         function trackPageVisit() {
             if (!supabase) return;
@@ -4683,6 +5052,12 @@ async function loadArrondissementsOptimized() {
                 initializeIntelligentSearch();
                 loadInitialData();
                 trackPageVisit();
+                checkAdminSession();
+
+                document.getElementById('vpAdminBtn').addEventListener('click', toggleVpEditMode);
+                map.on('click', function(e) {
+                    if (vpEditMode) onMapClickAddVp(e);
+                });
 
                 showNotification('MonVillage chargé avec succès', 'success');
                 
