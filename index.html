@@ -348,12 +348,18 @@
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
-            color: #7b2d00;
+            color: #1a0a00;
+            font-family: 'Arial', 'Helvetica', sans-serif;
             font-weight: 600;
             font-size: 10px;
             padding: 0 !important;
             white-space: nowrap;
-            text-shadow: 1px 1px 2px #fff, -1px -1px 2px #fff, 1px -1px 2px #fff, -1px 1px 2px #fff;
+            text-shadow:
+                -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
+                -2px 0 0 #fff, 2px 0 0 #fff, 0 -2px 0 #fff, 0 2px 0 #fff,
+                -1px -2px 0 #fff, 1px -2px 0 #fff, -1px 2px 0 #fff, 1px 2px 0 #fff,
+                -2px -1px 0 #fff, 2px -1px 0 #fff, -2px 1px 0 #fff, 2px 1px 0 #fff;
+            letter-spacing: 0.3px;
         }
         .vp-label::before { display: none !important; }
         .village-popup .leaflet-popup-content-wrapper {
@@ -1443,6 +1449,25 @@
             });
         }
 
+        function removeAccents(str) {
+            return str.normalize('NFD').replace(/[̀-ͯ]/g, '');
+        }
+
+        let vpSearchCache = null;
+        async function getVpSearchCache() {
+            if (vpSearchCache) return vpSearchCache;
+            const { data } = await supabase
+                .from('village_ponctuel')
+                .select('id,name,arrondissement_name,geom,population');
+            if (data) {
+                vpSearchCache = data.map(vp => ({
+                    ...vp,
+                    _nameNorm: vp.name ? removeAccents(vp.name.toLowerCase()) : ''
+                }));
+            }
+            return vpSearchCache || [];
+        }
+
         async function performIntelligentSearch(query) {
             if (!supabase) {
                 showNotification('Recherche hors ligne limitée', 'warning');
@@ -1450,24 +1475,26 @@
             }
 
             try {
-                const [polygonRes, ponctuelRes] = await Promise.all([
+                const queryNorm = removeAccents(query.toLowerCase());
+
+                const [polygonRes, vpCache] = await Promise.all([
                     supabase
                         .from('villages_complete')
                         .select('*')
                         .or(`village_name.ilike.%${query}%,chief_name.ilike.%${query}%`)
                         .eq('is_active', true)
                         .limit(8),
-                    supabase
-                        .from('village_ponctuel')
-                        .select('*')
-                        .ilike('name', `%${query}%`)
-                        .limit(5)
+                    getVpSearchCache()
                 ]);
 
                 if (polygonRes.error) throw polygonRes.error;
 
                 const polygonResults = (polygonRes.data || []).map(v => ({ ...v, _type: 'polygon' }));
-                const ponctuelResults = (ponctuelRes.data || []).map(vp => ({ ...vp, _type: 'ponctuel' }));
+
+                const ponctuelResults = vpCache
+                    .filter(vp => vp._nameNorm && vp._nameNorm.includes(queryNorm))
+                    .slice(0, 10)
+                    .map(vp => ({ ...vp, _type: 'ponctuel' }));
 
                 currentSearchResults = [...polygonResults, ...ponctuelResults].slice(0, 10);
                 displaySearchResults(currentSearchResults, query);
@@ -1539,8 +1566,14 @@
 
         function highlightMatch(text, query) {
             if (!text) return '';
-            const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<mark>$1</mark>');
+            const textNorm = removeAccents(text.toLowerCase());
+            const queryNorm = removeAccents(query.toLowerCase());
+            const idx = textNorm.indexOf(queryNorm);
+            if (idx === -1) return text;
+            const before = text.slice(0, idx);
+            const match = text.slice(idx, idx + query.length);
+            const after = text.slice(idx + query.length);
+            return before + '<mark>' + match + '</mark>' + after;
         }
 
         function hideSearchResults() {
@@ -2907,28 +2940,30 @@ async function loadArrondissementsOptimized() {
             }
 
             if (mapLayers.villagesPonctuels) {
-                const vpVisible = zoom >= 12;
+                const vpVisible = zoom >= 10;
                 if (vpVisible && !map.hasLayer(mapLayers.villagesPonctuels)) {
                     map.addLayer(mapLayers.villagesPonctuels);
                 } else if (!vpVisible && map.hasLayer(mapLayers.villagesPonctuels)) {
                     map.removeLayer(mapLayers.villagesPonctuels);
                 }
                 if (vpVisible) {
-                    const radius = zoom <= 12 ? 3 : zoom <= 14 ? 5 : zoom <= 16 ? 7 : 9;
-                    const fontSize = zoom <= 12 ? 9 : zoom <= 14 ? 11 : zoom <= 16 ? 13 : 15;
+                    const radius = zoom <= 11 ? 2 : zoom <= 13 ? 3 : zoom <= 15 ? 5 : zoom <= 17 ? 7 : 9;
+                    const showLabels = zoom >= 12;
+                    const fontSize = zoom <= 12 ? 8 : zoom <= 13 ? 9 : zoom <= 14 ? 10 : zoom <= 15 ? 11 : zoom <= 16 ? 13 : zoom <= 17 ? 15 : 17;
                     mapLayers.villagesPonctuels.eachLayer(marker => {
                         if (marker.setRadius) marker.setRadius(radius);
-                        if (marker.vpData && marker.vpData.name && zoom >= 14) {
+                        if (marker.vpData && marker.vpData.name && showLabels) {
                             if (!marker.getTooltip()) {
                                 marker.bindTooltip(marker.vpData.name, {
                                     permanent: true,
                                     direction: 'right',
-                                    offset: [8, 0],
+                                    offset: [6, 0],
                                     className: 'vp-label'
                                 });
                             }
-                            marker.getTooltip().getElement().style.fontSize = fontSize + 'px';
-                        } else if (marker.getTooltip() && zoom < 14) {
+                            const el = marker.getTooltip().getElement();
+                            if (el) el.style.fontSize = fontSize + 'px';
+                        } else if (marker.getTooltip() && !showLabels) {
                             marker.unbindTooltip();
                         }
                     });
