@@ -260,8 +260,8 @@
             top: 100%;
             left: 0;
             right: 0;
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: #40e0d0;
+            border: 1px solid #2cbcac;
             border-top: none;
             border-radius: 0 0 10px 10px;
             max-height: 300px;
@@ -272,13 +272,14 @@
 
         .search-result-item {
             padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
             cursor: pointer;
             transition: background-color 0.2s;
+            color: #000;
         }
 
         .search-result-item:hover, .search-result-item.selected {
-            background-color: #f0f4f8;
+            background-color: rgba(255,255,255,0.3);
         }
 
         .search-result-item:last-child {
@@ -303,7 +304,7 @@
 
         .search-result-details {
             font-size: 12px;
-            color: #666;
+            color: #333;
         }
 
         .search-result-chief, .search-result-location {
