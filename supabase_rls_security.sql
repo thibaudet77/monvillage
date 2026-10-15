@@ -241,6 +241,20 @@ DROP POLICY IF EXISTS "admin_profiles_select_own" ON admin_profiles;
 DROP POLICY IF EXISTS "admin_profiles_select_auth" ON admin_profiles;
 DROP POLICY IF EXISTS "admin_profiles_update_own" ON admin_profiles;
 DROP POLICY IF EXISTS "admin_profiles_all_admin" ON admin_profiles;
+DROP POLICY IF EXISTS "admin_profiles_insert_admin" ON admin_profiles;
+DROP POLICY IF EXISTS "admin_profiles_delete_admin" ON admin_profiles;
+
+-- Fonction SECURITY DEFINER pour éviter la récursion RLS
+CREATE OR REPLACE FUNCTION public.is_admin(user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM admin_profiles WHERE id = user_id AND is_active = true
+    );
+$$;
 
 CREATE POLICY "admin_profiles_select_auth" ON admin_profiles
     FOR SELECT TO authenticated
@@ -250,11 +264,13 @@ CREATE POLICY "admin_profiles_update_own" ON admin_profiles
     FOR UPDATE TO authenticated
     USING (auth.uid() = id);
 
-CREATE POLICY "admin_profiles_all_admin" ON admin_profiles
-    FOR ALL TO authenticated
-    USING (
-        auth.uid() IN (SELECT id FROM admin_profiles WHERE is_active = true)
-    );
+CREATE POLICY "admin_profiles_insert_admin" ON admin_profiles
+    FOR INSERT TO authenticated
+    WITH CHECK (public.is_admin(auth.uid()));
+
+CREATE POLICY "admin_profiles_delete_admin" ON admin_profiles
+    FOR DELETE TO authenticated
+    USING (public.is_admin(auth.uid()));
 
 -- --- PAYMENTS ---
 DROP POLICY IF EXISTS "payments_insert_anyone" ON payments;

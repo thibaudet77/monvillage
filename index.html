@@ -675,7 +675,7 @@
                 </div>
                 <button class="locate-btn" id="locateUser" title="Ma position"><i class="fas fa-crosshairs"></i></button>
                 <div id="map"></div>
-                <button class="vp-admin-btn" id="vpAdminBtn" title="Mode édition villages ponctuels">
+                <button class="vp-admin-btn" id="vpAdminBtn" style="display:none" title="Mode édition villages ponctuels">
                     <i class="fas fa-map-pin"></i> Mode édition
                 </button>
             </div>
@@ -4778,6 +4778,7 @@ async function loadArrondissementsOptimized() {
         }
 
         function toggleVpEditMode() {
+            if (!vpAdminUser) { showNotification('Accès réservé aux administrateurs', 'error'); return; }
             vpEditMode = !vpEditMode;
             const btn = document.getElementById('vpAdminBtn');
             btn.classList.toggle('active', vpEditMode);
@@ -4903,6 +4904,7 @@ async function loadArrondissementsOptimized() {
         };
 
         window.saveVpFromForm = async function() {
+            if (!vpAdminUser) { showNotification('Accès réservé aux administrateurs', 'error'); return; }
             const ctx = window._vpEditCtx;
             if (!ctx) return;
             const name = document.getElementById('vpEditName').value.trim();
@@ -4960,6 +4962,7 @@ async function loadArrondissementsOptimized() {
         };
 
         window.deleteVpFromForm = async function() {
+            if (!vpAdminUser) { showNotification('Accès réservé aux administrateurs', 'error'); return; }
             const ctx = window._vpEditCtx;
             if (!ctx || ctx.isNew) return;
             if (!confirm('Supprimer ce village ?')) return;
