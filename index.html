@@ -366,6 +366,38 @@
         }
         .vp-label::before { display: none !important; }
         .vp-edit-mode { cursor: crosshair !important; }
+
+        /* Disclaimer modal */
+        .disclaimer-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            z-index: 10000; display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .disclaimer-box {
+            background: #fff; border-radius: 12px; max-width: 520px; width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4); overflow: hidden;
+        }
+        .disclaimer-header {
+            background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+            color: #fff; padding: 20px 24px; text-align: center;
+        }
+        .disclaimer-header i { font-size: 28px; margin-bottom: 8px; display: block; }
+        .disclaimer-header h2 { margin: 0; font-size: 18px; }
+        .disclaimer-body { padding: 24px; font-size: 14px; line-height: 1.7; color: #333; }
+        .disclaimer-body p { margin-bottom: 12px; }
+        .disclaimer-body .highlight {
+            background: #fff3cd; border-left: 4px solid #ffc107;
+            padding: 12px 14px; border-radius: 0 6px 6px 0; margin: 16px 0;
+            font-weight: 500; color: #664d03;
+        }
+        .disclaimer-footer { padding: 16px 24px 24px; text-align: center; }
+        .disclaimer-accept {
+            background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+            color: #fff; border: none; border-radius: 8px; padding: 12px 32px;
+            font-size: 15px; font-weight: 600; cursor: pointer; width: 100%;
+            transition: transform 0.2s;
+        }
+        .disclaimer-accept:hover { transform: translateY(-1px); }
         .vp-admin-btn {
             position: absolute; bottom: 30px; right: 10px; z-index: 1000;
             background: #e74c3c; color: #fff; border: none; border-radius: 8px;
@@ -611,6 +643,29 @@
     </style>
 </head>
 <body>
+    <!-- Disclaimer -->
+    <div id="disclaimerModal" class="disclaimer-overlay" style="display:none">
+        <div class="disclaimer-box">
+            <div class="disclaimer-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>Avertissement important</h2>
+            </div>
+            <div class="disclaimer-body">
+                <p>Bienvenue sur <strong>MonVillage</strong>, plateforme de cartographie communautaire des villages du Cameroun.</p>
+                <div class="highlight">
+                    <i class="fas fa-gavel"></i> Cette cartographie est fournie <strong>a titre purement indicatif et informatif</strong>. Elle ne saurait en aucun cas etre utilisee pour regler des litiges territoriaux ou fonciers.
+                </div>
+                <p>Les <strong>limites administratives</strong> (regions, departements, arrondissements) ainsi que certains <strong>noms de lieux</strong> et <strong>localisations de villages</strong> sont approximatifs et peuvent comporter des inexactitudes.</p>
+                <p>Pour toute question officielle relative aux limites territoriales, veuillez vous referer aux autorites administratives competentes.</p>
+            </div>
+            <div class="disclaimer-footer">
+                <button class="disclaimer-accept" id="disclaimerAccept">
+                    <i class="fas fa-check"></i> J'ai compris et j'accepte
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -5097,11 +5152,23 @@ async function loadArrondissementsOptimized() {
             }
 
 
+        // DISCLAIMER
+        function showDisclaimer() {
+            if (localStorage.getItem('monvillage_disclaimer_accepted')) return;
+            const modal = document.getElementById('disclaimerModal');
+            modal.style.display = 'flex';
+            document.getElementById('disclaimerAccept').addEventListener('click', function() {
+                localStorage.setItem('monvillage_disclaimer_accepted', '1');
+                modal.style.display = 'none';
+            });
+        }
+
         // INITIALISATION PRINCIPALE
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 console.log('🚀 Initialisation MonVillage avec panes personnalisés');
-                
+
+                showDisclaimer();
                 initializeSupabase();
                 initializeMap();
                 initializeNativeMeasurementTools();
