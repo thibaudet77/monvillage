@@ -365,7 +365,7 @@
             letter-spacing: 0.3px;
         }
         .vp-label::before { display: none !important; }
-        .vp-edit-mode { cursor: crosshair !important; }
+        .vp-edit-mode { cursor: default; }
 
         /* Disclaimer modal */
         .disclaimer-overlay {
@@ -407,6 +407,40 @@
         .vp-admin-btn.visible { display: block !important; }
         .vp-admin-btn.active { background: #27ae60; }
         .vp-admin-btn:hover { opacity: 0.9; }
+
+        .vp-toolbar {
+            position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); z-index: 1001;
+            background: #fff; border-radius: 10px; padding: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25); display: none;
+            gap: 4px; align-items: center;
+        }
+        .vp-toolbar.visible { display: flex; }
+        .vp-tool {
+            display: flex; align-items: center; gap: 5px;
+            padding: 7px 12px; border: 2px solid transparent; border-radius: 8px;
+            background: #f5f5f5; color: #333; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s; white-space: nowrap;
+        }
+        .vp-tool:hover { background: #e8e8e8; }
+        .vp-tool.active { border-color: #e74c3c; background: #fef2f2; color: #e74c3c; }
+        .vp-tool i { font-size: 13px; }
+
+        .vp-popup-actions {
+            display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;
+        }
+        .vp-popup-btn {
+            flex: 1; padding: 6px 8px; border: none; border-radius: 6px;
+            font-size: 11px; font-weight: 600; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 4px; transition: background 0.15s;
+        }
+        .vp-popup-btn-edit { background: #f0ad4e; color: #fff; }
+        .vp-popup-btn-edit:hover { background: #ec971f; }
+        .vp-popup-btn-move { background: #5bc0de; color: #fff; }
+        .vp-popup-btn-move:hover { background: #31b0d5; }
+        .vp-popup-btn-delete { background: #d9534f; color: #fff; }
+        .vp-popup-btn-delete:hover { background: #c9302c; }
+        .vp-edit-mode-move { cursor: grab !important; }
+        .vp-edit-mode-add { cursor: crosshair !important; }
         .vp-edit-modal {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5); z-index: 10000;
@@ -731,6 +765,11 @@
                 </div>
                 <button class="locate-btn" id="locateUser" title="Ma position"><i class="fas fa-crosshairs"></i></button>
                 <div id="map"></div>
+                <div class="vp-toolbar" id="vpToolbar">
+                    <button class="vp-tool" id="vpToolMove" title="Déplacer un village (glisser-déposer)"><i class="fas fa-arrows-alt"></i> Déplacer</button>
+                    <button class="vp-tool" id="vpToolEdit" title="Éditer un village (clic)"><i class="fas fa-edit"></i> Éditer</button>
+                    <button class="vp-tool" id="vpToolAdd" title="Ajouter un village (clic sur carte)"><i class="fas fa-plus-circle"></i> Ajouter</button>
+                </div>
                 <button class="vp-admin-btn" id="vpAdminBtn" style="display:none" title="Mode édition villages ponctuels">
                     <i class="fas fa-map-pin"></i> Mode édition
                 </button>
@@ -2611,6 +2650,13 @@ function createVillagePonctuelPopup(vp, arrondissement) {
     const populationText = vp.population ?
         vp.population.toLocaleString() + ' habitants' : 'Non renseignée';
 
+    const adminActions = vpAdminUser && vp.id ? `
+                <div class="vp-popup-actions">
+                    <button class="vp-popup-btn vp-popup-btn-edit" onclick="vpPopupEdit(${vp.id})"><i class="fas fa-edit"></i> Modifier</button>
+                    <button class="vp-popup-btn vp-popup-btn-move" onclick="vpPopupMove(${vp.id})"><i class="fas fa-arrows-alt"></i> Déplacer</button>
+                    <button class="vp-popup-btn vp-popup-btn-delete" onclick="vpPopupDelete(${vp.id})"><i class="fas fa-trash"></i></button>
+                </div>` : '';
+
     return `
         <div class="village-popup-inner">
             <div class="village-popup-header">
@@ -2629,7 +2675,7 @@ function createVillagePonctuelPopup(vp, arrondissement) {
                         <div class="village-popup-stat-label">Type</div>
                         <div class="village-popup-stat-value">Village ponctuel</div>
                     </div>
-                </div>
+                </div>${adminActions}
             </div>
         </div>
     `;
@@ -4814,6 +4860,7 @@ async function loadArrondissementsOptimized() {
         // ================================================================
         let vpEditMode = false;
         let vpAdminUser = null;
+        let vpActiveTool = null; // 'move' | 'edit' | 'add'
 
         async function checkAdminSession() {
             if (!supabase) return;
@@ -4829,32 +4876,71 @@ async function loadArrondissementsOptimized() {
                 if (!error && profile) {
                     vpAdminUser = session.user;
                     document.getElementById('vpAdminBtn').classList.add('visible');
+                    refreshVpPopups();
                 }
             } catch (e) { }
+        }
+
+        function setVpTool(tool) {
+            if (vpActiveTool === tool) { vpActiveTool = null; } else { vpActiveTool = tool; }
+            document.getElementById('vpToolMove').classList.toggle('active', vpActiveTool === 'move');
+            document.getElementById('vpToolEdit').classList.toggle('active', vpActiveTool === 'edit');
+            document.getElementById('vpToolAdd').classList.toggle('active', vpActiveTool === 'add');
+            const mapEl = document.getElementById('map');
+            mapEl.classList.remove('vp-edit-mode-move', 'vp-edit-mode-add');
+            if (vpActiveTool === 'move') mapEl.classList.add('vp-edit-mode-move');
+            else if (vpActiveTool === 'add') mapEl.classList.add('vp-edit-mode-add');
+            applyVpToolToMarkers();
+        }
+
+        function applyVpToolToMarkers() {
+            if (!mapLayers.villagesPonctuels) return;
+            mapLayers.villagesPonctuels.eachLayer(marker => {
+                if (!marker.vpData) return;
+                disableVpDrag(marker);
+                if (marker._vpEditClick) { marker.off('click', marker._vpEditClick); marker._vpEditClick = null; }
+                if (vpEditMode && vpActiveTool === 'move') {
+                    enableVpDrag(marker);
+                } else if (vpEditMode && vpActiveTool === 'edit') {
+                    marker._vpEditClick = function() { openVpEditForm(this.vpData, this); }.bind(marker); marker.on('click', marker._vpEditClick);
+                }
+            });
         }
 
         function toggleVpEditMode() {
             if (!vpAdminUser) { showNotification('Accès réservé aux administrateurs', 'error'); return; }
             vpEditMode = !vpEditMode;
+            vpActiveTool = null;
             const btn = document.getElementById('vpAdminBtn');
             btn.classList.toggle('active', vpEditMode);
             btn.innerHTML = vpEditMode
                 ? '<i class="fas fa-check"></i> Fin édition'
                 : '<i class="fas fa-map-pin"></i> Mode édition';
             document.getElementById('map').classList.toggle('vp-edit-mode', vpEditMode);
+            document.getElementById('map').classList.remove('vp-edit-mode-move', 'vp-edit-mode-add');
+            document.getElementById('vpToolbar').classList.toggle('visible', vpEditMode);
+            document.getElementById('vpToolMove').classList.remove('active');
+            document.getElementById('vpToolEdit').classList.remove('active');
+            document.getElementById('vpToolAdd').classList.remove('active');
 
             if (mapLayers.villagesPonctuels) {
                 mapLayers.villagesPonctuels.eachLayer(marker => {
                     if (!marker.vpData) return;
-                    if (vpEditMode) {
-                        marker.on('contextmenu', onVpRightClick);
-                        enableVpDrag(marker);
-                    } else {
-                        marker.off('contextmenu', onVpRightClick);
-                        disableVpDrag(marker);
-                    }
+                    disableVpDrag(marker);
+                    if (marker._vpEditClick) { marker.off('click', marker._vpEditClick); marker._vpEditClick = null; }
                 });
             }
+            refreshVpPopups();
+        }
+
+        function refreshVpPopups() {
+            if (!mapLayers.villagesPonctuels) return;
+            mapLayers.villagesPonctuels.eachLayer(marker => {
+                if (!marker.vpData) return;
+                const vp = marker.vpData;
+                const arrondissement = vp.arrondissement_name || 'Non déterminé';
+                marker.setPopupContent(createVillagePonctuelPopup(vp, arrondissement));
+            });
         }
 
         function enableVpDrag(marker) {
@@ -4862,7 +4948,7 @@ async function loadArrondissementsOptimized() {
             marker._vpDragEnabled = true;
             let dragging = false, startLatLng;
             marker._vpMouseDown = function(e) {
-                if (!vpEditMode) return;
+                if (!vpEditMode || vpActiveTool !== 'move') return;
                 dragging = true;
                 startLatLng = marker.getLatLng();
                 map.dragging.disable();
@@ -4903,14 +4989,8 @@ async function loadArrondissementsOptimized() {
             map.off('mouseup', marker._vpMouseUp);
         }
 
-        function onVpRightClick(e) {
-            L.DomEvent.stopPropagation(e);
-            L.DomEvent.preventDefault(e);
-            openVpEditForm(this.vpData, this);
-        }
-
         function onMapClickAddVp(e) {
-            if (!vpEditMode) return;
+            if (!vpEditMode || vpActiveTool !== 'add') return;
             const newVp = {
                 name: '',
                 arrondissement_name: findArrondissementForPoint(e.latlng.lat, e.latlng.lng),
@@ -5003,6 +5083,8 @@ async function loadArrondissementsOptimized() {
                         if (zoom >= 12 && name) {
                             ctx.marker.bindTooltip(name, { permanent: true, direction: 'right', offset: [6, 0], className: 'vp-label' });
                         }
+                        const arrondissement = data.arrondissement_name || 'Non déterminé';
+                        ctx.marker.setPopupContent(createVillagePonctuelPopup(ctx.vp, arrondissement));
                     }
                     if (vpSearchCache) {
                         const idx = vpSearchCache.findIndex(v => v.id === ctx.vp.id);
@@ -5041,6 +5123,46 @@ async function loadArrondissementsOptimized() {
             }
         };
 
+        window.vpPopupEdit = function(vpId) {
+            if (!mapLayers.villagesPonctuels) return;
+            mapLayers.villagesPonctuels.eachLayer(marker => {
+                if (marker.vpData && marker.vpData.id === vpId) {
+                    map.closePopup();
+                    openVpEditForm(marker.vpData, marker);
+                }
+            });
+        };
+
+        window.vpPopupMove = function(vpId) {
+            if (!mapLayers.villagesPonctuels) return;
+            if (!vpEditMode) { toggleVpEditMode(); }
+            setVpTool('move');
+            mapLayers.villagesPonctuels.eachLayer(marker => {
+                if (marker.vpData && marker.vpData.id === vpId) {
+                    map.closePopup();
+                    showNotification('Glissez le village vers sa nouvelle position', 'info', 3000);
+                }
+            });
+        };
+
+        window.vpPopupDelete = function(vpId) {
+            if (!vpAdminUser) return;
+            if (!confirm('Supprimer ce village ?')) return;
+            supabase.from('village_ponctuel').delete().eq('id', vpId).then(({ error }) => {
+                if (error) { showNotification('Erreur suppression', 'error'); return; }
+                if (mapLayers.villagesPonctuels) {
+                    mapLayers.villagesPonctuels.eachLayer(marker => {
+                        if (marker.vpData && marker.vpData.id === vpId) {
+                            mapLayers.villagesPonctuels.removeLayer(marker);
+                        }
+                    });
+                }
+                if (vpSearchCache) vpSearchCache = vpSearchCache.filter(v => v.id !== vpId);
+                map.closePopup();
+                showNotification('Village supprimé', 'success', 1500);
+            });
+        };
+
         function addVpMarkerToMap(vp) {
             if (!mapLayers.villagesPonctuels) return;
             const geom = typeof vp.geom === 'string' ? JSON.parse(vp.geom) : vp.geom;
@@ -5066,9 +5188,10 @@ async function loadArrondissementsOptimized() {
                 className: 'village-popup'
             });
 
-            if (vpEditMode) {
-                marker.on('contextmenu', onVpRightClick);
+            if (vpEditMode && vpActiveTool === 'move') {
                 enableVpDrag(marker);
+            } else if (vpEditMode && vpActiveTool === 'edit') {
+                marker._vpEditClick = function() { openVpEditForm(this.vpData, this); }.bind(marker); marker.on('click', marker._vpEditClick);
             }
 
             const zoom = map.getZoom();
@@ -5180,8 +5303,11 @@ async function loadArrondissementsOptimized() {
                 checkAdminSession();
 
                 document.getElementById('vpAdminBtn').addEventListener('click', toggleVpEditMode);
+                document.getElementById('vpToolMove').addEventListener('click', () => setVpTool('move'));
+                document.getElementById('vpToolEdit').addEventListener('click', () => setVpTool('edit'));
+                document.getElementById('vpToolAdd').addEventListener('click', () => setVpTool('add'));
                 map.on('click', function(e) {
-                    if (vpEditMode) onMapClickAddVp(e);
+                    if (vpEditMode && vpActiveTool === 'add') onMapClickAddVp(e);
                 });
 
                 showNotification('MonVillage chargé avec succès', 'success');

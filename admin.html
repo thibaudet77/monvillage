@@ -441,21 +441,34 @@
 
             <section id="villages-ponctuels" class="hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
                         <h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">Villages Ponctuels</h2>
-                        <button id="new-vp-btn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Nouveau Village Ponctuel</button>
+                        <div class="flex flex-col sm:flex-row gap-2 items-center">
+                            <input type="text" id="vp-search" placeholder="Rechercher un village..."
+                                class="p-2 border rounded text-sm w-full sm:w-48">
+                            <select id="vp-filter-arr" class="p-2 border rounded text-sm">
+                                <option value="">Tous les arrondissements</option>
+                            </select>
+                            <button id="new-vp-btn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 whitespace-nowrap">Nouveau Village Ponctuel</button>
+                        </div>
                     </div>
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-gray-200">
-                                <th class="p-2 text-left">Nom</th>
-                                <th class="p-2 text-left">Arrondissement</th>
-                                <th class="p-2 text-left">Population</th>
-                                <th class="p-2 text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="vp-table"></tbody>
-                    </table>
+                    <div class="mb-3 text-sm text-gray-600">
+                        Total : <strong id="vp-count">0</strong> villages ponctuels
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-200">
+                                    <th class="p-2 text-left">Nom</th>
+                                    <th class="p-2 text-left">Arrondissement</th>
+                                    <th class="p-2 text-left">Population</th>
+                                    <th class="p-2 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vp-table"></tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-center gap-2" id="vp-pagination"></div>
                 </div>
 
                 <div id="vp-form" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -1615,18 +1628,56 @@ window.addEventListener('error', function(e) {
         // VILLAGES PONCTUELS CRUD
         // ============================================================
         let vpMap, vpMarker, vpEditingId = null;
+        let vpPage = 0, vpPerPage = 50, vpTotalCount = 0;
+        let vpSearchQuery = '', vpFilterArr = '';
+
+        function initVpFilters() {
+            const searchInput = document.getElementById('vp-search');
+            const filterArr = document.getElementById('vp-filter-arr');
+            let debounce;
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounce);
+                    debounce = setTimeout(() => { vpSearchQuery = this.value.trim(); vpPage = 0; loadVillagesPonctuels(); }, 300);
+                });
+            }
+            if (filterArr) {
+                filterArr.addEventListener('change', function() {
+                    vpFilterArr = this.value; vpPage = 0; loadVillagesPonctuels();
+                });
+                loadVpArrondissements();
+            }
+        }
+
+        async function loadVpArrondissements() {
+            try {
+                const { data } = await supabaseClient.from('arrondissements').select('nom_arrondissement').order('nom_arrondissement');
+                if (!data) return;
+                const unique = data.map(d => d.nom_arrondissement).filter(Boolean);
+                const sel = document.getElementById('vp-filter-arr');
+                unique.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; sel.appendChild(o); });
+            } catch (e) { console.error(e); }
+        }
 
         async function loadVillagesPonctuels() {
             try {
-                const { data, error } = await supabaseClient.from('village_ponctuel').select('*').order('name');
+                let query = supabaseClient.from('village_ponctuel').select('id, name, arrondissement_name, population, geom', { count: 'exact' });
+                if (vpSearchQuery) query = query.ilike('name', `%${vpSearchQuery}%`);
+                if (vpFilterArr) query = query.eq('arrondissement_name', vpFilterArr);
+                query = query.order('name').range(vpPage * vpPerPage, (vpPage + 1) * vpPerPage - 1);
+
+                const { data, error, count } = await query;
                 if (error) throw error;
+                vpTotalCount = count || 0;
+                document.getElementById('vp-count').textContent = vpTotalCount.toLocaleString();
+
                 const tbody = document.getElementById('vp-table');
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Aucun village ponctuel</td></tr>';
-                    return;
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Aucun village ponctuel trouvé</td></tr>';
+                    renderVpPagination(); return;
                 }
                 tbody.innerHTML = data.map(vp => `
-                    <tr class="border-t">
+                    <tr class="border-t hover:bg-gray-50">
                         <td class="p-2">${vp.name || '<em>Sans nom</em>'}</td>
                         <td class="p-2">${vp.arrondissement_name || '-'}</td>
                         <td class="p-2">${vp.population || '-'}</td>
@@ -1636,10 +1687,30 @@ window.addEventListener('error', function(e) {
                         </td>
                     </tr>
                 `).join('');
+                renderVpPagination();
             } catch (error) {
                 console.error('Erreur chargement villages ponctuels:', error);
             }
         }
+
+        function renderVpPagination() {
+            const container = document.getElementById('vp-pagination');
+            if (!container) return;
+            const totalPages = Math.ceil(vpTotalCount / vpPerPage);
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
+            let html = '';
+            if (vpPage > 0) html += `<button onclick="goVpPage(${vpPage - 1})" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">← Préc.</button>`;
+            const start = Math.max(0, vpPage - 3), end = Math.min(totalPages, vpPage + 4);
+            if (start > 0) html += `<button onclick="goVpPage(0)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">1</button><span class="px-1">...</span>`;
+            for (let i = start; i < end; i++) {
+                html += `<button onclick="goVpPage(${i})" class="px-3 py-1 ${i === vpPage ? 'bg-red-600 text-white' : 'bg-gray-200 hover:bg-gray-300'} rounded text-sm">${i + 1}</button>`;
+            }
+            if (end < totalPages) html += `<span class="px-1">...</span><button onclick="goVpPage(${totalPages - 1})" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">${totalPages}</button>`;
+            if (vpPage < totalPages - 1) html += `<button onclick="goVpPage(${vpPage + 1})" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">Suiv. →</button>`;
+            container.innerHTML = html;
+        }
+
+        window.goVpPage = function(p) { vpPage = p; loadVillagesPonctuels(); };
 
         function initVPMap() {
             if (vpMap) return;
@@ -2067,6 +2138,8 @@ window.addEventListener('error', function(e) {
             console.log('New geoname button clicked');
             showModal('geoname-form');
         }, 'geonames');
+
+        initVpFilters();
 
         addEventListenerSafe('new-vp-btn', 'click', () => {
             vpEditingId = null;
