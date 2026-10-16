@@ -399,11 +399,12 @@
         }
         .disclaimer-accept:hover { transform: translateY(-1px); }
         .vp-admin-btn {
-            position: absolute; bottom: 30px; right: 10px; z-index: 1000;
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000;
             background: #e74c3c; color: #fff; border: none; border-radius: 8px;
             padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: none !important;
         }
+        .vp-admin-btn.visible { display: block !important; }
         .vp-admin-btn.active { background: #27ae60; }
         .vp-admin-btn:hover { opacity: 0.9; }
         .vp-edit-modal {
@@ -4819,15 +4820,15 @@ async function loadArrondissementsOptimized() {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) return;
-                const { data: profile } = await supabase
+                const { data: profile, error } = await supabase
                     .from('admin_profiles')
                     .select('id, is_active')
                     .eq('id', session.user.id)
                     .eq('is_active', true)
                     .single();
-                if (profile) {
+                if (!error && profile) {
                     vpAdminUser = session.user;
-                    document.getElementById('vpAdminBtn').style.display = 'block';
+                    document.getElementById('vpAdminBtn').classList.add('visible');
                 }
             } catch (e) { }
         }
