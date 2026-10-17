@@ -891,8 +891,7 @@ window.addEventListener('error', function(e) {
                 document.getElementById('geonames-count').textContent = geonames.data.count;
                 document.getElementById('descriptions-count').textContent = descriptions.data.count;
 
-                await loadWeeklyVisits();
-                await loadWeeklyPayments();
+                await Promise.all([loadWeeklyVisits(), loadWeeklyPayments()]);
             } catch (error) {
                 console.error('Error loading dashboard:', error);
                 alert('Erreur lors du chargement du tableau de bord');
@@ -1013,28 +1012,27 @@ window.addEventListener('error', function(e) {
 
         async function loadVillages() {
             try {
-                const { data, error } = await supabaseClient.from('villages_complete').select('*');
+                const { data, error } = await supabaseClient.from('villages_complete').select('id,village_name,arrondissement_name,chief_name,population,area_hectares,categorie,is_active');
                 if (error) throw error;
                 
                 const tbody = document.querySelector('#villages-table');
-                tbody.innerHTML = '';
-                
-                data.forEach(v => {
+
+                const rows = data.map(v => {
                     let categoryBadge = '<span style="color: #999; font-size: 10px;">Non définie</span>';
-                    
+
                     if (v.categorie) {
-                        let bgColor = '#4CAF50'; // Par défaut
+                        let bgColor = '#4CAF50';
                         if (v.categorie === 'Chefferie 1er degré') bgColor = '#FFD700';
                         else if (v.categorie === 'Chefferie 2ème degré') bgColor = '#FFA500';
                         else if (v.categorie === 'Chefferie 3ème degré') bgColor = '#FF6347';
-                        
+
                         categoryBadge = `<span style="background: ${bgColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold;">${v.categorie}</span>`;
                     }
-                    
-                    const areaDisplay = v.area_hectares ? 
+
+                    const areaDisplay = v.area_hectares ?
                         `${v.area_hectares.toFixed(2)} ha` : '<span style="color: #999;">Non calculée</span>';
-                    
-                    tbody.innerHTML += `
+
+                    return `
                         <tr class="border-b hover:bg-gray-50">
                             <td class="p-2" data-label="Nom">
                                 <div style="font-weight: 500;">${v.village_name}</div>
@@ -1050,9 +1048,9 @@ window.addEventListener('error', function(e) {
                                 <button onclick="editVillage('${v.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 mr-1">Éditer</button>
                                 <button onclick="deleteVillage('${v.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
                             </td>
-                        </tr>
-                    `;
+                        </tr>`;
                 });
+                tbody.innerHTML = rows.join('');
             } catch (error) {
                 console.error('Error loading villages:', error);
                 alert('Erreur lors du chargement des villages');
@@ -1061,23 +1059,20 @@ window.addEventListener('error', function(e) {
 
         async function loadPoi() {
             try {
-                const { data, error } = await supabaseClient.from('poi_with_location').select('*');
+                const { data, error } = await supabaseClient.from('poi_with_location').select('id,name,type,village_name');
                 if (error) throw error;
                 const tbody = document.querySelector('#poi-table');
-                tbody.innerHTML = '';
-                data.forEach(p => {
-                    tbody.innerHTML += `
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2" data-label="Nom">${p.name}</td>
-                            <td class="p-2" data-label="Type">${p.type}</td>
-                            <td class="p-2" data-label="Village">${p.village_name || '-'}</td>
-                            <td class="p-2" data-label="Actions">
-                                <button onclick="editPoi('${p.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
-                                <button onclick="deletePoi('${p.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                tbody.innerHTML = data.map(p => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-2" data-label="Nom">${p.name}</td>
+                        <td class="p-2" data-label="Type">${p.type}</td>
+                        <td class="p-2" data-label="Village">${p.village_name || '-'}</td>
+                        <td class="p-2" data-label="Actions">
+                            <button onclick="editPoi('${p.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
+                            <button onclick="deletePoi('${p.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
+                        </td>
+                    </tr>
+                `).join('');
             } catch (error) {
                 console.error('Error loading POI:', error);
                 alert('Erreur lors du chargement des POI');
@@ -1086,22 +1081,19 @@ window.addEventListener('error', function(e) {
 
         async function loadGeonames() {
             try {
-                const { data, error } = await supabaseClient.from('geonames').select('*');
+                const { data, error } = await supabaseClient.from('geonames').select('id,nom,type');
                 if (error) throw error;
                 const tbody = document.querySelector('#geonames-table');
-                tbody.innerHTML = '';
-                data.forEach(g => {
-                    tbody.innerHTML += `
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2" data-label="Nom">${g.nom}</td>
-                            <td class="p-2" data-label="Type">${g.type}</td>
-                            <td class="p-2" data-label="Actions">
-                                <button onclick="editGeoname('${g.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
-                                <button onclick="deleteGeoname('${g.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                tbody.innerHTML = data.map(g => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-2" data-label="Nom">${g.nom}</td>
+                        <td class="p-2" data-label="Type">${g.type}</td>
+                        <td class="p-2" data-label="Actions">
+                            <button onclick="editGeoname('${g.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
+                            <button onclick="deleteGeoname('${g.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
+                        </td>
+                    </tr>
+                `).join('');
             } catch (error) {
                 console.error('Error loading geonames:', error);
                 alert('Erreur lors du chargement des géonymes');
@@ -1110,23 +1102,20 @@ window.addEventListener('error', function(e) {
 
         async function loadUsers() {
             try {
-                const { data, error } = await supabaseClient.from('admin_profiles').select('*');
+                const { data, error } = await supabaseClient.from('admin_profiles').select('id,full_name,role,is_active');
                 if (error) throw error;
                 const tbody = document.querySelector('#users-table');
-                tbody.innerHTML = '';
-                data.forEach(u => {
-                    tbody.innerHTML += `
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-2" data-label="Nom">${u.full_name}</td>
-                            <td class="p-2" data-label="Rôle">${u.role}</td>
-                            <td class="p-2" data-label="Actif">${u.is_active ? 'Oui' : 'Non'}</td>
-                            <td class="p-2" data-label="Actions">
-                                <button onclick="editUser('${u.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
-                                <button onclick="deleteUser('${u.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                tbody.innerHTML = data.map(u => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-2" data-label="Nom">${u.full_name}</td>
+                        <td class="p-2" data-label="Rôle">${u.role}</td>
+                        <td class="p-2" data-label="Actif">${u.is_active ? 'Oui' : 'Non'}</td>
+                        <td class="p-2" data-label="Actions">
+                            <button onclick="editUser('${u.id}')" class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Éditer</button>
+                            <button onclick="deleteUser('${u.id}')" class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Supprimer</button>
+                        </td>
+                    </tr>
+                `).join('');
             } catch (error) {
                 console.error('Error loading users:', error);
                 alert('Erreur lors du chargement des utilisateurs');
