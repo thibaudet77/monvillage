@@ -5259,8 +5259,8 @@ async function loadArrondissementsOptimized() {
                     updateWhenZooming: false
                 });
 
-                baseLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                    attribution: '© Esri, Maxar, Earthstar Geographics',
+                baseLayers.satellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                    attribution: '© Google',
                     maxZoom: 22,
                     updateWhenIdle: true,
                     updateWhenZooming: false
