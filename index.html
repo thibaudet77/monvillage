@@ -5259,11 +5259,9 @@ async function loadArrondissementsOptimized() {
                     updateWhenZooming: false
                 });
 
-                baseLayers.satellite = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=' + CONFIG.mapbox.accessToken, {
-                    attribution: '© Mapbox © OpenStreetMap',
+                baseLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri, Maxar, Earthstar Geographics',
                     maxZoom: 22,
-                    tileSize: 512,
-                    zoomOffset: -1,
                     updateWhenIdle: true,
                     updateWhenZooming: false
                 });
