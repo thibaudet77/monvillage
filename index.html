@@ -1631,24 +1631,13 @@
         let vpAllDataPromise = null;
         let vpSearchCache = null;
 
-        function invalidateVpCache() {
-            try { sessionStorage.removeItem('vp_data'); } catch(e) {}
-        }
 
         async function loadAllVpData() {
             if (vpAllData) return vpAllData;
             if (vpAllDataPromise) return vpAllDataPromise;
             vpAllDataPromise = (async () => {
-                const cached = sessionStorage.getItem('vp_data');
-                if (cached) {
-                    try {
-                        vpAllData = JSON.parse(cached);
-                        console.log(`Cache: ${vpAllData.length} villages ponctuels`);
-                        return vpAllData;
-                    } catch(e) { sessionStorage.removeItem('vp_data'); }
-                }
                 let all = [], offset = 0;
-                const PAGE = 5000;
+                const PAGE = 1000;
                 while (true) {
                     const { data, error } = await supabase
                         .from('village_ponctuel')
@@ -1660,7 +1649,6 @@
                     offset += PAGE;
                 }
                 vpAllData = all;
-                try { sessionStorage.setItem('vp_data', JSON.stringify(all)); } catch(e) {}
                 console.log(`Chargé ${vpAllData.length} villages ponctuels`);
                 return vpAllData;
             })();
@@ -5008,7 +4996,7 @@ async function loadArrondissementsOptimized() {
                     showNotification('Erreur déplacement', 'error');
                 } else {
                     marker.vpData.geom = geom;
-                    invalidateVpCache();
+
                     showNotification('Village déplacé', 'success', 1500);
                 }
             };
@@ -5119,7 +5107,7 @@ async function loadArrondissementsOptimized() {
                     if (vpSearchCache) {
                         vpSearchCache.push({ ...inserted, _nameNorm: removeAccents(inserted.name.toLowerCase()) });
                     }
-                    invalidateVpCache();
+
                     showNotification('Village ajouté', 'success', 1500);
                 } else {
                     const { error } = await supabase
@@ -5143,7 +5131,7 @@ async function loadArrondissementsOptimized() {
                         const idx = vpSearchCache.findIndex(v => v.id === ctx.vp.id);
                         if (idx >= 0) Object.assign(vpSearchCache[idx], data, { _nameNorm: removeAccents(name.toLowerCase()) });
                     }
-                    invalidateVpCache();
+
                     showNotification('Village modifié', 'success', 1500);
                 }
                 closeVpEditForm();
@@ -5170,7 +5158,6 @@ async function loadArrondissementsOptimized() {
                 if (vpSearchCache) {
                     vpSearchCache = vpSearchCache.filter(v => v.id !== ctx.vp.id);
                 }
-                invalidateVpCache();
                 showNotification('Village supprimé', 'success', 1500);
                 closeVpEditForm();
             } catch (e) {
@@ -5209,7 +5196,6 @@ async function loadArrondissementsOptimized() {
                 }
                 if (vpSearchCache) vpSearchCache = vpSearchCache.filter(v => v.id !== vpId);
                 map.closePopup();
-                invalidateVpCache();
                 showNotification('Village supprimé', 'success', 1500);
             });
         };
@@ -5301,8 +5287,8 @@ async function loadArrondissementsOptimized() {
                     updateWhenZooming: false
                 });
 
-                baseLayers.satellite = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=' + CONFIG.mapbox.accessToken, {
-                    attribution: '© Mapbox © Maxar',
+                baseLayers.satellite = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=' + CONFIG.mapbox.accessToken, {
+                    attribution: '© Mapbox © OpenStreetMap',
                     maxZoom: 22,
                     tileSize: 512,
                     zoomOffset: -1,
