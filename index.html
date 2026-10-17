@@ -4943,7 +4943,12 @@ async function loadArrondissementsOptimized() {
                     openVpEditForm(this.vpData, this);
                 });
 
+                m.on('dragstart', function() {
+                    map.dragging.disable();
+                });
+
                 m.on('dragend', async function() {
+                    map.dragging.enable();
                     const newLL = this.getLatLng();
                     const geom = { type: 'Point', coordinates: [newLL.lng, newLL.lat] };
                     const { error } = await supabase
@@ -5213,7 +5218,9 @@ async function loadArrondissementsOptimized() {
                 em.vpData = vp;
                 em._srcCircle = marker;
                 em.on('click', function() { openVpEditForm(this.vpData, this); });
+                em.on('dragstart', function() { map.dragging.disable(); });
                 em.on('dragend', async function() {
+                    map.dragging.enable();
                     const newLL = this.getLatLng();
                     const geom = { type: 'Point', coordinates: [newLL.lng, newLL.lat] };
                     const { error } = await supabase.from('village_ponctuel').update({ geom }).eq('id', this.vpData.id);
