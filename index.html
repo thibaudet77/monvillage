@@ -366,6 +366,11 @@
         }
         .vp-label::before { display: none !important; }
         .vp-edit-mode { cursor: default; }
+        .vp-edit-icon {
+            background: #e74c3c; border: 2px solid #fff; border-radius: 50%;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5); cursor: grab;
+        }
+        .vp-edit-icon:active { cursor: grabbing; }
 
         /* Disclaimer modal */
         .disclaimer-overlay {
@@ -4914,18 +4919,48 @@ async function loadArrondissementsOptimized() {
             if (vpActiveTool === 'add') mapEl.classList.add('vp-edit-mode-add');
         }
 
+        let vpEditMarkers = [];
+        const vpEditIcon = L.divIcon({
+            className: 'vp-edit-icon',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        });
+
         function applyVpEditBehavior() {
             if (!mapLayers.villagesPonctuels) return;
-            mapLayers.villagesPonctuels.eachLayer(marker => {
-                if (!marker.vpData) return;
-                disableVpDrag(marker);
-                if (marker._vpEditClick) { marker.off('click', marker._vpEditClick); marker._vpEditClick = null; }
-                if (vpEditMode) {
-                    marker.setRadius(6);
-                    enableVpDrag(marker);
-                } else {
-                    marker.setRadius(1.3);
-                }
+            vpEditMarkers.forEach(m => map.removeLayer(m));
+            vpEditMarkers = [];
+            if (!vpEditMode) return;
+
+            mapLayers.villagesPonctuels.eachLayer(cm => {
+                if (!cm.vpData) return;
+                const ll = cm.getLatLng();
+                const m = L.marker(ll, { draggable: true, icon: vpEditIcon, pane: 'villagesPonctuelsPane' }).addTo(map);
+                m.vpData = cm.vpData;
+                m._srcCircle = cm;
+
+                m.on('click', function() {
+                    openVpEditForm(this.vpData, this);
+                });
+
+                m.on('dragend', async function() {
+                    const newLL = this.getLatLng();
+                    const geom = { type: 'Point', coordinates: [newLL.lng, newLL.lat] };
+                    const { error } = await supabase
+                        .from('village_ponctuel')
+                        .update({ geom })
+                        .eq('id', this.vpData.id);
+                    if (error) {
+                        this.setLatLng(ll);
+                        showNotification('Erreur déplacement', 'error');
+                    } else {
+                        this.vpData.geom = geom;
+                        this._srcCircle.setLatLng(newLL);
+                        showNotification('Village déplacé', 'success', 1500);
+                    }
+                });
+
+                vpEditMarkers.push(m);
             });
         }
 
@@ -4957,61 +4992,6 @@ async function loadArrondissementsOptimized() {
             });
         }
 
-        function enableVpDrag(marker) {
-            if (marker._vpDragEnabled) return;
-            marker._vpDragEnabled = true;
-            let dragging = false, didMove = false, startLatLng, downTime;
-            marker._vpMouseDown = function(e) {
-                if (!vpEditMode) return;
-                dragging = true;
-                didMove = false;
-                downTime = Date.now();
-                startLatLng = marker.getLatLng();
-                map.dragging.disable();
-                L.DomEvent.stopPropagation(e);
-            };
-            marker._vpMouseMove = function(e) {
-                if (!dragging) return;
-                didMove = true;
-                marker.setLatLng(e.latlng);
-            };
-            marker._vpMouseUp = async function(e) {
-                if (!dragging) return;
-                dragging = false;
-                map.dragging.enable();
-                if (!didMove || (Date.now() - downTime < 200)) {
-                    marker.setLatLng(startLatLng);
-                    map.closePopup();
-                    openVpEditForm(marker.vpData, marker);
-                    return;
-                }
-                const newLL = marker.getLatLng();
-                const geom = { type: 'Point', coordinates: [newLL.lng, newLL.lat] };
-                const { error } = await supabase
-                    .from('village_ponctuel')
-                    .update({ geom: geom })
-                    .eq('id', marker.vpData.id);
-                if (error) {
-                    marker.setLatLng(startLatLng);
-                    showNotification('Erreur déplacement', 'error');
-                } else {
-                    marker.vpData.geom = geom;
-
-                    showNotification('Village déplacé', 'success', 1500);
-                }
-            };
-            marker.on('mousedown', marker._vpMouseDown);
-            map.on('mousemove', marker._vpMouseMove);
-            map.on('mouseup', marker._vpMouseUp);
-        }
-
-        function disableVpDrag(marker) {
-            if (!marker._vpDragEnabled) return;
-            marker._vpDragEnabled = false;
-            marker.off('mousedown', marker._vpMouseDown);
-            map.off('mousemove', marker._vpMouseMove);
-            map.off('mouseup', marker._vpMouseUp);
-        }
 
         function onMapClickAddVp(e) {
             if (!vpEditMode || vpActiveTool !== 'add') return;
@@ -5118,6 +5098,7 @@ async function loadArrondissementsOptimized() {
                     Object.assign(ctx.vp, data);
                     if (ctx.marker) {
                         ctx.marker.setLatLng([newLat, newLng]);
+                        if (ctx.marker._srcCircle) ctx.marker._srcCircle.setLatLng([newLat, newLng]);
                         ctx.marker.vpData = ctx.vp;
                         if (ctx.marker.getTooltip()) ctx.marker.unbindTooltip();
                         const zoom = map.getZoom();
@@ -5166,10 +5147,12 @@ async function loadArrondissementsOptimized() {
         };
 
         window.vpPopupEdit = function(vpId) {
+            map.closePopup();
+            const em = vpEditMarkers.find(m => m.vpData && m.vpData.id === vpId);
+            if (em) { openVpEditForm(em.vpData, em); return; }
             if (!mapLayers.villagesPonctuels) return;
             mapLayers.villagesPonctuels.eachLayer(marker => {
                 if (marker.vpData && marker.vpData.id === vpId) {
-                    map.closePopup();
                     openVpEditForm(marker.vpData, marker);
                 }
             });
@@ -5226,8 +5209,18 @@ async function loadArrondissementsOptimized() {
             });
 
             if (vpEditMode) {
-                marker.setRadius(6);
-                enableVpDrag(marker);
+                const em = L.marker([lat, lng], { draggable: true, icon: vpEditIcon, pane: 'villagesPonctuelsPane' }).addTo(map);
+                em.vpData = vp;
+                em._srcCircle = marker;
+                em.on('click', function() { openVpEditForm(this.vpData, this); });
+                em.on('dragend', async function() {
+                    const newLL = this.getLatLng();
+                    const geom = { type: 'Point', coordinates: [newLL.lng, newLL.lat] };
+                    const { error } = await supabase.from('village_ponctuel').update({ geom }).eq('id', this.vpData.id);
+                    if (error) { this.setLatLng([lat, lng]); showNotification('Erreur déplacement', 'error'); }
+                    else { this.vpData.geom = geom; this._srcCircle.setLatLng(newLL); showNotification('Village déplacé', 'success', 1500); }
+                });
+                vpEditMarkers.push(em);
             }
 
             const zoom = map.getZoom();
