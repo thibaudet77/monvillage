@@ -2518,12 +2518,13 @@
     try {
         const { data, error } = await supabase
             .from('villages_complete_extended')
-            .select('id,village_name,arrondissement_name,chief_name,chief_photo_url,chief_start_date,chief_years_of_service,population,telephone,email,area_hectares,geom,categorie')
+            .select('id,village_name,nom_arrondissement,chief_name,chief_photo_url,chief_start_date,chief_years_of_service,population,telephone,email,area_hectares,geom')
             .eq('is_active', true);
         
         if (error) throw error;
         if (!data || data.length === 0) return;
 
+        data.forEach(v => { if (v.nom_arrondissement) v.arrondissement_name = v.nom_arrondissement; });
         mapDataCache.villages = data;
         mapLayers.villages = L.layerGroup();
 

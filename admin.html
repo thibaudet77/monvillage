@@ -1012,7 +1012,7 @@ window.addEventListener('error', function(e) {
 
         async function loadVillages() {
             try {
-                const { data, error } = await supabaseClient.from('villages_complete').select('id,village_name,arrondissement_name,chief_name,population,area_hectares,categorie,is_active');
+                const { data, error } = await supabaseClient.from('villages_complete').select('*');
                 if (error) throw error;
                 
                 const tbody = document.querySelector('#villages-table');
