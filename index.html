@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MonVillage - Cartographie des Villages du Cameroun</title>
+    <title data-i18n-country="app.subtitle">MonVillage - Cartographie des Villages du Cameroun</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -33,6 +33,20 @@
         .search-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: #4a7c59; border: none; color: white; padding: 6px 10px; border-radius: 50%; cursor: pointer; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
         .admin-access { color: rgba(255,255,255,0.9); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 15px; transition: background 0.2s; height: 34px; flex-shrink: 0; }
         .admin-access:hover { background: rgba(255,255,255,0.1); }
+
+        /* Country & Language selectors */
+        .header-selectors { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .country-toggle, .lang-toggle { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 4px 6px; cursor: pointer; color: white; font-size: 13px; height: 32px; transition: background 0.2s; }
+        .country-toggle:hover, .lang-toggle:hover { background: rgba(255,255,255,0.25); }
+        .country-flag { font-size: 16px; line-height: 1; }
+        .country-flag.inactive { opacity: 0.4; }
+        .country-flag.active { opacity: 1; }
+        .lang-option { padding: 2px 6px; border-radius: 10px; font-size: 11px; font-weight: 600; transition: all 0.2s; }
+        .lang-option.active { background: rgba(255,255,255,0.9); color: #2c5530; }
+        .lang-option.inactive { opacity: 0.6; }
+        .cm-only, .ug-only { transition: opacity 0.3s, max-height 0.3s; overflow: hidden; }
+        body[data-country="ug"] .cm-only { display: none !important; }
+        body[data-country="cm"] .ug-only { display: none !important; }
 
         /* Main Content */
         .main-content { display: flex; flex: 1; overflow: hidden; position: relative; }
@@ -696,19 +710,19 @@
         <div class="disclaimer-box">
             <div class="disclaimer-header">
                 <i class="fas fa-exclamation-triangle"></i>
-                <h2>Avertissement important</h2>
+                <h2 data-i18n="disclaimer.title">Avertissement important</h2>
             </div>
             <div class="disclaimer-body">
-                <p>Bienvenue sur <strong>MonVillage</strong>, plateforme de cartographie communautaire des villages du Cameroun.</p>
+                <p data-i18n-country="disclaimer.welcome" data-i18n-html="1">Bienvenue sur <strong>MonVillage</strong>, plateforme de cartographie communautaire des villages du Cameroun.</p>
                 <div class="highlight">
-                    <i class="fas fa-gavel"></i> Cette cartographie est fournie <strong>a titre purement indicatif et informatif</strong>. Elle ne saurait en aucun cas etre utilisee pour regler des litiges territoriaux ou fonciers.
+                    <i class="fas fa-gavel"></i> <span data-i18n="disclaimer.warning" data-i18n-html="1">Cette cartographie est fournie <strong>a titre purement indicatif et informatif</strong>. Elle ne saurait en aucun cas etre utilisee pour regler des litiges territoriaux ou fonciers.</span>
                 </div>
-                <p>Les <strong>limites administratives</strong> (regions, departements, arrondissements) ainsi que certains <strong>noms de lieux</strong> et <strong>localisations de villages</strong> sont approximatifs et peuvent comporter des inexactitudes.</p>
-                <p>Pour toute question officielle relative aux limites territoriales, veuillez vous referer aux autorites administratives competentes.</p>
+                <p data-i18n-country="disclaimer.limits" data-i18n-html="1">Les <strong>limites administratives</strong> (regions, departements, arrondissements) ainsi que certains <strong>noms de lieux</strong> et <strong>localisations de villages</strong> sont approximatifs et peuvent comporter des inexactitudes.</p>
+                <p data-i18n="disclaimer.refer">Pour toute question officielle relative aux limites territoriales, veuillez vous referer aux autorites administratives competentes.</p>
             </div>
             <div class="disclaimer-footer">
                 <button class="disclaimer-accept" id="disclaimerAccept">
-                    <i class="fas fa-check"></i> J'ai compris et j'accepte
+                    <i class="fas fa-check"></i> <span data-i18n="disclaimer.accept">J'ai compris et j'accepte</span>
                 </button>
             </div>
         </div>
@@ -723,13 +737,23 @@
                     <h1 class="app-title">MonVillage</h1>
                 </div>
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Rechercher un village ou un chef..." id="searchInput">
+                    <input type="text" class="search-input" id="searchInput" data-i18n-placeholder="search.placeholder_cm" placeholder="Rechercher un village ou un chef...">
                     <button class="search-btn" id="searchBtn"><i class="fas fa-search"></i></button>
                     <div class="search-results-container" id="searchResults"></div>
                 </div>
+                <div class="header-selectors">
+                    <div class="country-toggle" id="countryToggle" title="Pays / Country">
+                        <span class="country-flag active" data-country="cm" id="flagCM">🇨🇲</span>
+                        <span class="country-flag inactive" data-country="ug" id="flagUG">🇺🇬</span>
+                    </div>
+                    <div class="lang-toggle" id="langToggle" title="Langue / Language">
+                        <span class="lang-option active" data-lang="fr" id="langFR">FR</span>
+                        <span class="lang-option inactive" data-lang="en" id="langEN">EN</span>
+                    </div>
+                </div>
                 <div class="admin-access" onclick="checkAdminAccess()">
                     <i class="fas fa-cog"></i>
-                    <span>Admin</span>
+                    <span data-i18n="header.admin">Admin</span>
                 </div>
             </div>
         </header>
@@ -740,27 +764,29 @@
             <aside class="sidebar" id="sidebar">
                 <div class="sidebar-header">
                     <button class="sidebar-close-btn" id="closeSidebar"><i class="fas fa-times"></i></button>
-                    <div><h3 class="sidebar-title">Légende</h3><p>Couches cartographiques</p></div>
+                    <div><h3 class="sidebar-title" data-i18n="sidebar.legend">Légende</h3><p data-i18n="sidebar.layers">Couches cartographiques</p></div>
                 </div>
-                <div class="layer-controls">
-                    <div class="layer-control-item"><span>Régions</span><div class="layer-toggle active" data-layer="regions"></div></div>
-                    <div class="layer-control-item"><span>Départements</span><div class="layer-toggle active" data-layer="departements"></div></div>
-                    <div class="layer-control-item"><span>Arrondissements</span><div class="layer-toggle active" data-layer="arrondissements"></div></div>
-                    <div class="layer-control-item"><span>Villages</span><div class="layer-toggle active" data-layer="villages"></div></div>
-                    <div class="layer-control-item"><span>Villages ponctuels</span><div class="layer-toggle active" data-layer="villagesPonctuels"></div></div>
-                    <div class="layer-control-item"><span>Points d'intérêt</span><div class="layer-toggle active" data-layer="poi"></div></div>
-                    <div class="layer-control-item"><span>Géonymes</span><div class="layer-toggle active" data-layer="geonames"></div></div>
+                <div class="layer-controls" id="layerControls">
+                    <div class="layer-control-item"><span data-i18n="sidebar.regions">Régions</span><div class="layer-toggle active" data-layer="regions"></div></div>
+                    <div class="layer-control-item cm-only" id="lcDepartements"><span data-i18n="sidebar.departements">Départements</span><div class="layer-toggle active" data-layer="departements"></div></div>
+                    <div class="layer-control-item cm-only" id="lcArrondissements"><span data-i18n="sidebar.arrondissements">Arrondissements</span><div class="layer-toggle active" data-layer="arrondissements"></div></div>
+                    <div class="layer-control-item ug-only" id="lcDistricts" style="display:none"><span data-i18n="sidebar.districts">Districts</span><div class="layer-toggle active" data-layer="districts"></div></div>
+                    <div class="layer-control-item"><span data-i18n="sidebar.villages">Villages</span><div class="layer-toggle active" data-layer="villages"></div></div>
+                    <div class="layer-control-item"><span data-i18n="sidebar.villages_ponctuels">Villages ponctuels</span><div class="layer-toggle active" data-layer="villagesPonctuels"></div></div>
+                    <div class="layer-control-item"><span data-i18n="sidebar.poi">Points d'intérêt</span><div class="layer-toggle active" data-layer="poi"></div></div>
+                    <div class="layer-control-item"><span data-i18n="sidebar.geonames">Géonymes</span><div class="layer-toggle active" data-layer="geonames"></div></div>
                 </div>
-                <div class="legend-section">
-                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 3px solid #d62728;"></div><span class="legend-label">Régions</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px solid #000000;"></div><span class="legend-label">Départements</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px dashed #8B008B;"></div><span class="legend-label">Arrondissements</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px dashed #cc6600;"></div><span class="legend-label">Villages</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: #FFD700;"><i class="fas fa-crown" style="font-size: 10px; color: #333;"></i></div><span class="legend-label">Chefferie 1er degré</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: #FFA500;"><i class="fas fa-crown" style="font-size: 10px; color: #333;"></i></div><span class="legend-label">Chefferie 2ème degré</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: #FF6347;"><i class="fas fa-crown" style="font-size: 10px; color: white;"></i></div><span class="legend-label">Chefferie 3ème degré</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: #4CAF50;"><i class="fas fa-school" style="font-size: 10px; color: white;"></i></div><span class="legend-label">Écoles</span></div>
-                    <div class="legend-item"><div class="legend-symbol" style="background: #F44336;"><i class="fas fa-hospital" style="font-size: 10px; color: white;"></i></div><span class="legend-label">Centres de santé</span></div>
+                <div class="legend-section" id="legendSection">
+                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 3px solid #d62728;"></div><span class="legend-label" data-i18n="legend.regions">Régions</span></div>
+                    <div class="legend-item cm-only"><div class="legend-symbol" style="background: transparent; border: 2px solid #000000;"></div><span class="legend-label" data-i18n="legend.departements">Départements</span></div>
+                    <div class="legend-item cm-only"><div class="legend-symbol" style="background: transparent; border: 2px dashed #8B008B;"></div><span class="legend-label" data-i18n="legend.arrondissements">Arrondissements</span></div>
+                    <div class="legend-item ug-only" style="display:none"><div class="legend-symbol" style="background: transparent; border: 2px solid #000000;"></div><span class="legend-label" data-i18n="legend.districts">Districts</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: transparent; border: 2px dashed #cc6600;"></div><span class="legend-label" data-i18n="legend.villages">Villages</span></div>
+                    <div class="legend-item cm-only"><div class="legend-symbol" style="background: #FFD700;"><i class="fas fa-crown" style="font-size: 10px; color: #333;"></i></div><span class="legend-label" data-i18n="legend.chefferie_1">Chefferie 1er degré</span></div>
+                    <div class="legend-item cm-only"><div class="legend-symbol" style="background: #FFA500;"><i class="fas fa-crown" style="font-size: 10px; color: #333;"></i></div><span class="legend-label" data-i18n="legend.chefferie_2">Chefferie 2ème degré</span></div>
+                    <div class="legend-item cm-only"><div class="legend-symbol" style="background: #FF6347;"><i class="fas fa-crown" style="font-size: 10px; color: white;"></i></div><span class="legend-label" data-i18n="legend.chefferie_3">Chefferie 3ème degré</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: #4CAF50;"><i class="fas fa-school" style="font-size: 10px; color: white;"></i></div><span class="legend-label" data-i18n="legend.schools">Écoles</span></div>
+                    <div class="legend-item"><div class="legend-symbol" style="background: #F44336;"><i class="fas fa-hospital" style="font-size: 10px; color: white;"></i></div><span class="legend-label" data-i18n="legend.health_centers">Centres de santé</span></div>
                 </div>
             </aside>
 
@@ -768,25 +794,25 @@
             <div class="map-container">
                 <button class="toggle-sidebar" id="toggleSidebar"><i class="fas fa-bars"></i></button>
                 <div class="toolbar">
-                    <button class="tool-btn" id="measureDistance" title="Mesurer une distance"><i class="fas fa-ruler"></i></button>
-                    <button class="tool-btn" id="measureArea" title="Mesurer une surface"><i class="fas fa-draw-polygon"></i></button>
-                    <button class="tool-btn" id="clearMeasurements" title="Effacer les mesures"><i class="fas fa-eraser"></i></button>
-                    <button class="tool-btn" id="printMap" title="Imprimer la carte"><i class="fas fa-print"></i></button>
-                    <button class="tool-btn" id="zoomHome" title="Vue d'ensemble"><i class="fas fa-home"></i></button>
-                    <button class="tool-btn" id="toggleSatellite" title="Vue satellite"><i class="fas fa-satellite"></i></button>
-                    <button class="tool-btn" id="toggle3D" title="Vue 3D"><i class="fas fa-cube"></i></button>
+                    <button class="tool-btn" id="measureDistance" data-i18n-title="toolbar.measure_distance" title="Mesurer une distance"><i class="fas fa-ruler"></i></button>
+                    <button class="tool-btn" id="measureArea" data-i18n-title="toolbar.measure_area" title="Mesurer une surface"><i class="fas fa-draw-polygon"></i></button>
+                    <button class="tool-btn" id="clearMeasurements" data-i18n-title="toolbar.clear_measurements" title="Effacer les mesures"><i class="fas fa-eraser"></i></button>
+                    <button class="tool-btn" id="printMap" data-i18n-title="toolbar.print_map" title="Imprimer la carte"><i class="fas fa-print"></i></button>
+                    <button class="tool-btn" id="zoomHome" data-i18n-title="toolbar.zoom_home" title="Vue d'ensemble"><i class="fas fa-home"></i></button>
+                    <button class="tool-btn" id="toggleSatellite" data-i18n-title="toolbar.satellite_view" title="Vue satellite"><i class="fas fa-satellite"></i></button>
+                    <button class="tool-btn" id="toggle3D" data-i18n-title="toolbar.view_3d" title="Vue 3D"><i class="fas fa-cube"></i></button>
                 </div>
-                <button class="locate-btn" id="locateUser" title="Ma position"><i class="fas fa-crosshairs"></i></button>
+                <button class="locate-btn" id="locateUser" data-i18n-title="toolbar.my_position" title="Ma position"><i class="fas fa-crosshairs"></i></button>
                 <div id="map"></div>
                 <div class="vp-move-bar" id="vpMoveBar" style="display:none">
                     <span id="vpMoveText"></span>
-                    <button onclick="cancelVpMove()"><i class="fas fa-times"></i> Annuler</button>
+                    <button onclick="cancelVpMove()"><i class="fas fa-times"></i> <span data-i18n="vp.cancel">Annuler</span></button>
                 </div>
                 <div class="vp-toolbar" id="vpToolbar">
-                    <button class="vp-tool" id="vpToolAdd" title="Ajouter un village (clic sur carte)"><i class="fas fa-plus-circle"></i> Ajouter</button>
+                    <button class="vp-tool" id="vpToolAdd" data-i18n-title="vp.add_title" title="Ajouter un village (clic sur carte)"><i class="fas fa-plus-circle"></i> <span data-i18n="vp.add_tool">Ajouter</span></button>
                 </div>
-                <button class="vp-admin-btn" id="vpAdminBtn" style="display:none" title="Mode édition villages ponctuels">
-                    <i class="fas fa-map-pin"></i> Mode édition
+                <button class="vp-admin-btn" id="vpAdminBtn" style="display:none">
+                    <i class="fas fa-map-pin"></i> <span data-i18n="vp.edit_mode" id="vpAdminBtnText">Mode édition</span>
                 </button>
             </div>
         </div>
@@ -806,7 +832,7 @@
                     <div class="contact-item"><i class="fas fa-envelope"></i><span>monvillage.cm@gmail.com</span></div>
                     <div class="contact-item"><i class="fas fa-phone"></i><span>+237 697 182 925</span></div>
                 </div>
-                <div>© 2024 MonVillage - Cartographie des Villages du Cameroun</div>
+                <div data-i18n-country="app.copyright">© 2024 MonVillage - Cartographie des Villages du Cameroun</div>
             </div>
         </footer>
 
@@ -821,41 +847,41 @@
                 
                 <div class="village-hero">
                     <div class="village-info-grid">
-                        <div class="village-info-item">
-                            <div class="village-info-label"><i class="fas fa-user-tie"></i> Chef de Village</div>
-                            <div class="village-info-value" id="villageChiefName">Non renseigné</div>
+                        <div class="village-info-item cm-only" id="villageChiefRow">
+                            <div class="village-info-label"><i class="fas fa-user-tie"></i> <span data-i18n="village.chief_label">Chef de Village</span></div>
+                            <div class="village-info-value" id="villageChiefName" data-i18n="village.not_specified">Non renseigné</div>
+                        </div>
+                        <div class="village-info-item cm-only" id="villageChiefDateRow">
+                            <div class="village-info-label"><i class="fas fa-calendar-alt"></i> <span data-i18n="village.chief_start_date">Date de Prise de Service</span></div>
+                            <div class="village-info-value" id="villageChiefStartDate" data-i18n="village.not_specified_f">Non renseignée</div>
                         </div>
                         <div class="village-info-item">
-                            <div class="village-info-label"><i class="fas fa-calendar-alt"></i> Date de Prise de Service</div>
-                            <div class="village-info-value" id="villageChiefStartDate">Non renseignée</div>
+                            <div class="village-info-label"><i class="fas fa-phone"></i> <span data-i18n="village.telephone">Téléphone</span></div>
+                            <div class="village-info-value" id="villageTelephone" data-i18n="village.not_available">Non disponible</div>
                         </div>
                         <div class="village-info-item">
-                            <div class="village-info-label"><i class="fas fa-phone"></i> Téléphone</div>
-                            <div class="village-info-value" id="villageTelephone">Non disponible</div>
+                            <div class="village-info-label"><i class="fas fa-envelope"></i> <span data-i18n="village.email">Email</span></div>
+                            <div class="village-info-value" id="villageEmail" data-i18n="village.not_available">Non disponible</div>
                         </div>
                         <div class="village-info-item">
-                            <div class="village-info-label"><i class="fas fa-envelope"></i> Email</div>
-                            <div class="village-info-value" id="villageEmail">Non disponible</div>
+                            <div class="village-info-label"><i class="fas fa-expand-arrows-alt"></i> <span data-i18n="village.area">Superficie</span></div>
+                            <div class="village-info-value" id="villageArea" data-i18n="village.not_calculated">Non calculée</div>
                         </div>
                         <div class="village-info-item">
-                            <div class="village-info-label"><i class="fas fa-expand-arrows-alt"></i> Superficie</div>
-                            <div class="village-info-value" id="villageArea">Non calculée</div>
-                        </div>
-                        <div class="village-info-item">
-                            <div class="village-info-label"><i class="fas fa-users"></i> Population Estimée</div>
-                            <div class="village-info-value" id="villagePopulation">Non renseignée</div>
+                            <div class="village-info-label"><i class="fas fa-users"></i> <span data-i18n="village.estimated_pop">Population Estimée</span></div>
+                            <div class="village-info-value" id="villagePopulation" data-i18n="village.not_specified_f">Non renseignée</div>
                         </div>
                     </div>
-                    
+
                     <div class="village-photos" id="villagePhotosSection" style="display: none;">
-                        <h3 style="color: #2c5530; margin-bottom: 15px;"><i class="fas fa-images"></i> Photos</h3>
+                        <h3 style="color: #2c5530; margin-bottom: 15px;"><i class="fas fa-images"></i> <span data-i18n="village.photos">Photos</span></h3>
                         <div class="village-photos-grid" id="villagePhotosGrid"></div>
                     </div>
                 </div>
 
                 <div class="village-tabs">
-                    <div class="village-tab active" onclick="switchTab('info')">Informations</div>
-                    <div class="village-tab" onclick="switchTab('description')" id="descriptionTab" style="display: none;">Description Complète</div>
+                    <div class="village-tab active" onclick="switchTab('info')" data-i18n="village.tab_info">Informations</div>
+                    <div class="village-tab" onclick="switchTab('description')" id="descriptionTab" style="display: none;" data-i18n="village.tab_description">Description Complète</div>
                 </div>
 
                 <div class="village-modal-body">
@@ -988,57 +1014,58 @@
         <div id="printModal" class="print-modal">
             <div class="print-modal-content">
                 <div class="print-modal-header">
-                    <h2 class="print-modal-title"><i class="fas fa-print"></i> Exporter la Carte</h2>
+                    <h2 class="print-modal-title"><i class="fas fa-print"></i> <span data-i18n="print.title">Exporter la Carte</span></h2>
                     <button class="print-modal-close" id="closePrintModal"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="print-modal-body">
                     <div class="print-config">
                         <div class="print-options">
                             <div class="form-group">
-                                <label class="form-label">Titre de la carte</label>
-                                <input type="text" class="form-input" id="mapTitle" placeholder="Carte des Villages - MonVillage" value="Carte des Villages - MonVillage">
+                                <label class="form-label" data-i18n="print.map_title_label">Titre de la carte</label>
+                                <input type="text" class="form-input" id="mapTitle" data-i18n-placeholder="print.map_title_default" placeholder="Carte des Villages - MonVillage" value="Carte des Villages - MonVillage">
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Source de la zone</label>
+                                <label class="form-label" data-i18n="print.zone_source">Source de la zone</label>
                                 <select class="form-select" id="printSourceMode">
-                                    <option value="manual">Selection manuelle sur la carte</option>
-                                    <option value="admin">Unite administrative / Village</option>
+                                    <option value="manual" data-i18n="print.manual_select">Selection manuelle sur la carte</option>
+                                    <option value="admin" data-i18n="print.admin_unit">Unite administrative / Village</option>
                                 </select>
                             </div>
 
                             <div id="adminSelectGroup" class="form-group" style="display:none;">
-                                <label class="form-label">Type</label>
+                                <label class="form-label" data-i18n="print.type_label">Type</label>
                                 <select class="form-select" id="adminType">
-                                    <option value="">-- Choisir --</option>
-                                    <option value="region">Region</option>
-                                    <option value="departement">Departement</option>
-                                    <option value="arrondissement">Arrondissement</option>
-                                    <option value="village">Village</option>
+                                    <option value="" data-i18n="print.choose">-- Choisir --</option>
+                                    <option value="region" data-i18n="print.region">Region</option>
+                                    <option value="departement" class="cm-only" data-i18n="print.departement">Departement</option>
+                                    <option value="arrondissement" class="cm-only" data-i18n="print.arrondissement">Arrondissement</option>
+                                    <option value="district" class="ug-only" style="display:none" data-i18n="print.district">District</option>
+                                    <option value="village" data-i18n="print.village">Village</option>
                                 </select>
                                 <select class="form-select" id="adminEntity" style="margin-top:8px; display:none;">
-                                    <option value="">-- Choisir une entite --</option>
+                                    <option value="" data-i18n="print.choose_entity">-- Choisir une entite --</option>
                                 </select>
                             </div>
 
                             <div id="manualSelectGroup" class="form-group">
                                 <div class="print-area-controls">
-                                    <button class="area-select-btn" id="selectPrintArea"><i class="fas fa-vector-square"></i> Selectionner une zone</button>
-                                    <button class="area-select-btn" id="useCurrentView"><i class="fas fa-expand"></i> Vue actuelle</button>
-                                    <button class="area-select-btn" id="clearPrintArea"><i class="fas fa-trash"></i> Effacer</button>
+                                    <button class="area-select-btn" id="selectPrintArea"><i class="fas fa-vector-square"></i> <span data-i18n="print.select_zone">Selectionner une zone</span></button>
+                                    <button class="area-select-btn" id="useCurrentView"><i class="fas fa-expand"></i> <span data-i18n="print.current_view">Vue actuelle</span></button>
+                                    <button class="area-select-btn" id="clearPrintArea"><i class="fas fa-trash"></i> <span data-i18n="print.clear">Effacer</span></button>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Format de sortie</label>
+                                <label class="form-label" data-i18n="print.output_format">Format de sortie</label>
                                 <select class="form-select" id="outputFormat">
-                                    <option value="png">PNG (image haute qualite)</option>
-                                    <option value="pdf">PDF</option>
+                                    <option value="png" data-i18n="print.png_label">PNG (image haute qualite)</option>
+                                    <option value="pdf" data-i18n="print.pdf_label">PDF</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Taille du papier</label>
+                                <label class="form-label" data-i18n="print.paper_size">Taille du papier</label>
                                 <div class="format-grid">
                                     <div class="format-option" data-format="A4" data-price="500" data-w="0.21" data-h="0.297">
                                         <div class="format-size">A4</div>
@@ -1068,7 +1095,7 @@
                             </div>
 
                             <div id="customSizeGroup" class="form-group" style="display:none;">
-                                <label class="form-label">Dimensions personnalisees (m)</label>
+                                <label class="form-label" data-i18n="print.custom_dimensions">Dimensions personnalisees (m)</label>
                                 <div style="display:flex; gap:10px; align-items:center;">
                                     <input type="number" class="form-input" id="customWidth" value="1" min="1" max="2" step="0.1" style="width:80px;">
                                     <span>x</span>
@@ -1079,7 +1106,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Echelle souhaitee (optionnel)</label>
+                                <label class="form-label" data-i18n="print.scale_label">Echelle souhaitee (optionnel)</label>
                                 <div class="scale-input-group">
                                     <span>1:</span>
                                     <input type="number" class="form-input scale-input" id="userScale" value="" min="1000" max="10000000" placeholder="Auto">
@@ -1096,16 +1123,16 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Options d'affichage</label>
-                                <label><input type="checkbox" id="showNorthArrow" checked> Fleche Nord</label><br>
-                                <label><input type="checkbox" id="showScale" checked> Echelle graphique</label><br>
-                                <label><input type="checkbox" id="showLegend" checked> Legende</label><br>
-                                <label><input type="checkbox" id="showCoordinates" checked> Coordonnees</label>
+                                <label class="form-label" data-i18n="print.display_options">Options d'affichage</label>
+                                <label><input type="checkbox" id="showNorthArrow" checked> <span data-i18n="print.north_arrow">Fleche Nord</span></label><br>
+                                <label><input type="checkbox" id="showScale" checked> <span data-i18n="print.scale_bar">Echelle graphique</span></label><br>
+                                <label><input type="checkbox" id="showLegend" checked> <span data-i18n="print.legend_opt">Legende</span></label><br>
+                                <label><input type="checkbox" id="showCoordinates" checked> <span data-i18n="print.coordinates">Coordonnees</span></label>
                             </div>
                         </div>
 
                         <div class="print-preview">
-                            <h4 style="margin-bottom: 15px; color: #2c5530;">Apercu</h4>
+                            <h4 style="margin-bottom: 15px; color: #2c5530;" data-i18n="print.preview">Apercu</h4>
                             <div class="preview-container" id="previewContainer">
                                 <div class="preview-header" id="previewTitle">Carte des Villages - MonVillage</div>
                                 <div class="preview-map">
@@ -1123,30 +1150,30 @@
 
                     <div class="print-summary">
                         <div class="summary-row">
-                            <span class="summary-label">Format:</span>
+                            <span class="summary-label" data-i18n="print.summary_format">Format:</span>
                             <span class="summary-value" id="summaryFormat">A2</span>
                         </div>
                         <div class="summary-row">
-                            <span class="summary-label">Fichier:</span>
+                            <span class="summary-label" data-i18n="print.summary_file">Fichier:</span>
                             <span class="summary-value" id="summaryFileType">PNG</span>
                         </div>
                         <div class="summary-row">
-                            <span class="summary-label">Echelle calculee:</span>
+                            <span class="summary-label" data-i18n="print.summary_scale">Echelle calculee:</span>
                             <span class="summary-value" id="summaryScale">--</span>
                         </div>
                         <div class="summary-row">
-                            <span class="summary-label">Zone:</span>
-                            <span class="summary-value" id="summaryArea">Aucune selection</span>
+                            <span class="summary-label" data-i18n="print.summary_zone">Zone:</span>
+                            <span class="summary-value" id="summaryArea" data-i18n="print.no_selection">Aucune selection</span>
                         </div>
                         <div class="summary-row">
-                            <span class="summary-label total-price">Prix total:</span>
+                            <span class="summary-label total-price" data-i18n="print.summary_price">Prix total:</span>
                             <span class="summary-value total-price" id="summaryPrice">2 000 XAF</span>
                         </div>
                     </div>
 
                     <div class="print-actions">
-                        <button class="btn btn-secondary" id="cancelPrint">Annuler</button>
-                        <button class="btn btn-primary" id="proceedToPay"><i class="fas fa-credit-card"></i> Payer et Exporter</button>
+                        <button class="btn btn-secondary" id="cancelPrint" data-i18n="print.cancel">Annuler</button>
+                        <button class="btn btn-primary" id="proceedToPay"><i class="fas fa-credit-card"></i> <span data-i18n="print.pay_export">Payer et Exporter</span></button>
                     </div>
                 </div>
             </div>
@@ -1155,39 +1182,39 @@
         <!-- Payment Modal -->
         <div id="paymentModal" class="payment-modal">
             <div class="payment-content">
-                <h3 class="payment-title"><i class="fas fa-lock"></i> Paiement securise</h3>
+                <h3 class="payment-title"><i class="fas fa-lock"></i> <span data-i18n="payment.title">Paiement securise</span></h3>
                 <div class="payment-amount" id="paymentAmount">2 000 XAF</div>
                 <div class="payment-info">
-                    <strong>Details:</strong><br>
+                    <strong data-i18n="payment.details">Details:</strong><br>
                     <span id="paymentDetails">Format A2 - PNG</span>
                 </div>
                 <div class="payment-methods">
                     <div class="payment-method selected" data-method="mobilemoney">
                         <div class="payment-method-icon"><i class="fas fa-mobile-alt"></i></div>
-                        <div class="payment-method-name">Mobile Money</div>
-                        <div class="payment-method-desc">Orange / MTN MoMo</div>
+                        <div class="payment-method-name" data-i18n="payment.mobile_money">Mobile Money</div>
+                        <div class="payment-method-desc" data-i18n-country="payment.mobile_desc">Orange / MTN MoMo</div>
                     </div>
                     <div class="payment-method" data-method="card">
                         <div class="payment-method-icon"><i class="fas fa-credit-card"></i></div>
-                        <div class="payment-method-name">Carte Bancaire</div>
-                        <div class="payment-method-desc">Visa, Mastercard</div>
+                        <div class="payment-method-name" data-i18n="payment.card">Carte Bancaire</div>
+                        <div class="payment-method-desc" data-i18n="payment.card_desc">Visa, Mastercard</div>
                     </div>
                 </div>
                 <div id="payment-customer-fields" style="margin: 12px 0;">
                     <div id="field-phone" style="margin-bottom: 8px;">
-                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Numéro de téléphone *</label>
-                        <input type="tel" id="customer-phone" placeholder="+237 6XX XXX XXX" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;" data-i18n="payment.phone_label">Numéro de téléphone *</label>
+                        <input type="tel" id="customer-phone" data-i18n-placeholder="payment.phone_placeholder_cm" placeholder="+237 6XX XXX XXX" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
                     </div>
                     <div id="field-name" style="margin-bottom: 8px; display: none;">
-                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;">Nom sur la carte *</label>
-                        <input type="text" id="customer-name" placeholder="Nom complet" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 4px;" data-i18n="payment.name_label">Nom sur la carte *</label>
+                        <input type="text" id="customer-name" data-i18n-placeholder="payment.name_placeholder" placeholder="Nom complet" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
                     </div>
                 </div>
                 <div id="paymentSpinner" class="spinner" style="display: none;"></div>
                 <div id="paymentStatus"></div>
                 <div class="print-actions">
-                    <button class="btn btn-secondary" id="cancelPayment">Annuler</button>
-                    <button class="btn btn-primary" id="confirmPayment"><i class="fas fa-check"></i> Payer</button>
+                    <button class="btn btn-secondary" id="cancelPayment" data-i18n="payment.cancel">Annuler</button>
+                    <button class="btn btn-primary" id="confirmPayment"><i class="fas fa-check"></i> <span data-i18n="payment.pay">Payer</span></button>
                 </div>
             </div>
         </div>
@@ -1196,8 +1223,8 @@
         <div id="loadingOverlay" class="loading-overlay">
             <div class="loading-content">
                 <div class="spinner"></div>
-                <h3>Generation de votre carte...</h3>
-                <p>Veuillez patienter.</p>
+                <h3 data-i18n="loading.generating">Generation de votre carte...</h3>
+                <p data-i18n="loading.please_wait">Veuillez patienter.</p>
             </div>
         </div>
 
@@ -1211,10 +1238,19 @@
     <script src="https://checkout.flutterwave.com/v3.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/country-config.js"></script>
+    <script src="js/i18n.js"></script>
     
     <script type="module">
-        console.log('🚀 MonVillage - Initialisation avec priorité des clics sur les villages');
-        
+        console.log('🚀 MonVillage - Initialisation multi-pays bilingue');
+
+        // Initialize country and language from saved preferences
+        initCountry();
+        initLang();
+        document.body.setAttribute('data-country', currentCountry);
+
+        const cc = () => getCountryConfig();
+
         // CONFIGURATION AVEC VARIABLES D'ENVIRONNEMENT
         const CONFIG = {
             supabase: {
@@ -1227,13 +1263,13 @@
             flutterwave: {
                 publicKey: import.meta.env?.VITE_FLUTTERWAVE_PUBLIC_KEY || 'FLWPUBK-de06efbef44902ddb3aa4a1680436c38-X'
             },
-            map: { center: [5.2, 12.7], zoom: 7 },
+            get map() { return cc().map; },
             print: {
                 formats: {
                     A4: { price: 500, width: 210, height: 297 },
                     A3: { price: 1000, width: 297, height: 420 },
                     A2: { price: 2000, width: 420, height: 594 },
-                    A1: { price: 4000, width: 594, width: 841 },
+                    A1: { price: 4000, width: 594, height: 841 },
                     A0: { price: 6000, width: 841, height: 1189 }
                 }
             }
@@ -1245,6 +1281,57 @@
         let baseLayers = { standard: null, satellite: null };
         let currentBaseLayer = 'standard';
         let suspended = false;
+
+        // Geo-pricing: detect user continent for pricing multiplier
+        let userGeoInfo = { continent: null, country: null, isAfrica: true, hasActiveSubscription: false };
+        const AFRICA_COUNTRIES = ['DZ','AO','BJ','BW','BF','BI','CV','CM','CF','TD','KM','CD','CG','CI','DJ','EG','GQ','ER','SZ','ET','GA','GM','GH','GN','GW','KE','LS','LR','LY','MG','MW','ML','MR','MU','MA','MZ','NA','NE','NG','RW','ST','SN','SC','SL','SO','ZA','SS','SD','TZ','TG','TN','UG','ZM','ZW'];
+        const PRICE_MULTIPLIER_OUTSIDE_AFRICA = 3;
+
+        function isOutsideAfrica() {
+            return userGeoInfo.continent !== null && !userGeoInfo.isAfrica;
+        }
+
+        function getEffectivePrice(basePrice) {
+            if (userGeoInfo.hasActiveSubscription) return 0;
+            return isOutsideAfrica() ? basePrice * PRICE_MULTIPLIER_OUTSIDE_AFRICA : basePrice;
+        }
+
+        async function checkActiveSubscription(email) {
+            if (!supabase || !email) return false;
+            try {
+                const { data, error } = await supabase
+                    .from('subscriptions')
+                    .select('id, expires_at')
+                    .eq('email', email)
+                    .eq('status', 'active')
+                    .gte('expires_at', new Date().toISOString())
+                    .limit(1);
+                if (!error && data && data.length > 0) {
+                    userGeoInfo.hasActiveSubscription = true;
+                    return true;
+                }
+            } catch (e) {
+                console.log('Subscription check failed:', e);
+            }
+            return false;
+        }
+
+        async function detectUserLocation() {
+            try {
+                const resp = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+                const data = await resp.json();
+                userGeoInfo.continent = data.continent_code || null;
+                userGeoInfo.country = data.country_code || null;
+                userGeoInfo.isAfrica = AFRICA_COUNTRIES.includes(data.country_code);
+                console.log('Geo-pricing:', userGeoInfo);
+                if (isOutsideAfrica()) {
+                    refreshPriceDisplay();
+                    scheduleSubscriptionPrompt();
+                }
+            } catch (e) {
+                console.log('Geo detection failed, defaulting to Africa pricing');
+            }
+        }
         let printRect = null;               // L.Rectangle
         let isPrintSelectorOn = false;      // toggle state
         let previewRect = null;             // rectangle on mini-map
@@ -1296,20 +1383,17 @@
         let searchSelectedIndex = -1;
 
 
-        function applyClickHierarchy() {
-            console.log('🎯 Application de la hiérarchie des clics');
+        function buildLayerOrder() {
+            const levels = cc().adminLevels.slice().reverse();
+            const order = [{ name: 'villages', layer: mapLayers.villages, minZoom: 0 }];
+            levels.forEach(lv => {
+                order.push({ name: lv.key, layer: mapLayers[lv.key], minZoom: lv.minZoom || 0 });
+            });
+            return order;
+        }
 
-            // Priorité conditionnelle au zoom :
-            // Régions : toujours visibles (zoom >= 0)
-            // Départements : visibles à zoom >= 6
-            // Arrondissements : visibles à zoom >= 9
-            // Villages : toujours visibles quand chargés (zoom >= 11)
-            const layerOrder = [
-                { name: 'villages', layer: mapLayers.villages, minZoom: 0 },
-                { name: 'arrondissements', layer: mapLayers.arrondissements, minZoom: 9 },
-                { name: 'departements', layer: mapLayers.departements, minZoom: 6 },
-                { name: 'regions', layer: mapLayers.regions, minZoom: 0 }
-            ];
+        function applyClickHierarchy() {
+            const layerOrder = buildLayerOrder();
 
             // Supprimer les handlers de clic individuels sur toutes les couches
             layerOrder.forEach(config => {
@@ -1335,13 +1419,7 @@
             const latlng = e.latlng;
             const zoom = map.getZoom();
 
-            // Couches ordonnées par priorité décroissante, filtrées par zoom
-            const layerOrder = [
-                { name: 'villages', layer: mapLayers.villages, minZoom: 0 },
-                { name: 'arrondissements', layer: mapLayers.arrondissements, minZoom: 9 },
-                { name: 'departements', layer: mapLayers.departements, minZoom: 6 },
-                { name: 'regions', layer: mapLayers.regions, minZoom: 0 }
-            ];
+            const layerOrder = buildLayerOrder();
 
             for (const config of layerOrder) {
                 if (zoom < config.minZoom) continue;
@@ -1482,7 +1560,7 @@
 
         function calculateAreaFromGeometry(geometry) {
             if (!geometry || !geometry.coordinates) {
-                return 'Non calculé';
+                return t('village.not_calculated');
             }
             
             try {
@@ -1507,7 +1585,7 @@
                 return 0;
             } catch (error) {
                 console.error('Erreur calcul superficie:', error);
-                return 'Erreur calcul';
+                return t('village.not_calculated');
             }
         }
 
@@ -1647,20 +1725,49 @@
             if (vpAllData) return vpAllData;
             if (vpAllDataPromise) return vpAllDataPromise;
             vpAllDataPromise = (async () => {
-                let all = [], offset = 0;
-                const PAGE = 1000;
-                while (true) {
-                    const { data, error } = await supabase
-                        .from('village_ponctuel')
-                        .select('id,name,arrondissement_name,population,geom')
-                        .range(offset, offset + PAGE - 1);
-                    if (error || !data || data.length === 0) break;
-                    all = all.concat(data);
-                    if (data.length < PAGE) break;
-                    offset += PAGE;
+                const PAGE = 5000;
+                const config = cc();
+                const vpTable = config.vpTable;
+                const isUg = currentCountry === 'ug';
+                const selectCols = isUg
+                    ? 'id,name,district_name,population,type,geom'
+                    : 'id,name,arrondissement_name,population,geom';
+                const ugTypes = ['village', 'city', 'town', 'national_capital'];
+
+                function buildQuery(from, to) {
+                    let q = supabase.from(vpTable).select(selectCols);
+                    if (isUg) q = q.in('type', ugTypes);
+                    return q.range(from, to);
+                }
+
+                // First page to estimate total
+                const first = await buildQuery(0, PAGE - 1);
+                if (first.error || !first.data || first.data.length === 0) {
+                    vpAllData = [];
+                    return vpAllData;
+                }
+                let all = first.data;
+                if (first.data.length === PAGE) {
+                    // Fetch remaining pages in parallel batches
+                    const PARALLEL = 6;
+                    let offset = PAGE;
+                    let done = false;
+                    while (!done) {
+                        const promises = [];
+                        for (let i = 0; i < PARALLEL; i++) {
+                            promises.push(buildQuery(offset + i * PAGE, offset + (i + 1) * PAGE - 1));
+                        }
+                        const results = await Promise.all(promises);
+                        for (const res of results) {
+                            if (res.error || !res.data || res.data.length === 0) { done = true; break; }
+                            all = all.concat(res.data);
+                            if (res.data.length < PAGE) { done = true; break; }
+                        }
+                        offset += PARALLEL * PAGE;
+                    }
                 }
                 vpAllData = all;
-                console.log(`Chargé ${vpAllData.length} villages ponctuels`);
+                console.log(`Loaded ${vpAllData.length} VP from ${vpTable}`);
                 return vpAllData;
             })();
             return vpAllDataPromise;
@@ -1669,6 +1776,7 @@
         async function getVpSearchCache() {
             if (vpSearchCache) return vpSearchCache;
             const all = await loadAllVpData();
+            const parentCol = cc().vpParentCol;
             vpSearchCache = all.map(vp => {
                 let lat = null, lng = null;
                 const g = parseGeometry(vp.geom);
@@ -1676,36 +1784,53 @@
                     if (g.type === 'MultiPoint') { lng = g.coordinates[0][0]; lat = g.coordinates[0][1]; }
                     else if (g.type === 'Point') { lng = g.coordinates[0]; lat = g.coordinates[1]; }
                 }
+                const parentName = vp[parentCol] || vp.arrondissement_name || vp.district_name || '';
                 return {
                     id: vp.id,
                     name: vp.name,
                     arrondissement_name: vp.arrondissement_name,
+                    district_name: vp.district_name,
+                    type: vp.type,
                     population: vp.population,
                     lat, lng,
                     _nameNorm: vp.name ? normalizeSearch(vp.name) : '',
-                    _arrNorm: vp.arrondissement_name ? normalizeSearch(vp.arrondissement_name) : ''
+                    _arrNorm: parentName ? normalizeSearch(parentName) : ''
                 };
             });
-            console.log(`Cache recherche: ${vpSearchCache.length} villages ponctuels`);
+            console.log(`Search cache: ${vpSearchCache.length} VP`);
             return vpSearchCache;
         }
 
         async function performIntelligentSearch(query) {
             if (!supabase) {
-                showNotification('Recherche hors ligne limitée', 'warning');
+                showNotification(t('notif.offline_search'), 'warning');
                 return;
             }
 
             try {
                 const queryNorm = normalizeSearch(query);
+                const config = cc();
+                const nameCol = config.villageNameCol || 'name';
 
-                const [polygonRes, vpCache] = await Promise.all([
-                    supabase
-                        .from('villages_complete')
+                let polygonQuery;
+                if (currentCountry === 'cm') {
+                    polygonQuery = supabase
+                        .from(config.villageSearchTable)
                         .select('*')
                         .or(`village_name.ilike.%${query}%,chief_name.ilike.%${query}%`)
                         .eq('is_active', true)
-                        .limit(8),
+                        .limit(8);
+                } else {
+                    polygonQuery = supabase
+                        .from(config.villageSearchTable)
+                        .select('*')
+                        .ilike('name', `%${query}%`)
+                        .eq('is_active', true)
+                        .limit(8);
+                }
+
+                const [polygonRes, vpCache] = await Promise.all([
+                    polygonQuery,
                     getVpSearchCache()
                 ]);
 
@@ -1724,8 +1849,8 @@
                 displaySearchResults(currentSearchResults, query);
 
             } catch (error) {
-                console.error('Erreur recherche:', error);
-                showNotification('Erreur lors de la recherche', 'error');
+                console.error('Search error:', error);
+                showNotification(t('notif.search_error'), 'error');
             }
         }
 
@@ -1733,44 +1858,49 @@
             const searchResults = document.getElementById('searchResults');
 
             if (!results || results.length === 0) {
-                searchResults.innerHTML = '<div class="search-result-item">Aucun résultat trouvé</div>';
+                searchResults.innerHTML = `<div class="search-result-item">${t('search.no_results')}</div>`;
                 searchResults.style.display = 'block';
                 return;
             }
 
             const resultsHTML = results.map((item, index) => {
                 if (item._type === 'ponctuel') {
-                    const vpName = highlightMatch(item.name || 'Sans nom', query);
-                    const arrName = item.arrondissement_name || '';
+                    const vpName = highlightMatch(item.name || t('popup.no_name'), query);
+                    const parentName = item[cc().vpParentCol] || item.arrondissement_name || item.district_name || '';
+                    const badge = item.type || t('search.badge_ponctuel');
                     return `
                         <div class="search-result-item" data-index="${index}">
                             <div class="search-result-main">
                                 <strong>${vpName}</strong>
-                                <span class="search-result-badge" style="background:#e74c3c;color:#fff;">Ponctuel</span>
+                                <span class="search-result-badge" style="background:#e74c3c;color:#fff;">${badge}</span>
                             </div>
                             <div class="search-result-details">
                                 <div class="search-result-location">
-                                    <i class="fas fa-map-pin"></i> ${arrName || 'Village ponctuel'}
+                                    <i class="fas fa-map-pin"></i> ${parentName || t('popup.vp_type')}
                                 </div>
                             </div>
                         </div>
                     `;
                 }
-                const villageName = highlightMatch(item.village_name, query);
-                const chiefName = item.chief_name ? highlightMatch(item.chief_name, query) : 'Non renseigné';
+                const villageName = highlightMatch(item.village_name || item.name || '', query);
+                const chiefLine = cc().hasChefferie ? `
+                            <div class="search-result-chief">
+                                <i class="fas fa-user-tie"></i> ${item.chief_name ? highlightMatch(item.chief_name, query) : t('village.not_provided')}
+                            </div>` : '';
+                const locationParts = currentCountry === 'cm'
+                    ? [item.arrondissement_name, item.departement_name, item.region_name].filter(Boolean).join(' → ')
+                    : [item.district_name, item.region_name].filter(Boolean).join(' → ');
                 return `
                     <div class="search-result-item" data-index="${index}">
                         <div class="search-result-main">
                             <strong>${villageName}</strong>
-                            <span class="search-result-badge">Village</span>
+                            <span class="search-result-badge">${t('search.badge_village')}</span>
                         </div>
                         <div class="search-result-details">
-                            <div class="search-result-chief">
-                                <i class="fas fa-user-tie"></i> ${chiefName}
-                            </div>
+                            ${chiefLine}
                             <div class="search-result-location">
                                 <i class="fas fa-map-marker-alt"></i>
-                                ${item.arrondissement_name} → ${item.departement_name} → ${item.region_name}
+                                ${locationParts}
                             </div>
                         </div>
                     </div>
@@ -1834,7 +1964,7 @@
             hideSearchResults();
 
             if (village._type === 'ponctuel') {
-                document.getElementById('searchInput').value = village.name || 'Village ponctuel';
+                document.getElementById('searchInput').value = village.name || t('popup.vp_type');
                 const lat = village.lat;
                 const lng = village.lng;
                 if (!lat || !lng) return;
@@ -1842,11 +1972,11 @@
                 map.setView([lat, lng], 15);
 
                 const tryOpenPopup = (attempts) => {
+                    const parentName = village[cc().vpParentCol] || village.arrondissement_name || village.district_name || t('village.not_determined');
                     if (!mapLayers.villagesPonctuels || attempts <= 0) {
-                        const arrondissement = village.arrondissement_name || 'Non déterminé';
                         L.popup()
                             .setLatLng([lat, lng])
-                            .setContent(createVillagePonctuelPopup(village, arrondissement))
+                            .setContent(createVillagePonctuelPopup(village, parentName))
                             .openOn(map);
                         return;
                     }
@@ -1860,20 +1990,19 @@
                     });
                     if (!found && attempts > 1) setTimeout(() => tryOpenPopup(attempts - 1), 500);
                     else if (!found) {
-                        const arrondissement = village.arrondissement_name || 'Non déterminé';
                         L.popup()
                             .setLatLng([lat, lng])
-                            .setContent(createVillagePonctuelPopup(village, arrondissement))
+                            .setContent(createVillagePonctuelPopup(village, parentName))
                             .openOn(map);
                     }
                 };
                 setTimeout(() => tryOpenPopup(5), 300);
 
-                showNotification(`Village "${village.name || 'ponctuel'}" trouvé`, 'success');
+                showNotification(t('notif.village_found', {name: village.name || 'ponctuel'}), 'success');
                 return;
             }
 
-            document.getElementById('searchInput').value = village.village_name;
+            document.getElementById('searchInput').value = village.village_name || village.name || '';
 
             // Zoomer sur le village
             if (village.centroid) {
@@ -1894,7 +2023,7 @@
                 }
             }
             
-            showNotification(`Village "${village.village_name}" trouvé`, 'success');
+            showNotification(t('notif.village_found', {name: village.village_name || village.name || ''}), 'success');
         }
 
         // ================================================================
@@ -1941,7 +2070,7 @@
                 }
                 valBtn.classList.add('visible');
                 createDraggableRectangle();
-                showNotification('Zone de selection activee - Deplacez le rectangle ou ses coins', 'info');
+                showNotification(t('notif.print_zone_activated'), 'info');
             } else {
                 removeRectangle();
                 let valBtn = document.getElementById('validateZoneBtn');
@@ -2156,7 +2285,7 @@
             printBounds = null;
             clearPreviewRect();
             const el = document.getElementById('summaryArea');
-            if (el) el.textContent = 'Aucune selection';
+            if (el) el.textContent = t('print.no_selection');
         }
 
         function initPreviewMap() {
@@ -2207,7 +2336,7 @@
             updatePreviewFromBounds();
             updatePrintAreaSummary();
             calculateAndDisplayScale();
-            showNotification('Vue actuelle selectionnee', 'success');
+            showNotification(t('notif.current_view_selected'), 'success');
         }
 
         function clearPrintAreaSelection() {
@@ -2222,7 +2351,7 @@
             }
             const scaleEl = document.getElementById('summaryScale');
             if (scaleEl) scaleEl.textContent = '--';
-            showNotification('Selection effacee', 'info');
+            showNotification(t('notif.selection_cleared'), 'info');
         }
 
         function updatePreviewWithBounds(bounds) {
@@ -2245,7 +2374,7 @@
             const summaryAreaEl = document.getElementById('summaryArea');
             if (!summaryAreaEl) return;
             if (!printBounds) {
-                summaryAreaEl.textContent = 'Aucune selection';
+                summaryAreaEl.textContent = t('print.no_selection');
                 return;
             }
             const ne = printBounds.getNorthEast();
@@ -2293,7 +2422,7 @@
 
                 if (requiredWidthM > 2 || requiredHeightM > 2) {
                     scaleEl.textContent = `1:${userScale.toLocaleString()} (format trop grand!)`;
-                    showNotification(`A cette echelle, le papier devrait mesurer ${requiredWidthM.toFixed(2)}m x ${requiredHeightM.toFixed(2)}m, ce qui depasse le maximum de 2m x 2m. Choisissez une echelle plus petite.`, 'warning', 8000);
+                    showNotification(t('notif.scale_too_large', {width: requiredWidthM.toFixed(2), height: requiredHeightM.toFixed(2)}), 'warning', 8000);
                     printConfig.scale = userScale;
                     return;
                 }
@@ -2319,9 +2448,9 @@
 
                 // Calculate price
                 const area = Math.max(1, requiredWidthM) * Math.max(1, requiredHeightM);
-                printConfig.price = Math.round(area * 10000);
+                printConfig.price = getEffectivePrice(Math.round(area * 10000));
                 const priceEl = document.getElementById('summaryPrice');
-                if (priceEl) priceEl.textContent = `${printConfig.price.toLocaleString()} XAF`;
+                if (priceEl) priceEl.textContent = `${printConfig.price.toLocaleString()} ${cc().currency}`;
 
                 scaleEl.textContent = `1:${userScale.toLocaleString()} → ${Math.max(1, requiredWidthM).toFixed(2)}m x ${Math.max(1, requiredHeightM).toFixed(2)}m`;
                 const formatEl = document.getElementById('summaryFormat');
@@ -2360,32 +2489,33 @@
         // Admin entity selection - uses mapDataCache (raw Supabase data)
         function loadAdminEntities(adminType) {
             const entitySelect = document.getElementById('adminEntity');
-            entitySelect.innerHTML = '<option value="">-- Choisir une entite --</option>';
+            entitySelect.innerHTML = `<option value="">-- ${t('print.choose_entity')} --</option>`;
             entitySelect.style.display = 'block';
 
             let dataArr = [];
             let nameKey = '';
-            switch(adminType) {
-                case 'region':
-                    dataArr = mapDataCache.regions;
-                    nameKey = 'nom_region';
-                    break;
-                case 'departement':
-                    dataArr = mapDataCache.departements;
-                    nameKey = 'nom_departement';
-                    break;
-                case 'arrondissement':
-                    dataArr = mapDataCache.arrondissements;
-                    nameKey = 'nom_arrondissement';
-                    break;
-                case 'village':
-                    dataArr = mapDataCache.villages;
-                    nameKey = 'village_name';
-                    break;
+            const config = cc();
+
+            if (adminType === 'village') {
+                dataArr = mapDataCache.villages;
+                nameKey = config.villageNameCol;
+            } else {
+                const level = config.adminLevels.find(lv => lv.key === adminType || lv.key === adminType + 's');
+                if (level) {
+                    dataArr = mapDataCache[level.key];
+                    nameKey = level.nameCol;
+                } else {
+                    switch(adminType) {
+                        case 'region': dataArr = mapDataCache.regions; nameKey = 'nom_region'; break;
+                        case 'departement': dataArr = mapDataCache.departements; nameKey = 'nom_departement'; break;
+                        case 'arrondissement': dataArr = mapDataCache.arrondissements; nameKey = 'nom_arrondissement'; break;
+                        case 'district': dataArr = mapDataCache.districts; nameKey = 'name'; break;
+                    }
+                }
             }
 
             if (!dataArr || dataArr.length === 0) {
-                showNotification('Donnees non chargees. Veuillez attendre le chargement complet.', 'warning');
+                showNotification(t('notif.data_not_loaded'), 'warning');
                 return;
             }
 
@@ -2395,7 +2525,7 @@
             sorted.forEach((item, idx) => {
                 const opt = document.createElement('option');
                 opt.value = idx;
-                opt.textContent = item[nameKey] || 'Sans nom';
+                opt.textContent = item[nameKey] || t('popup.no_name');
                 entitySelect.appendChild(opt);
             });
 
@@ -2411,14 +2541,14 @@
 
             const item = sortedData[parseInt(index)];
             if (!item || !item.geom) {
-                showNotification('Pas de geometrie pour cette entite', 'warning');
+                showNotification(t('notif.no_geometry'), 'warning');
                 return;
             }
 
             // Parse geometry and compute bounds
             const geometry = parseGeometry(item.geom);
             if (!geometry) {
-                showNotification('Geometrie invalide', 'warning');
+                showNotification(t('notif.invalid_geometry'), 'warning');
                 return;
             }
 
@@ -2451,9 +2581,9 @@
                 printRect.on('mousedown', onRectMouseDown);
                 addCornerHandles();
                 map.fitBounds(bounds);
-                showNotification('Zone de l\'entite selectionnee', 'success');
+                showNotification(t('notif.entity_zone_selected'), 'success');
             } else {
-                showNotification('Impossible de determiner les limites de cette entite', 'warning');
+                showNotification(t('notif.entity_bounds_error'), 'warning');
             }
         }
 
@@ -2468,11 +2598,11 @@
         // CHARGEMENT DES DONNÉES VILLAGES AVEC DESCRIPTIONS
         async function loadInitialData() {
                 if (!supabase) {
-                    showNotification('Mode démo - pas de données', 'warning');
+                    showNotification(t('notif.demo_mode'), 'warning');
                     return;
                 }
                 try {
-                    showNotification('Chargement des couches…', 'info');
+                    showNotification(t('notif.loading_layers'), 'info');
 
                     await Promise.all([
                         loadRegionsOptimized(),
@@ -2484,10 +2614,10 @@
 
                     applyLayerHierarchy();
 
-                    showNotification('Données chargées', 'success', 2000);
+                    showNotification(t('notif.data_loaded'), 'success', 2000);
                 } catch (err) {
                     console.error('❌ Erreur chargement:', err);
-                    showNotification('Erreur de chargement des données', 'error');
+                    showNotification(t('notif.load_error'), 'error');
                 }
             }
 
@@ -2515,15 +2645,24 @@
 
   async function loadVillagesOptimized() {
     try {
-        const { data, error } = await supabase
-            .from('villages_complete_extended')
-            .select('id,village_name,nom_arrondissement,chief_name,chief_photo_url,chief_start_date,chief_years_of_service,population,telephone,email,area_hectares,geom')
-            .eq('is_active', true);
-        
+        const config = cc();
+        const vtable = config.villageTable;
+        const selectCols = currentCountry === 'ug'
+            ? 'id,name,district_id,district_name,population,geom'
+            : 'id,village_name,nom_arrondissement,chief_name,chief_photo_url,chief_start_date,chief_years_of_service,population,telephone,email,area_hectares,geom';
+
+        let query = supabase.from(vtable).select(selectCols);
+        if (currentCountry === 'cm') query = query.eq('is_active', true);
+        else query = query.eq('is_active', true);
+
+        const { data, error } = await query;
+
         if (error) throw error;
         if (!data || data.length === 0) return;
 
-        data.forEach(v => { if (v.nom_arrondissement) v.arrondissement_name = v.nom_arrondissement; });
+        if (currentCountry === 'cm') {
+            data.forEach(v => { if (v.nom_arrondissement) v.arrondissement_name = v.nom_arrondissement; });
+        }
         mapDataCache.villages = data;
         mapLayers.villages = L.layerGroup();
 
@@ -2607,8 +2746,8 @@ async function loadVillagesPonctuels() {
                     pane: 'villagesPonctuelsPane'
                 }).addTo(mapLayers.villagesPonctuels);
 
-                const arrondissement = vp.arrondissement_name || 'Non déterminé';
-                marker.bindPopup(createVillagePonctuelPopup(vp, arrondissement), {
+                const parentArea = vp[cc().vpParentCol] || vp.arrondissement_name || vp.district_name || t('village.not_determined');
+                marker.bindPopup(createVillagePonctuelPopup(vp, parentArea), {
                     maxWidth: window.innerWidth < 480 ? (window.innerWidth - 60) : 280,
                     minWidth: 180,
                     className: 'village-popup'
@@ -2632,12 +2771,17 @@ async function loadVillagesPonctuels() {
     }
 }
 
-function findArrondissementForPoint(lat, lng) {
-    if (!mapDataCache.arrondissements) return 'Non déterminé';
+function findParentAdminForPoint(lat, lng) {
+    const config = cc();
+    const levels = config.adminLevels;
+    const parentLevel = levels[levels.length - 1];
+    if (!parentLevel) return t('village.not_determined');
+    const cache = mapDataCache[parentLevel.key];
+    if (!cache) return t('village.not_determined');
     const latlng = L.latLng(lat, lng);
-    for (const arr of mapDataCache.arrondissements) {
-        if (!arr.geom) continue;
-        const geometry = parseGeometry(arr.geom);
+    for (const item of cache) {
+        if (!item.geom) continue;
+        const geometry = parseGeometry(item.geom);
         if (!geometry) continue;
         try {
             const geoLayer = L.geoJSON(geometry);
@@ -2652,20 +2796,23 @@ function findArrondissementForPoint(lat, lng) {
                     }
                 }
             });
-            if (found) return arr.nom_arrondissement;
+            if (found) return item[parentLevel.nameCol];
         } catch (e) { continue; }
     }
-    return 'Non déterminé';
+    return t('village.not_determined');
 }
+function findArrondissementForPoint(lat, lng) { return findParentAdminForPoint(lat, lng); }
 
-function createVillagePonctuelPopup(vp, arrondissement) {
+function createVillagePonctuelPopup(vp, parentArea) {
     const populationText = vp.population ?
-        vp.population.toLocaleString() + ' habitants' : 'Non renseignée';
+        vp.population.toLocaleString() + ' ' + t('popup.inhabitants') : t('village.not_provided');
+
+    const vpType = vp.type ? vp.type : t('popup.vp_type');
 
     const adminActions = vpAdminUser && vp.id ? `
                 <div class="vp-popup-actions">
-                    <button class="vp-popup-btn vp-popup-btn-edit" onclick="vpPopupEdit(${vp.id})"><i class="fas fa-edit"></i> Modifier</button>
-                    <button class="vp-popup-btn vp-popup-btn-move" onclick="vpPopupMove(${vp.id})"><i class="fas fa-arrows-alt"></i> Déplacer</button>
+                    <button class="vp-popup-btn vp-popup-btn-edit" onclick="vpPopupEdit(${vp.id})"><i class="fas fa-edit"></i> ${t('popup.edit')}</button>
+                    <button class="vp-popup-btn vp-popup-btn-move" onclick="vpPopupMove(${vp.id})"><i class="fas fa-arrows-alt"></i> ${t('popup.move')}</button>
                     <button class="vp-popup-btn vp-popup-btn-delete" onclick="vpPopupDelete(${vp.id})"><i class="fas fa-trash"></i></button>
                 </div>` : '';
 
@@ -2673,19 +2820,19 @@ function createVillagePonctuelPopup(vp, arrondissement) {
         <div class="village-popup-inner">
             <div class="village-popup-header">
                 <h3 class="village-popup-title">
-                    <i class="fas fa-map-pin"></i> ${vp.name || 'Village sans nom'}
+                    <i class="fas fa-map-pin"></i> ${vp.name || t('popup.no_name')}
                 </h3>
-                <p class="village-popup-location">${arrondissement}</p>
+                <p class="village-popup-location">${parentArea}</p>
             </div>
             <div class="village-popup-body">
                 <div class="village-popup-stats">
                     <div class="village-popup-stat">
-                        <div class="village-popup-stat-label">Population</div>
+                        <div class="village-popup-stat-label">${t('popup.population')}</div>
                         <div class="village-popup-stat-value">${populationText}</div>
                     </div>
                     <div class="village-popup-stat">
-                        <div class="village-popup-stat-label">Type</div>
-                        <div class="village-popup-stat-value">Village ponctuel</div>
+                        <div class="village-popup-stat-label">${t('popup.type')}</div>
+                        <div class="village-popup-stat-value">${vpType}</div>
                     </div>
                 </div>${adminActions}
             </div>
@@ -2694,66 +2841,71 @@ function createVillagePonctuelPopup(vp, arrondissement) {
 }
 
 function createVillagePopup(village) {
-            const areaText = village.area_hectares ? 
-                `${village.area_hectares.toFixed(2)} ha` : 'Non calculée';
-            
-            const populationText = village.population ? 
-                village.population.toLocaleString() + ' habitants' : 'Non renseignée';
-            
-            const phoneText = village.telephone || 'Non disponible';
-            
-            const chiefPhotoHtml = village.chief_photo_url ?
-                `<img src="${village.chief_photo_url}" alt="Photo du chef">`
-                : `<div style="width: 50px; height: 50px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #666; flex-shrink: 0;"><i class="fas fa-user"></i></div>`;
+            const villageName = village.village_name || village.name || t('popup.no_name');
+            const parentName = village.arrondissement_name || village.district_name || '';
 
-            const chiefServiceYears = village.chief_years_of_service ? 
-                ` (${village.chief_years_of_service} ans de service)` : '';
+            const areaText = village.area_hectares ?
+                `${village.area_hectares.toFixed(2)} ha` : t('village.not_calculated');
+
+            const populationText = village.population ?
+                village.population.toLocaleString() + ' ' + t('popup.inhabitants') : t('village.not_provided');
+
+            let chiefHtml = '';
+            if (cc().hasChefferie) {
+                const phoneText = village.telephone || t('village.not_available');
+                const chiefPhotoHtml = village.chief_photo_url ?
+                    `<img src="${village.chief_photo_url}" alt="${t('popup.chief_photo')}">`
+                    : `<div style="width: 50px; height: 50px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; margin-right: 10px; color: #666; flex-shrink: 0;"><i class="fas fa-user"></i></div>`;
+                const chiefServiceYears = village.chief_years_of_service ?
+                    ` (${village.chief_years_of_service} ${t('popup.years_service')})` : '';
+
+                chiefHtml = `
+                    <div class="village-popup-chief">
+                        ${chiefPhotoHtml}
+                        <div>
+                            <div class="village-popup-chief-label">${t('popup.village_chief')}</div>
+                            <div class="village-popup-chief-name">${village.chief_name || t('village.not_provided')}${chiefServiceYears}</div>
+                        </div>
+                    </div>
+                    <div class="village-popup-contact">
+                        <div class="village-popup-contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>${phoneText}</span>
+                        </div>
+                        ${village.email ? `
+                        <div class="village-popup-contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>${village.email}</span>
+                        </div>
+                        ` : ''}
+                    </div>`;
+            }
 
             return `
                 <div class="village-popup-inner">
                     <div class="village-popup-header">
                         <h3 class="village-popup-title">
-                            <i class="fas fa-home"></i> ${village.village_name}
+                            <i class="fas fa-home"></i> ${villageName}
                         </h3>
-                        <p class="village-popup-location">${village.arrondissement_name}</p>
+                        <p class="village-popup-location">${parentName}</p>
                     </div>
 
                     <div class="village-popup-body">
-                        <div class="village-popup-chief">
-                            ${chiefPhotoHtml}
-                            <div>
-                                <div class="village-popup-chief-label">Chef de Village</div>
-                                <div class="village-popup-chief-name">${village.chief_name || 'Non renseigné'}${chiefServiceYears}</div>
-                            </div>
-                        </div>
-
+                        ${chiefHtml}
                         <div class="village-popup-stats">
                             <div class="village-popup-stat">
-                                <div class="village-popup-stat-label">Superficie</div>
+                                <div class="village-popup-stat-label">${t('popup.area')}</div>
                                 <div class="village-popup-stat-value">${areaText}</div>
                             </div>
                             <div class="village-popup-stat">
-                                <div class="village-popup-stat-label">Population</div>
+                                <div class="village-popup-stat-label">${t('popup.population')}</div>
                                 <div class="village-popup-stat-value">${populationText}</div>
                             </div>
                         </div>
 
-                        <div class="village-popup-contact">
-                            <div class="village-popup-contact-item">
-                                <i class="fas fa-phone"></i>
-                                <span>${phoneText}</span>
-                            </div>
-                            ${village.email ? `
-                            <div class="village-popup-contact-item">
-                                <i class="fas fa-envelope"></i>
-                                <span>${village.email}</span>
-                            </div>
-                            ` : ''}
-                        </div>
-
                         <div class="village-popup-action">
                             <button onclick="openVillageDetails('${village.id}')">
-                                <i class="fas fa-info-circle"></i> En savoir plus
+                                <i class="fas fa-info-circle"></i> ${t('popup.learn_more')}
                             </button>
                         </div>
                     </div>
@@ -2775,7 +2927,7 @@ function createVillagePopup(village) {
             }
             
             if (!villageData) {
-                showNotification('Impossible de charger les détails du village', 'error');
+                showNotification(t('notif.village_details_error'), 'error');
                 return;
             }
             
@@ -2783,50 +2935,59 @@ function createVillagePopup(village) {
         };
 
         async function displayVillageDetails(village) {
-            // Remplir les informations de base
-            document.getElementById('villageModalTitle').textContent = village.village_name;
-            document.getElementById('villageModalSubtitle').textContent = village.arrondissement_name;
-            document.getElementById('villageChiefName').textContent = village.chief_name || 'Non renseigné';
-            
-            // Date de prise de service du chef
-            document.getElementById('villageChiefStartDate').textContent = 
-                village.chief_start_date ? 
-                new Date(village.chief_start_date).toLocaleDateString('fr-FR') + 
-                (village.chief_years_of_service ? ` (${village.chief_years_of_service} ans)` : '') : 
-                'Non renseignée';
-            
-            document.getElementById('villageTelephone').textContent = village.telephone || 'Non disponible';
-            document.getElementById('villageEmail').textContent = village.email || 'Non disponible';
-            document.getElementById('villageArea').textContent = village.area_hectares ? 
-                `${village.area_hectares.toFixed(2)} ha` : 'Non calculée';
-            document.getElementById('villagePopulation').textContent = village.population ? 
-                village.population.toLocaleString() + ' habitants' : 'Non renseignée';
-            
-            // Afficher les photos
+            const vName = village.village_name || village.name || t('popup.no_name');
+            const parentName = village.arrondissement_name || village.district_name || '';
+            const locale = getLang() === 'en' ? 'en-GB' : 'fr-FR';
+
+            document.getElementById('villageModalTitle').textContent = vName;
+            document.getElementById('villageModalSubtitle').textContent = parentName;
+
+            const chiefRow = document.getElementById('villageChiefName');
+            const chiefDateRow = document.getElementById('villageChiefStartDate');
+            const phoneRow = document.getElementById('villageTelephone');
+            const emailRow = document.getElementById('villageEmail');
+
+            if (cc().hasChefferie) {
+                chiefRow.textContent = village.chief_name || t('village.not_specified');
+                chiefDateRow.textContent = village.chief_start_date ?
+                    new Date(village.chief_start_date).toLocaleDateString(locale) +
+                    (village.chief_years_of_service ? ` (${village.chief_years_of_service} ${t('popup.years_service')})` : '') :
+                    t('village.not_specified_f');
+                phoneRow.textContent = village.telephone || t('village.not_available');
+                emailRow.textContent = village.email || t('village.not_available');
+                document.querySelectorAll('.cm-only').forEach(el => {
+                    if (el.closest('#villageModal')) el.style.display = currentCountry === 'cm' ? '' : 'none';
+                });
+            } else {
+                document.querySelectorAll('.cm-only').forEach(el => {
+                    if (el.closest('#villageModal')) el.style.display = 'none';
+                });
+            }
+
+            document.getElementById('villageArea').textContent = village.area_hectares ?
+                `${village.area_hectares.toFixed(2)} ha` : t('village.not_calculated');
+            document.getElementById('villagePopulation').textContent = village.population ?
+                village.population.toLocaleString() + ' ' + t('popup.inhabitants') : t('village.not_specified_f');
+
             await displayVillagePhotos(village);
-            
-            // Charger et afficher la description détaillée
             await loadVillageDescription(village.id);
-            
-            // Remplir les informations de base
-            document.getElementById('villageArrondissementInfo').textContent = village.arrondissement_name;
-            
+
+            const arrInfoEl = document.getElementById('villageArrondissementInfo');
+            if (arrInfoEl) arrInfoEl.textContent = parentName;
+
             let basicInfo = '';
-            if (village.chief_name) {
-                basicInfo += `Le village est dirigé par ${village.chief_name}. `;
+            if (cc().hasChefferie && village.chief_name) {
+                basicInfo += `${village.chief_name}. `;
             }
             if (village.area_hectares) {
-                basicInfo += `Sa superficie est d'environ ${village.area_hectares.toFixed(2)} hectares. `;
+                basicInfo += `${village.area_hectares.toFixed(2)} ha. `;
             }
             if (village.population) {
-                basicInfo += `La population est estimée à ${village.population.toLocaleString()} habitants.`;
+                basicInfo += `${t('popup.population')}: ${village.population.toLocaleString()}.`;
             }
             document.getElementById('villageBasicInfo').textContent = basicInfo;
-            
-            // Activer l'onglet par défaut
+
             switchTab('info');
-            
-            // Afficher le modal
             document.getElementById('villageModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -2841,12 +3002,11 @@ function createVillagePopup(village) {
             if (village.chief_photo_url) {
                 photos.push({
                     url: village.chief_photo_url,
-                    caption: `${village.chief_name || 'Chef du village'}`
+                    caption: `${village.chief_name || t('popup.village_chief')}`
                 });
             }
             
-            // Charger les photos du village depuis la base de données
-            if (supabase) {
+            if (supabase && currentCountry === 'cm') {
                 try {
                     const { data: villagePhotos, error } = await supabase
                         .from('village_photos')
@@ -2856,9 +3016,10 @@ function createVillagePopup(village) {
                     
                     if (!error && villagePhotos) {
                         villagePhotos.forEach((photo, index) => {
+                            const vn = village.village_name || village.name || '';
                             photos.push({
                                 url: photo.photo_url,
-                                caption: `Village ${village.village_name} (${index + 1})`
+                                caption: `${vn} (${index + 1})`
                             });
                         });
                     }
@@ -2882,7 +3043,7 @@ function createVillagePopup(village) {
         }
 
         async function loadVillageDescription(villageId) {
-            if (!supabase) {
+            if (!supabase || currentCountry !== 'cm') {
                 document.getElementById('descriptionTab').style.display = 'none';
                 return;
             }
@@ -3016,219 +3177,108 @@ function createVillagePopup(village) {
             document.body.style.overflow = '';
         }
 
-async function loadRegionsOptimized() {
+async function loadAdminLevelGeneric(levelConfig) {
+    const cacheKey = currentCountry + '_' + levelConfig.key + '_data';
     try {
         let data;
-        const cached = sessionStorage.getItem('regions_data');
+        const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
-            try { data = JSON.parse(cached); } catch(e) { sessionStorage.removeItem('regions_data'); }
+            try { data = JSON.parse(cached); } catch(e) { sessionStorage.removeItem(cacheKey); }
         }
         if (!data) {
             const res = await supabase
-                .from('regions')
-                .select('id_region, nom_region, geom');
+                .from(levelConfig.table)
+                .select(levelConfig.idCol + ', ' + levelConfig.nameCol + ', geom');
             if (res.error) throw res.error;
             data = res.data;
-            try { sessionStorage.setItem('regions_data', JSON.stringify(data)); } catch(e) {}
+            try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
         }
         if (!data || data.length === 0) return;
 
-        mapDataCache.regions = data;
-        mapLayers.regions = L.layerGroup();
+        const layerKey = levelConfig.key;
+        mapDataCache[layerKey] = data;
+        mapLayers[layerKey] = L.layerGroup();
 
-        data.forEach(region => {
-            if (region.geom) {
-                const geometry = parseGeometry(region.geom);
+        const zoom = map ? map.getZoom() : 7;
+        const initialOpacity = levelConfig.minZoom > 0 ? (zoom >= levelConfig.minZoom ? 0.7 : 0) : 0.8;
+
+        data.forEach(item => {
+            if (item.geom) {
+                const geometry = parseGeometry(item.geom);
                 if (!geometry) return;
 
-                const layer = L.geoJSON(geometry, {
-                    style: { 
-                        fillColor: 'transparent', 
-                        color: '#d62728', 
-                        weight: 2,
-                        opacity: 0.8,
-                        fillOpacity: 0 
-                    },
+                const style = {
+                    fillColor: 'transparent',
+                    color: levelConfig.color,
+                    weight: levelConfig.weight,
+                    opacity: initialOpacity,
+                    fillOpacity: 0,
                     interactive: true,
-                    pane: 'regionsPane'
-                }).addTo(mapLayers.regions);
+                };
+                if (levelConfig.dashArray) style.dashArray = levelConfig.dashArray;
+
+                const layer = L.geoJSON(geometry, {
+                    style: style,
+                    interactive: true,
+                    pane: levelConfig.pane
+                }).addTo(mapLayers[layerKey]);
 
                 const area = calculateAreaFromGeometry(geometry);
-                const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
+                const areaText = typeof area === 'number' ? formatArea(area) : t('village.not_calculated');
+                const name = item[levelConfig.nameCol] || t('popup.no_name');
+                const typeLabel = t(levelConfig.labelKey) || levelConfig.key;
 
                 layer.bindPopup(`
                     <div style="font-family: inherit;">
-                        <h4 style="color: #d62728; margin-bottom: 8px;">
-                            <i class="fas fa-map"></i> ${region.nom_region}
+                        <h4 style="color: ${levelConfig.color}; margin-bottom: 8px;">
+                            <i class="fas fa-map"></i> ${name}
                         </h4>
-                        <p><strong>Type:</strong> Région</p>
-                        <p><strong>Superficie:</strong> ${areaText}</p>
+                        <p><strong>${t('popup.type')}:</strong> ${typeLabel}</p>
+                        <p><strong>${t('popup.area')}:</strong> ${areaText}</p>
                     </div>
                 `);
-
             }
         });
 
-        // ✅ AJOUTER LA COUCHE UNE SEULE FOIS - NE JAMAIS LA RETIRER
-        map.addLayer(mapLayers.regions);
-        console.log(`✅ ${data.length} régions ajoutées DÉFINITIVEMENT`);
-        
+        map.addLayer(mapLayers[layerKey]);
+        console.log(`✅ ${data.length} ${levelConfig.key} loaded`);
+
     } catch (error) {
-        console.error('Erreur régions:', error);
+        console.error(`Error loading ${levelConfig.key}:`, error);
         throw error;
     }
 }
 
+async function loadRegionsOptimized() {
+    const levels = cc().adminLevels;
+    if (levels[0]) await loadAdminLevelGeneric(levels[0]);
+}
+
 async function loadDepartementsOptimized() {
-    try {
-        let data;
-        const cached = sessionStorage.getItem('dep_data');
-        if (cached) {
-            try { data = JSON.parse(cached); } catch(e) { sessionStorage.removeItem('dep_data'); }
-        }
-        if (!data) {
-            const res = await supabase
-                .from('departements')
-                .select('id_departement, nom_departement, geom');
-            if (res.error) throw res.error;
-            data = res.data;
-            try { sessionStorage.setItem('dep_data', JSON.stringify(data)); } catch(e) {}
-        }
-        if (!data || data.length === 0) return;
-
-        mapDataCache.departements = data;
-        mapLayers.departements = L.layerGroup();
-
-        data.forEach(departement => {
-            if (departement.geom) {
-                const geometry = parseGeometry(departement.geom);
-                if (!geometry) return;
-
-                const layer = L.geoJSON(geometry, {
-                    style: { 
-                        fillColor: 'transparent', 
-                        color: '#000000', 
-                        weight: 1.5,
-                        opacity: 0.7,  // ✅ Opacité initiale
-                        fillOpacity: 0 
-                    },
-                    interactive: true,
-                    pane: 'departementsPane'
-                }).addTo(mapLayers.departements);
-
-                const area = calculateAreaFromGeometry(geometry);
-                const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
-
-                layer.bindPopup(`
-                    <div style="font-family: inherit;">
-                        <h4 style="color: #000000; margin-bottom: 8px;">
-                            <i class="fas fa-map"></i> ${departement.nom_departement}
-                        </h4>
-                        <p><strong>Type:</strong> Département</p>
-                        <p><strong>Superficie:</strong> ${areaText}</p>
-                    </div>
-                `);
-
-            }
-        });
-
-        // ✅ AJOUTER LA COUCHE UNE SEULE FOIS - NE JAMAIS LA RETIRER
-        map.addLayer(mapLayers.departements);
-        console.log(`✅ ${data.length} départements ajoutés DÉFINITIVEMENT`);
-        
-    } catch (error) {
-        console.error('Erreur départements:', error);
-        throw error;
-    }
-}  
+    const levels = cc().adminLevels;
+    if (levels[1]) await loadAdminLevelGeneric(levels[1]);
+}
 
 async function loadArrondissementsOptimized() {
-    try {
-        let data;
-        const cached = sessionStorage.getItem('arr_data');
-        if (cached) {
-            try { data = JSON.parse(cached); } catch(e) { sessionStorage.removeItem('arr_data'); }
-        }
-        if (!data) {
-            const res = await supabase
-                .from('arrondissements')
-                .select('id_arrondissement, nom_arrondissement, geom');
-            if (res.error) throw res.error;
-            data = res.data;
-            try { sessionStorage.setItem('arr_data', JSON.stringify(data)); } catch(e) {}
-        }
-        if (!data || data.length === 0) return;
-
-        mapDataCache.arrondissements = data;
-        mapLayers.arrondissements = L.layerGroup();
-
-        data.forEach(arrondissement => {
-            if (arrondissement.geom) {
-                const geometry = parseGeometry(arrondissement.geom);
-                if (!geometry) return;
-
-                const layer = L.geoJSON(geometry, {
-                    style: { 
-                        fillColor: 'transparent', 
-                        color: '#8B008B', 
-                        weight: 1,
-                        opacity: map.getZoom() >= 9 ? 0.6 : 0,  // ✅ Opacité conditionnelle
-                        fillOpacity: 0, 
-                        dashArray: '4, 4'
-                    },
-                    interactive: true,
-                    pane: 'arrondissementsPane'
-                }).addTo(mapLayers.arrondissements);
-
-                const area = calculateAreaFromGeometry(geometry);
-                const areaText = typeof area === 'number' ? formatArea(area) : 'Non calculé';
-
-                layer.bindPopup(`
-                    <div style="font-family: inherit;">
-                        <h4 style="color: #8B008B; margin-bottom: 8px;">
-                            <i class="fas fa-map"></i> ${arrondissement.nom_arrondissement}
-                        </h4>
-                        <p><strong>Type:</strong> Arrondissement</p>
-                        <p><strong>Superficie:</strong> ${areaText}</p>
-                    </div>
-                `);
-
-            }
-        });
-
-        // ✅ AJOUTER LA COUCHE UNE SEULE FOIS - NE JAMAIS LA RETIRER
-        map.addLayer(mapLayers.arrondissements);
-        console.log(`✅ ${data.length} arrondissements ajoutés DÉFINITIVEMENT`);
-        
-    } catch (error) {
-        console.error('Erreur arrondissements:', error);
-        throw error;
-    }
+    const levels = cc().adminLevels;
+    if (levels[2]) await loadAdminLevelGeneric(levels[2]);
 }
         
         
              function loadLayersByZoom() {
             const zoom = map.getZoom();
             console.log(`🔊 Zoom: ${zoom}`);
-            
-            if (mapLayers.regions) {
-                mapLayers.regions.eachLayer(layer => {
-                    layer.setStyle({ opacity: 0.8, fillOpacity: 0 });
-                });
-            }
-            
-            if (mapLayers.departements) {
-                mapLayers.departements.eachLayer(layer => {
-                    layer.setStyle({ opacity: zoom >= 6 ? 0.7 : 0, fillOpacity: 0 });
-                });
-            }
-            
-            if (mapLayers.arrondissements) {
-                mapLayers.arrondissements.eachLayer(layer => {
-                    layer.setStyle({ opacity: zoom >= 9 ? 0.6 : 0, fillOpacity: 0 });
-                });
-            }
-            
+
+            const levels = cc().adminLevels;
+            levels.forEach(lv => {
+                if (mapLayers[lv.key]) {
+                    const opacity = lv.minZoom > 0 ? (zoom >= lv.minZoom ? 0.7 : 0) : 0.8;
+                    mapLayers[lv.key].eachLayer(layer => {
+                        layer.setStyle({ opacity: opacity, fillOpacity: 0 });
+                    });
+                }
+            });
+
             if (mapLayers.villages) {
                 mapLayers.villages.eachLayer(layer => {
                     layer.setStyle({ opacity: 0.8, fillOpacity: 0 });
@@ -3284,12 +3334,12 @@ async function loadArrondissementsOptimized() {
             // Si déjà actif, désactiver le suivi
             if (isLocating) {
                 stopLocationTracking();
-                showNotification('Suivi de position désactivé', 'info', 2000);
+                showNotification(t('notif.geo_tracking_off'), 'info', 2000);
                 return;
             }
 
             if (!navigator.geolocation) {
-                showNotification('Géolocalisation non supportée par ce navigateur', 'error');
+                showNotification(t('notif.geo_not_supported'), 'error');
                 return;
             }
 
@@ -3297,7 +3347,7 @@ async function loadArrondissementsOptimized() {
             followUser = true;
             firstLocationFix = true;
             button.classList.add('locating');
-            showNotification('Recherche de votre position...', 'info');
+            showNotification(t('notif.geo_searching'), 'info');
 
             // Utiliser watchPosition pour le suivi en temps réel
             watchId = navigator.geolocation.watchPosition(
@@ -3357,14 +3407,14 @@ async function loadArrondissementsOptimized() {
             userLocationMarker.bindPopup(`
                 <div style="font-family: inherit; text-align: center;">
                     <h4 style="color: #007bff; margin-bottom: 8px;">
-                        <i class="fas fa-crosshairs"></i> Votre Position
+                        <i class="fas fa-crosshairs"></i> ${t('geo.your_position')}
                     </h4>
-                    <p><strong>Latitude:</strong> ${lat.toFixed(6)}</p>
-                    <p><strong>Longitude:</strong> ${lng.toFixed(6)}</p>
-                    <p><strong>Précision:</strong> ±${Math.round(accuracy)}m</p>
-                    <p><strong>Vitesse:</strong> ${speedText}</p>
+                    <p><strong>${t('geo.latitude')}:</strong> ${lat.toFixed(6)}</p>
+                    <p><strong>${t('geo.longitude')}:</strong> ${lng.toFixed(6)}</p>
+                    <p><strong>${t('geo.precision')}:</strong> ±${Math.round(accuracy)}m</p>
+                    <p><strong>${t('geo.speed')}:</strong> ${speedText}</p>
                     <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                        <i class="fas fa-satellite-dish"></i> Suivi en temps réel actif
+                        <i class="fas fa-satellite-dish"></i> ${t('geo.tracking_active')}
                     </p>
                 </div>
             `);
@@ -3389,23 +3439,22 @@ async function loadArrondissementsOptimized() {
             }
 
             if (firstLocationFix === true) {
-                showNotification(`Position trouvée (±${Math.round(accuracy)}m) — suivi actif`, 'success');
+                showNotification(t('notif.geo_found', {accuracy: Math.round(accuracy)}), 'success');
             }
         }
 
         function onLocationError(error) {
-            let message = 'Impossible de déterminer votre position';
+            let message = t('notif.geo_error');
 
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    message = 'Autorisation de géolocalisation refusée';
+                    message = t('notif.geo_permission_denied');
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    message = 'Position non disponible';
+                    message = t('notif.geo_position_unavailable');
                     break;
                 case error.TIMEOUT:
-                    message = 'Délai de géolocalisation dépassé. Nouvelle tentative...';
-                    // Ne pas arrêter le watch sur timeout, il réessaiera
+                    message = t('notif.geo_timeout');
                     if (isLocating) return;
                     break;
             }
@@ -3491,7 +3540,7 @@ async function loadArrondissementsOptimized() {
             }
 
             map.closePopup();
-            showNotification('Toutes les mesures effacées', 'info');
+            showNotification(t('notif.all_measures_cleared'), 'info');
         }
 
         let distanceTempLine = null;
@@ -3517,7 +3566,7 @@ async function loadArrondissementsOptimized() {
             button.classList.add('active');
 
             map.doubleClickZoom.disable();
-            showNotification('Cliquez pour ajouter des points. Double-clic pour terminer.', 'info');
+            showNotification(t('notif.measure_click_to_add'), 'info');
 
             map.on('click', onDistanceClick);
             map.on('dblclick', onDistanceFinish);
@@ -3571,7 +3620,7 @@ async function loadArrondissementsOptimized() {
             .setContent(`<strong>Total: ${formatDistance(distanceTotalDistance)}</strong><br><small>${distanceMarkers.length} points, ${distanceMarkers.length - 1} segments</small>`)
             .openOn(map);
 
-            showNotification(`Distance totale: ${formatDistance(distanceTotalDistance)}`, 'success');
+            showNotification(t('notif.total_distance', {distance: formatDistance(distanceTotalDistance)}), 'success');
             stopDistanceMeasurement();
         }
 
@@ -3682,7 +3731,7 @@ async function loadArrondissementsOptimized() {
             polygonPoints = [];
 
             map.doubleClickZoom.disable();
-            showNotification('Cliquez pour dessiner un polygone. Double-clic pour terminer.', 'info');
+            showNotification(t('notif.measure_draw_polygon'), 'info');
 
             map.on('click', onPolygonClick);
             map.on('dblclick', onPolygonFinish);
@@ -3783,7 +3832,7 @@ async function loadArrondissementsOptimized() {
             .setContent(`<strong>Surface: ${formatArea(area)}</strong>`)
             .openOn(map);
 
-            showNotification(`Surface: ${formatArea(area)}`, 'success');
+            showNotification(t('notif.area_result', {area: formatArea(area)}), 'success');
 
             stopAreaMeasurement();
         }
@@ -3874,7 +3923,7 @@ async function loadArrondissementsOptimized() {
 
             if (summaryFormat) summaryFormat.textContent = printConfig.format;
             if (summaryFileType && outputFormat) summaryFileType.textContent = outputFormat.value.toUpperCase();
-            if (summaryPrice) summaryPrice.textContent = `${printConfig.price.toLocaleString()} XAF`;
+            if (summaryPrice) summaryPrice.textContent = `${printConfig.price.toLocaleString()} ${cc().currency}`;
 
             // Scale is calculated automatically
             calculateAndDisplayScale();
@@ -3889,17 +3938,15 @@ async function loadArrondissementsOptimized() {
 
             printConfig.format = format;
 
-            // Handle custom format
             const customGroup = document.getElementById('customSizeGroup');
             if (format === 'custom') {
                 customGroup.style.display = 'block';
-                // Calculate custom price
                 const w = parseFloat(document.getElementById('customWidth').value) || 1;
                 const h = parseFloat(document.getElementById('customHeight').value) || 1.5;
-                printConfig.price = Math.round(w * h * 10000);
+                printConfig.price = getEffectivePrice(Math.round(w * h * 10000));
             } else {
                 customGroup.style.display = 'none';
-                printConfig.price = price;
+                printConfig.price = getEffectivePrice(price);
             }
 
             updatePrintPreview();
@@ -3909,10 +3956,9 @@ async function loadArrondissementsOptimized() {
             if (printConfig.format !== 'custom') return;
             const w = parseFloat(document.getElementById('customWidth').value) || 1;
             const h = parseFloat(document.getElementById('customHeight').value) || 1.5;
-            // Clamp values
             const cw = Math.max(1, Math.min(2, w));
             const ch = Math.max(1, Math.min(2, h));
-            printConfig.price = Math.round(cw * ch * 10000);
+            printConfig.price = getEffectivePrice(Math.round(cw * ch * 10000));
             updateSummaryFields();
             calculateAndDisplayScale();
         }
@@ -3933,7 +3979,7 @@ async function loadArrondissementsOptimized() {
 
         async function proceedToPayment() {
             if (!printBounds) {
-                showNotification('Veuillez selectionner une zone avant de payer', 'warning');
+                showNotification(t('notif.select_zone'), 'warning');
                 return;
             }
 
@@ -3950,16 +3996,42 @@ async function loadArrondissementsOptimized() {
             // Pre-generate the map export BEFORE payment
             const success = await preGenerateExport();
             if (!success) {
-                showNotification('Erreur lors de la preparation de la carte. Reessayez.', 'error');
+                showNotification(t('notif.map_prep_error'), 'error');
+                return;
+            }
+
+            // If subscriber, skip payment
+            if (userGeoInfo.hasActiveSubscription) {
+                showNotification(t('notif.subscriber_export'), 'success');
+                downloadCachedExport();
                 return;
             }
 
             // Show payment modal
             const paymentModal = document.getElementById('paymentModal');
             paymentModal.classList.add('active');
-            document.getElementById('paymentAmount').textContent = `${printConfig.price.toLocaleString()} XAF`;
+            document.getElementById('paymentAmount').textContent = `${printConfig.price.toLocaleString()} ${cc().currency}`;
             document.getElementById('paymentDetails').textContent =
                 `Format ${printConfig.format} - ${printConfig.outputFormat.toUpperCase()}`;
+
+            // Show pricing info for outside Africa
+            let geoNotice = document.getElementById('geoPricingNotice');
+            if (!geoNotice) {
+                geoNotice = document.createElement('div');
+                geoNotice.id = 'geoPricingNotice';
+                geoNotice.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px;margin:10px 0;font-size:13px;color:#856404;';
+                const payInfo = document.querySelector('.payment-info');
+                if (payInfo) payInfo.after(geoNotice);
+            }
+            if (isOutsideAfrica()) {
+                const isEn = (window.getLang && getLang() === 'en');
+                geoNotice.innerHTML = isEn
+                    ? '<strong>🌍 International rate</strong> — Prices are 3× for users outside Africa. <a href="mailto:intello.corporation@gmail.com?subject=MonVillage Subscription" style="color:#4a7c59;font-weight:bold;">Subscribe for $10/month</a> for unlimited exports.'
+                    : '<strong>🌍 Tarif international</strong> — Les prix sont multipliés par 3 hors Afrique. <a href="mailto:intello.corporation@gmail.com?subject=MonVillage Abonnement" style="color:#4a7c59;font-weight:bold;">Abonnez-vous à 10$/mois</a> pour des exports illimités.';
+                geoNotice.style.display = 'block';
+            } else {
+                geoNotice.style.display = 'none';
+            }
         }
 
         async function preGenerateExport() {
@@ -4210,12 +4282,10 @@ async function loadArrondissementsOptimized() {
         // Add labels for admin units visible within bounds
         function addExportLabels(bounds) {
             const labels = [];
-            const layerConfigs = [
-                { data: mapDataCache.regions, nameKey: 'nom_region', color: '#d62728', minArea: 0.5 },
-                { data: mapDataCache.departements, nameKey: 'nom_departement', color: '#000000', minArea: 0.1 },
-                { data: mapDataCache.arrondissements, nameKey: 'nom_arrondissement', color: '#8B008B', minArea: 0.02 },
-                { data: mapDataCache.villages, nameKey: 'village_name', color: '#cc6600', minArea: 0 }
-            ];
+            const layerConfigs = cc().adminLevels.map(lv => ({
+                data: mapDataCache[lv.key], nameKey: lv.nameCol, color: lv.color, minArea: lv.minZoom > 6 ? 0.02 : lv.minZoom > 0 ? 0.1 : 0.5
+            }));
+            layerConfigs.push({ data: mapDataCache.villages, nameKey: cc().villageNameCol, color: '#cc6600', minArea: 0 });
 
             layerConfigs.forEach(config => {
                 if (!config.data) return;
@@ -4277,9 +4347,9 @@ async function loadArrondissementsOptimized() {
 
             const confirmButton = document.getElementById('confirmPayment');
             if (method === 'mobilemoney') {
-                confirmButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Payer par Mobile Money';
+                confirmButton.innerHTML = '<i class="fas fa-mobile-alt"></i> ' + t('payment.pay_mobile');
             } else if (method === 'card') {
-                confirmButton.innerHTML = '<i class="fas fa-credit-card"></i> Payer par Carte';
+                confirmButton.innerHTML = '<i class="fas fa-credit-card"></i> ' + t('payment.pay_card');
             }
         }
 
@@ -4293,14 +4363,15 @@ async function loadArrondissementsOptimized() {
 
                 const txRef = `PRINT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-                const customerPhone = document.getElementById('customer-phone').value.trim() || '+237697182925';
+                const defaultPhone = cc().phonePrefix + '000000000';
+                const customerPhone = document.getElementById('customer-phone').value.trim() || defaultPhone;
                 const customerName = document.getElementById('customer-name').value.trim() || 'Client MonVillage';
 
                 FlutterwaveCheckout({
                     public_key: CONFIG.flutterwave.publicKey,
                     tx_ref: txRef,
                     amount: printConfig.price,
-                    currency: "XAF",
+                    currency: cc().currency,
                     payment_options: "card,mobilemoney,ussd",
                     customer: {
                         email: "client@monvillage.cm",
@@ -4308,8 +4379,8 @@ async function loadArrondissementsOptimized() {
                         name: customerName
                     },
                     customizations: {
-                        title: "MonVillage - Exportation de Carte",
-                        description: `Exportation ${printConfig.format} - ${printConfig.outputFormat.toUpperCase()}`,
+                        title: "MonVillage - " + t('print.export_title'),
+                        description: `${t('print.export_title')} ${printConfig.format} - ${printConfig.outputFormat.toUpperCase()}`,
                         logo: ""
                     },
                     meta: {
@@ -4325,7 +4396,7 @@ async function loadArrondissementsOptimized() {
                             console.warn('Paiement non abouti, statut:', data.status);
                             document.getElementById('paymentSpinner').style.display = 'none';
                             document.getElementById('confirmPayment').disabled = false;
-                            showNotification('Le paiement n\'a pas abouti. Veuillez reessayer.', 'error');
+                            showNotification(t('notif.payment_not_completed'), 'error');
                         }
                     },
                     onclose: function() {
@@ -4336,14 +4407,14 @@ async function loadArrondissementsOptimized() {
                             document.getElementById('paymentModal').classList.remove('active');
                             cachedExportBlob = null;
                             cachedExportFileName = '';
-                            showNotification('Paiement annule. La carte n\'a pas ete exportee.', 'info');
+                            showNotification(t('notif.payment_cancelled'), 'info');
                         }
                     }
                 });
 
             } catch (error) {
                 console.error('Erreur lors du paiement:', error);
-                showNotification('Erreur lors du traitement du paiement', 'error');
+                showNotification(t('notif.payment_processing_error'), 'error');
                 document.getElementById('paymentSpinner').style.display = 'none';
                 document.getElementById('confirmPayment').disabled = false;
             }
@@ -4378,7 +4449,7 @@ async function loadArrondissementsOptimized() {
                     const paymentRecord = {
                         transaction_id: txRef,
                         amount: printConfig.price,
-                        currency: 'XAF',
+                        currency: cc().currency,
                         status: 'success',
                         payment_method: paymentType || 'flutterwave',
                         user_session: contactInfo,
@@ -4407,14 +4478,14 @@ async function loadArrondissementsOptimized() {
 
             } catch (error) {
                 console.error('Erreur post-paiement:', error);
-                showNotification('Paiement reussi mais erreur lors de la generation', 'warning');
+                showNotification(t('notif.payment_ok_export_error'), 'warning');
             }
         }
 
         function handlePaymentCancel() {
             document.getElementById('paymentSpinner').style.display = 'none';
             document.getElementById('confirmPayment').disabled = false;
-            showNotification('Paiement annule', 'info');
+            showNotification(t('notif.payment_cancelled_short'), 'info');
             cachedExportBlob = null;
             cachedExportFileName = '';
         }
@@ -4422,7 +4493,7 @@ async function loadArrondissementsOptimized() {
 
         function downloadCachedExport() {
             if (!cachedExportBlob) {
-                showNotification('Erreur: la carte n\'a pas pu etre preparee. Reessayez.', 'error');
+                showNotification(t('notif.export_error'), 'error');
                 return;
             }
 
@@ -4435,7 +4506,7 @@ async function loadArrondissementsOptimized() {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            showNotification(`Carte exportee: ${cachedExportFileName}`, 'success', 6000);
+            showNotification(t('notif.map_exported', {filename: cachedExportFileName}), 'success', 6000);
             cachedExportBlob = null;
             cachedExportFileName = '';
             clearPrintAreaSelection();
@@ -4544,13 +4615,13 @@ async function loadArrondissementsOptimized() {
 
                 await new Promise(r => setTimeout(r, 500));
                 loadingOverlay.classList.remove('active');
-                showNotification(`Exportation reussie: ${fileName}`, 'success', 6000);
+                showNotification(t('notif.export_success', {filename: fileName}), 'success', 6000);
                 clearPrintAreaSelection();
 
             } catch (error) {
                 console.error('Erreur export:', error);
                 loadingOverlay.classList.remove('active');
-                showNotification('Erreur lors de l\'export. Les tuiles cross-origin peuvent bloquer la capture. Essayez le format PDF ou la vue satellite.', 'error', 8000);
+                showNotification(t('notif.export_cross_origin_error'), 'error', 8000);
             }
         }
 
@@ -4931,7 +5002,7 @@ async function loadArrondissementsOptimized() {
         }
 
         function toggleVpEditMode() {
-            if (!vpAdminUser) { showNotification('Accès réservé aux administrateurs', 'error'); return; }
+            if (!vpAdminUser) { showNotification(t('notif.admin_only'), 'error'); return; }
             vpEditMode = !vpEditMode;
             vpActiveTool = null;
             const btn = document.getElementById('vpAdminBtn');
@@ -4953,17 +5024,18 @@ async function loadArrondissementsOptimized() {
             mapLayers.villagesPonctuels.eachLayer(marker => {
                 if (!marker.vpData) return;
                 const vp = marker.vpData;
-                const arrondissement = vp.arrondissement_name || 'Non déterminé';
-                marker.setPopupContent(createVillagePonctuelPopup(vp, arrondissement));
+                const parentName = vp[cc().vpParentCol] || vp.arrondissement_name || vp.district_name || t('village.not_determined');
+                marker.setPopupContent(createVillagePonctuelPopup(vp, parentName));
             });
         }
 
 
         function onMapClickAddVp(e) {
             if (!vpEditMode || vpActiveTool !== 'add') return;
+            const parentCol = cc().vpParentCol;
             const newVp = {
                 name: '',
-                arrondissement_name: findArrondissementForPoint(e.latlng.lat, e.latlng.lng),
+                [parentCol]: findParentAdminForPoint(e.latlng.lat, e.latlng.lng),
                 population: null,
                 geom: { type: 'Point', coordinates: [e.latlng.lng, e.latlng.lat] }
             };
@@ -4971,11 +5043,17 @@ async function loadArrondissementsOptimized() {
         }
 
         function openVpEditForm(vp, marker, isNew) {
-            const arrOptions = (mapDataCache.arrondissements || [])
-                .map(a => a.nom_arrondissement)
+            const config = cc();
+            const levels = config.adminLevels;
+            const parentLevel = levels[levels.length - 1];
+            const parentLabel = parentLevel ? t(parentLevel.labelKey) : t('popup.arrondissement');
+            const parentCol = config.vpParentCol;
+            const parentCache = parentLevel ? (mapDataCache[parentLevel.key] || []) : [];
+            const parentOptions = parentCache
+                .map(a => a[parentLevel.nameCol])
                 .filter(Boolean)
                 .sort()
-                .map(n => `<option value="${n}" ${n === vp.arrondissement_name ? 'selected' : ''}>${n}</option>`)
+                .map(n => `<option value="${n}" ${n === (vp[parentCol] || vp.arrondissement_name || vp.district_name) ? 'selected' : ''}>${n}</option>`)
                 .join('');
 
             let lat = '', lng = '';
@@ -4985,27 +5063,27 @@ async function loadArrondissementsOptimized() {
                 else if (geom.type === 'Point') { lng = geom.coordinates[0]; lat = geom.coordinates[1]; }
             }
 
-            const deleteBtn = isNew ? '' : '<button type="button" class="vp-btn-delete" onclick="deleteVpFromForm()">Supprimer</button>';
+            const deleteBtn = isNew ? '' : `<button type="button" class="vp-btn-delete" onclick="deleteVpFromForm()">${t('vp.delete')}</button>`;
 
             const modal = document.createElement('div');
             modal.className = 'vp-edit-modal';
             modal.id = 'vpEditModal';
             modal.innerHTML = `
                 <div class="vp-edit-form">
-                    <h3>${isNew ? 'Ajouter un village' : 'Modifier le village'}</h3>
-                    <label>Nom</label>
-                    <input type="text" id="vpEditName" value="${vp.name || ''}" placeholder="Nom du village">
-                    <label>Arrondissement</label>
-                    <select id="vpEditArr"><option value="">—</option>${arrOptions}</select>
-                    <label>Population</label>
+                    <h3>${isNew ? t('vp.add_title') : t('vp.edit_mode')}</h3>
+                    <label>${t('popup.no_name').replace(t('popup.no_name'), 'Nom')}</label>
+                    <input type="text" id="vpEditName" value="${vp.name || ''}" placeholder="${t('popup.no_name')}">
+                    <label>${parentLabel}</label>
+                    <select id="vpEditArr"><option value="">—</option>${parentOptions}</select>
+                    <label>${t('popup.population')}</label>
                     <input type="number" id="vpEditPop" value="${vp.population || ''}" min="0" placeholder="0">
                     <div class="vp-coords-row">
                         <div><label>Latitude</label><input type="number" id="vpEditLat" value="${lat}" step="0.000001" placeholder="5.0"></div>
                         <div><label>Longitude</label><input type="number" id="vpEditLng" value="${lng}" step="0.000001" placeholder="12.0"></div>
                     </div>
                     <div class="vp-btn-row">
-                        <button type="button" class="vp-btn-save" onclick="saveVpFromForm()">Enregistrer</button>
-                        <button type="button" class="vp-btn-cancel" onclick="closeVpEditForm()">Annuler</button>
+                        <button type="button" class="vp-btn-save" onclick="saveVpFromForm()">${t('vp.add_tool')}</button>
+                        <button type="button" class="vp-btn-cancel" onclick="closeVpEditForm()">${t('vp.cancel')}</button>
                         ${deleteBtn}
                     </div>
                 </div>
@@ -5021,7 +5099,7 @@ async function loadArrondissementsOptimized() {
         };
 
         window.saveVpFromForm = async function() {
-            if (!vpAdminUser) { showNotification('Accès réservé aux administrateurs', 'error'); return; }
+            if (!vpAdminUser) { showNotification(t('notif.admin_only'), 'error'); return; }
             const ctx = window._vpEditCtx;
             if (!ctx) return;
             const name = document.getElementById('vpEditName').value.trim();
@@ -5030,13 +5108,14 @@ async function loadArrondissementsOptimized() {
             const newLat = parseFloat(document.getElementById('vpEditLat').value);
             const newLng = parseFloat(document.getElementById('vpEditLng').value);
 
-            if (!name) { showNotification('Le nom est requis', 'warning'); return; }
-            if (isNaN(newLat) || isNaN(newLng)) { showNotification('Coordonnées invalides', 'warning'); return; }
+            if (!name) { showNotification(t('notif.name_required'), 'warning'); return; }
+            if (isNaN(newLat) || isNaN(newLng)) { showNotification(t('notif.invalid_coords'), 'warning'); return; }
 
             const newGeom = { type: 'Point', coordinates: [newLng, newLat] };
+            const parentCol = cc().vpParentCol;
             const data = {
                 name,
-                arrondissement_name: arr || null,
+                [parentCol]: arr || null,
                 population: pop,
                 geom: newGeom
             };
@@ -5044,7 +5123,7 @@ async function loadArrondissementsOptimized() {
             try {
                 if (ctx.isNew) {
                     const { data: inserted, error } = await supabase
-                        .from('village_ponctuel')
+                        .from(cc().vpTable)
                         .insert(data)
                         .select()
                         .single();
@@ -5054,10 +5133,10 @@ async function loadArrondissementsOptimized() {
                         vpSearchCache.push({ ...inserted, _nameNorm: removeAccents(inserted.name.toLowerCase()) });
                     }
 
-                    showNotification('Village ajouté', 'success', 1500);
+                    showNotification(t('notif.village_added'), 'success', 1500);
                 } else {
                     const { error } = await supabase
-                        .from('village_ponctuel')
+                        .from(cc().vpTable)
                         .update(data)
                         .eq('id', ctx.vp.id);
                     if (error) throw error;
@@ -5070,31 +5149,31 @@ async function loadArrondissementsOptimized() {
                         if (zoom >= 12 && name) {
                             ctx.marker.bindTooltip(name, { permanent: true, direction: 'right', offset: [6, 0], className: 'vp-label' });
                         }
-                        const arrondissement = data.arrondissement_name || 'Non déterminé';
-                        ctx.marker.setPopupContent(createVillagePonctuelPopup(ctx.vp, arrondissement));
+                        const parentName = data[cc().vpParentCol] || t('village.not_determined');
+                        ctx.marker.setPopupContent(createVillagePonctuelPopup(ctx.vp, parentName));
                     }
                     if (vpSearchCache) {
                         const idx = vpSearchCache.findIndex(v => v.id === ctx.vp.id);
                         if (idx >= 0) Object.assign(vpSearchCache[idx], data, { _nameNorm: removeAccents(name.toLowerCase()) });
                     }
 
-                    showNotification('Village modifié', 'success', 1500);
+                    showNotification(t('notif.village_updated'), 'success', 1500);
                 }
                 closeVpEditForm();
             } catch (e) {
                 console.error(e);
-                showNotification('Erreur: ' + e.message, 'error');
+                showNotification(t('notif.error_prefix', {message: e.message}), 'error');
             }
         };
 
         window.deleteVpFromForm = async function() {
-            if (!vpAdminUser) { showNotification('Accès réservé aux administrateurs', 'error'); return; }
+            if (!vpAdminUser) { showNotification(t('notif.admin_only'), 'error'); return; }
             const ctx = window._vpEditCtx;
             if (!ctx || ctx.isNew) return;
             if (!confirm('Supprimer ce village ?')) return;
             try {
                 const { error } = await supabase
-                    .from('village_ponctuel')
+                    .from(cc().vpTable)
                     .delete()
                     .eq('id', ctx.vp.id);
                 if (error) throw error;
@@ -5104,10 +5183,10 @@ async function loadArrondissementsOptimized() {
                 if (vpSearchCache) {
                     vpSearchCache = vpSearchCache.filter(v => v.id !== ctx.vp.id);
                 }
-                showNotification('Village supprimé', 'success', 1500);
+                showNotification(t('notif.village_deleted'), 'success', 1500);
                 closeVpEditForm();
             } catch (e) {
-                showNotification('Erreur suppression', 'error');
+                showNotification(t('notif.delete_error'), 'error');
             }
         };
 
@@ -5161,8 +5240,8 @@ async function loadArrondissementsOptimized() {
         window.vpPopupDelete = function(vpId) {
             if (!vpAdminUser) return;
             if (!confirm('Supprimer ce village ?')) return;
-            supabase.from('village_ponctuel').delete().eq('id', vpId).then(({ error }) => {
-                if (error) { showNotification('Erreur suppression', 'error'); return; }
+            supabase.from(cc().vpTable).delete().eq('id', vpId).then(({ error }) => {
+                if (error) { showNotification(t('notif.delete_error'), 'error'); return; }
                 if (mapLayers.villagesPonctuels) {
                     mapLayers.villagesPonctuels.eachLayer(marker => {
                         if (marker.vpData && marker.vpData.id === vpId) {
@@ -5172,7 +5251,7 @@ async function loadArrondissementsOptimized() {
                 }
                 if (vpSearchCache) vpSearchCache = vpSearchCache.filter(v => v.id !== vpId);
                 map.closePopup();
-                showNotification('Village supprimé', 'success', 1500);
+                showNotification(t('notif.village_deleted'), 'success', 1500);
             });
         };
 
@@ -5194,8 +5273,8 @@ async function loadArrondissementsOptimized() {
             }).addTo(mapLayers.villagesPonctuels);
 
             marker.vpData = vp;
-            const arrondissement = vp.arrondissement_name || findArrondissementForPoint(lat, lng);
-            marker.bindPopup(createVillagePonctuelPopup(vp, arrondissement), {
+            const parentName = vp[cc().vpParentCol] || vp.arrondissement_name || vp.district_name || findParentAdminForPoint(lat, lng);
+            marker.bindPopup(createVillagePonctuelPopup(vp, parentName), {
                 maxWidth: window.innerWidth < 480 ? (window.innerWidth - 60) : 280,
                 minWidth: 180,
                 className: 'village-popup'
@@ -5235,7 +5314,7 @@ async function loadArrondissementsOptimized() {
                     console.log('✅ Supabase initialisé avec variables d\'environnement');
                 } catch (error) {
                     console.error('❌ Erreur Supabase:', error);
-                    showNotification('Mode hors ligne - données démo', 'warning');
+                    showNotification(t('notif.offline_demo'), 'warning');
                 }
             }
 
@@ -5293,10 +5372,188 @@ async function loadArrondissementsOptimized() {
             });
         }
 
+        // GEO-PRICING: refresh all displayed prices when location is detected
+        function refreshPriceDisplay() {
+            if (!isOutsideAfrica()) return;
+            const currency = cc().currency;
+            document.querySelectorAll('.format-option').forEach(opt => {
+                const basePrice = parseInt(opt.dataset.price) || 0;
+                if (basePrice > 0) {
+                    const effective = getEffectivePrice(basePrice);
+                    const priceEl = opt.querySelector('.format-price');
+                    if (priceEl) priceEl.textContent = effective.toLocaleString() + ' ' + currency;
+                }
+            });
+            if (printConfig.price > 0) {
+                const sel = document.querySelector('.format-option.selected');
+                if (sel) {
+                    const bp = parseInt(sel.dataset.price) || 0;
+                    if (bp > 0) printConfig.price = getEffectivePrice(bp);
+                }
+                updateSummaryFields();
+            }
+        }
+
+        // SUBSCRIPTION PROMPT for users outside Africa (after 30s)
+        let subscriptionPromptShown = false;
+        function scheduleSubscriptionPrompt() {
+            if (subscriptionPromptShown) return;
+            setTimeout(function() {
+                if (subscriptionPromptShown || !isOutsideAfrica()) return;
+                subscriptionPromptShown = true;
+                showSubscriptionModal();
+            }, 30000);
+        }
+
+        function showSubscriptionModal() {
+            let modal = document.getElementById('subscriptionModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'subscriptionModal';
+                modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10003;display:flex;align-items:center;justify-content:center;';
+                modal.innerHTML = `
+                    <div style="background:white;border-radius:15px;padding:30px;max-width:480px;width:90%;text-align:center;font-family:inherit;">
+                        <div style="font-size:40px;margin-bottom:15px;">🌍</div>
+                        <h3 id="subModalTitle" style="font-size:20px;font-weight:bold;color:#2c5530;margin-bottom:12px;"></h3>
+                        <p id="subModalText" style="color:#555;margin-bottom:8px;line-height:1.5;"></p>
+                        <div style="background:#f0f8f1;border-radius:10px;padding:15px;margin:15px 0;">
+                            <div style="font-size:28px;font-weight:bold;color:#4a7c59;">10 $ <span style="font-size:14px;font-weight:normal;">USD / <span id="subModalMonth"></span></span></div>
+                            <p id="subModalInclude" style="font-size:13px;color:#666;margin-top:6px;"></p>
+                        </div>
+                        <p id="subModalAlt" style="font-size:13px;color:#888;margin-bottom:18px;"></p>
+                        <div style="display:flex;gap:10px;justify-content:center;">
+                            <button id="subModalClose" style="padding:10px 24px;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;"></button>
+                            <button id="subModalContact" style="padding:10px 24px;border:none;border-radius:8px;background:#4a7c59;color:white;cursor:pointer;font-size:14px;font-weight:bold;"></button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(modal);
+                document.getElementById('subModalClose').addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+                document.getElementById('subModalContact').addEventListener('click', function() {
+                    window.open('mailto:intello.corporation@gmail.com?subject=MonVillage%20Subscription', '_blank');
+                    modal.style.display = 'none';
+                });
+            }
+            // Fill text based on current lang
+            const isEn = (window.getLang && getLang() === 'en') || false;
+            document.getElementById('subModalTitle').textContent = isEn
+                ? 'Unlimited access from abroad'
+                : 'Accès illimité depuis l\'étranger';
+            document.getElementById('subModalText').textContent = isEn
+                ? 'We noticed you\'re browsing from outside Africa. Map exports are available at international rates, or you can subscribe for unlimited access:'
+                : 'Nous avons détecté que vous naviguez depuis l\'extérieur de l\'Afrique. Les exports de carte sont disponibles au tarif international, ou vous pouvez souscrire un abonnement illimité :';
+            document.getElementById('subModalMonth').textContent = isEn ? 'month' : 'mois';
+            document.getElementById('subModalInclude').textContent = isEn
+                ? 'Unlimited map exports in all formats'
+                : 'Exports de cartes illimités dans tous les formats';
+            document.getElementById('subModalAlt').textContent = isEn
+                ? 'Or continue with pay-per-export at 3× the local rate.'
+                : 'Ou continuez avec le paiement à l\'export au tarif x3.';
+            document.getElementById('subModalClose').textContent = isEn ? 'Later' : 'Plus tard';
+            document.getElementById('subModalContact').textContent = isEn ? 'Subscribe' : 'S\'abonner';
+            modal.style.display = 'flex';
+        }
+
+        // COUNTRY/LANG SWITCHING
+        function updatePriceCurrency() {
+            const currency = cc().currency;
+            document.querySelectorAll('.format-price').forEach(el => {
+                el.textContent = el.textContent.replace(/XAF|UGX/, currency);
+            });
+            document.querySelectorAll('.total-price, #paymentAmount').forEach(el => {
+                el.textContent = el.textContent.replace(/XAF|UGX/, currency);
+            });
+        }
+
+        function switchCountry(code) {
+            if (code === currentCountry) return;
+            setCountry(code);
+            document.body.setAttribute('data-country', code);
+
+            // Update flag highlights
+            document.getElementById('flagCM').className = 'country-flag ' + (code === 'cm' ? 'active' : 'inactive');
+            document.getElementById('flagUG').className = 'country-flag ' + (code === 'ug' ? 'active' : 'inactive');
+
+            // Show/hide cm-only / ug-only elements
+            document.querySelectorAll('.cm-only').forEach(el => el.style.display = code === 'cm' ? '' : 'none');
+            document.querySelectorAll('.ug-only').forEach(el => el.style.display = code === 'ug' ? '' : 'none');
+
+            // Set default language for new country if user hasn't explicitly chosen one
+            if (!localStorage.getItem('monvillage_lang_explicit')) {
+                setLang(cc().defaultLang);
+                updateLangUI();
+            }
+
+            // Update search placeholder (country-specific)
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.placeholder = tc('search.placeholder');
+
+            // Update phone placeholder
+            const phoneInput = document.getElementById('customer-phone');
+            if (phoneInput) phoneInput.placeholder = tc('payment.phone_placeholder');
+
+            translatePage();
+            translateCountrySpecific();
+            updatePriceCurrency();
+
+            // Clear and reload map data
+            clearAllMapLayers();
+            Object.keys(mapDataCache).forEach(k => mapDataCache[k] = []);
+            vpAllData = null;
+            vpAllDataPromise = null;
+            vpSearchCache = null;
+            if (map) {
+                map.setView(cc().map.center, cc().map.zoom);
+                loadInitialData();
+            }
+        }
+
+        function clearAllMapLayers() {
+            Object.keys(mapLayers).forEach(key => {
+                if (mapLayers[key] && map) {
+                    map.removeLayer(mapLayers[key]);
+                    mapLayers[key] = null;
+                }
+            });
+        }
+
+        function updateLangUI() {
+            const lang = getLang();
+            document.getElementById('langFR').className = 'lang-option ' + (lang === 'fr' ? 'active' : 'inactive');
+            document.getElementById('langEN').className = 'lang-option ' + (lang === 'en' ? 'active' : 'inactive');
+        }
+
+        function initCountryLangSelectors() {
+            document.getElementById('flagCM').addEventListener('click', () => switchCountry('cm'));
+            document.getElementById('flagUG').addEventListener('click', () => switchCountry('ug'));
+            document.getElementById('langFR').addEventListener('click', () => {
+                localStorage.setItem('monvillage_lang_explicit', '1');
+                setLang('fr');
+                updateLangUI();
+            });
+            document.getElementById('langEN').addEventListener('click', () => {
+                localStorage.setItem('monvillage_lang_explicit', '1');
+                setLang('en');
+                updateLangUI();
+            });
+
+            // Set initial state
+            document.getElementById('flagCM').className = 'country-flag ' + (currentCountry === 'cm' ? 'active' : 'inactive');
+            document.getElementById('flagUG').className = 'country-flag ' + (currentCountry === 'ug' ? 'active' : 'inactive');
+            updateLangUI();
+            document.querySelectorAll('.cm-only').forEach(el => el.style.display = currentCountry === 'cm' ? '' : 'none');
+            document.querySelectorAll('.ug-only').forEach(el => el.style.display = currentCountry === 'ug' ? '' : 'none');
+        }
+
         // INITIALISATION PRINCIPALE
         document.addEventListener('DOMContentLoaded', function() {
             try {
-                console.log('🚀 Initialisation MonVillage avec panes personnalisés');
+                console.log('🚀 Initialisation MonVillage multi-pays');
+
+                initCountryLangSelectors();
+                translatePage();
+                translateCountrySpecific();
 
                 showDisclaimer();
                 initializeSupabase();
@@ -5307,6 +5564,7 @@ async function loadArrondissementsOptimized() {
                 loadInitialData();
                 trackPageVisit();
                 checkAdminSession();
+                detectUserLocation();
 
                 document.getElementById('vpAdminBtn').addEventListener('click', toggleVpEditMode);
                 document.getElementById('vpToolAdd').addEventListener('click', () => setVpTool('add'));
@@ -5315,23 +5573,24 @@ async function loadArrondissementsOptimized() {
                         const vpId = movingVpId;
                         const newLatLng = e.latlng;
                         cancelVpMove();
-                        if (!confirm('Déplacer ce village vers\nLat: ' + newLatLng.lat.toFixed(6) + '\nLng: ' + newLatLng.lng.toFixed(6) + ' ?')) return;
+                        if (!confirm(t('vp.move_click') + '\nLat: ' + newLatLng.lat.toFixed(6) + '\nLng: ' + newLatLng.lng.toFixed(6) + ' ?')) return;
                         const geom = { type: 'Point', coordinates: [newLatLng.lng, newLatLng.lat] };
-                        const { error } = await supabase.from('village_ponctuel').update({ geom }).eq('id', vpId);
-                        if (error) { showNotification('Erreur déplacement', 'error'); return; }
+                        const vpTableName = cc().vpTable;
+                        const { error } = await supabase.from(vpTableName).update({ geom }).eq('id', vpId);
+                        if (error) { showNotification(t('notif.load_error'), 'error'); return; }
                         const marker = findVpMarkerById(vpId);
                         if (marker) { marker.setLatLng(newLatLng); marker.vpData.geom = geom; }
-                        showNotification('Village déplacé', 'success', 2000);
+                        showNotification(t('notif.village_updated'), 'success', 2000);
                         return;
                     }
                     if (vpEditMode && vpActiveTool === 'add') onMapClickAddVp(e);
                 });
 
-                showNotification('MonVillage chargé avec succès', 'success');
-                
+                showNotification(t('notif.app_loaded'), 'success');
+
             } catch (error) {
                 console.error('Erreur lors de l\'initialisation:', error);
-                showNotification('Erreur lors du chargement de l\'application', 'error');
+                showNotification(t('notif.load_error'), 'error');
             }
         });
 
@@ -5365,12 +5624,12 @@ async function loadArrondissementsOptimized() {
         // Gestion des erreurs globales
         window.addEventListener('error', function(e) {
             console.error('Erreur globale:', e.error);
-            showNotification('Une erreur inattendue s\'est produite', 'error');
+            showNotification(t('notif.unexpected_error'), 'error');
         });
 
         window.addEventListener('unhandledrejection', function(e) {
             console.error('Promise non gérée:', e.reason);
-            showNotification('Erreur de connexion - vérifiez votre réseau', 'warning');
+            showNotification(t('notif.connection_error'), 'warning');
         });
 
 

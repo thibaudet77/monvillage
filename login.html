@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion Admin - MonVillage</title>
+    <title data-i18n="login.title">Connexion Admin - MonVillage</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,6 +23,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             max-width: 400px;
             width: 90%;
+            position: relative;
         }
 
         .login-header {
@@ -196,12 +197,16 @@
 </head>
 <body>
     <div class="login-container">
+        <div style="position:absolute;top:15px;right:15px;display:flex;gap:4px;">
+            <span id="loginLangFR" onclick="setLang('fr');translatePage();updateLoginLangUI()" style="cursor:pointer;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600;background:rgba(255,255,255,0.9);color:#2c5530;">FR</span>
+            <span id="loginLangEN" onclick="setLang('en');translatePage();updateLoginLangUI()" style="cursor:pointer;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600;opacity:0.6;">EN</span>
+        </div>
         <div class="login-header">
             <div class="logo">
                 <i class="fas fa-map-marked-alt"></i>
             </div>
-            <h1 class="login-title">Administration</h1>
-            <p class="login-subtitle">Acces a l'interface d'administration MonVillage</p>
+            <h1 class="login-title" data-i18n="login.heading">Administration</h1>
+            <p class="login-subtitle" data-i18n="login.subtitle">Acces a l'interface d'administration MonVillage</p>
         </div>
 
         <div id="alertContainer"></div>
@@ -209,29 +214,29 @@
         <!-- Etape 1 : Email + Mot de passe -->
         <form id="loginForm">
             <div class="form-group">
-                <label for="email" class="form-label">
+                <label for="email" class="form-label" data-i18n="login.email_label">
                     <i class="fas fa-envelope"></i> Email
                 </label>
                 <input type="email" id="email" class="form-input" required
-                       placeholder="votre.email@exemple.com">
+                       placeholder="votre.email@exemple.com" data-i18n-placeholder="login.email_placeholder">
             </div>
 
             <div class="form-group">
-                <label for="password" class="form-label">
+                <label for="password" class="form-label" data-i18n="login.password_label">
                     <i class="fas fa-lock"></i> Mot de passe
                 </label>
                 <input type="password" id="password" class="form-input" required
-                       placeholder="Votre mot de passe">
+                       placeholder="Votre mot de passe" data-i18n-placeholder="login.password_placeholder">
             </div>
 
-            <button type="submit" class="login-btn" id="loginBtn">
+            <button type="submit" class="login-btn" id="loginBtn" data-i18n="login.submit">
                 <i class="fas fa-sign-in-alt"></i> Se connecter
             </button>
         </form>
 
         <!-- Etape 2 : Verification OTP -->
         <div id="otpStep" class="hidden">
-            <div class="otp-info">
+            <div class="otp-info" data-i18n="login.otp_sent">
                 <i class="fas fa-shield-alt"></i>
                 Un code de verification a 6 chiffres a ete envoye a votre adresse email.
                 Consultez votre boite de reception (et vos spams).
@@ -239,7 +244,7 @@
 
             <form id="otpForm">
                 <div class="form-group">
-                    <label for="otpCode" class="form-label">
+                    <label for="otpCode" class="form-label" data-i18n="login.otp_label">
                         <i class="fas fa-key"></i> Code OTP
                     </label>
                     <input type="text" id="otpCode" class="form-input otp-input"
@@ -250,26 +255,26 @@
 
                 <div id="timer" class="timer"></div>
 
-                <button type="submit" class="login-btn" id="verifyBtn">
+                <button type="submit" class="login-btn" id="verifyBtn" data-i18n="login.otp_verify">
                     <i class="fas fa-check-circle"></i> Verifier le code
                 </button>
             </form>
 
             <div class="resend-link">
-                <a id="resendBtn" onclick="resendOtp()">
+                <a id="resendBtn" onclick="resendOtp()" data-i18n="login.otp_resend">
                     <i class="fas fa-redo"></i> Renvoyer le code
                 </a>
             </div>
 
             <div class="back-link">
-                <a onclick="backToLogin()">
+                <a onclick="backToLogin()" data-i18n="login.back_to_login">
                     <i class="fas fa-arrow-left"></i> Retour a la connexion
                 </a>
             </div>
         </div>
 
         <div id="mainBackLink" class="back-link">
-            <a href="index.html">
+            <a href="index.html" data-i18n="login.back_to_app">
                 <i class="fas fa-arrow-left"></i> Retour a l'application
             </a>
         </div>
@@ -277,8 +282,24 @@
 
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/country-config.js"></script>
+    <script src="js/i18n.js"></script>
 
     <script>
+        initCountry();
+        initLang();
+        translatePage();
+        function updateLoginLangUI() {
+            const lang = getLang();
+            document.getElementById('loginLangFR').style.opacity = lang === 'fr' ? '1' : '0.6';
+            document.getElementById('loginLangFR').style.background = lang === 'fr' ? 'rgba(255,255,255,0.9)' : 'transparent';
+            document.getElementById('loginLangFR').style.color = lang === 'fr' ? '#2c5530' : '#fff';
+            document.getElementById('loginLangEN').style.opacity = lang === 'en' ? '1' : '0.6';
+            document.getElementById('loginLangEN').style.background = lang === 'en' ? 'rgba(255,255,255,0.9)' : 'transparent';
+            document.getElementById('loginLangEN').style.color = lang === 'en' ? '#2c5530' : '#fff';
+        }
+        updateLoginLangUI();
+
         const SUPABASE_URL = 'https://hrlufnjhwhgddxkpyzst.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhybHVmbmpod2hnZGR4a3B5enN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3MzIwMzcsImV4cCI6MjA2ODMwODAzN30.0gMYonFDAU84i3boEIKZDK4OQhDrAXXJySGDa80wTZ8';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -309,13 +330,13 @@
                 const remaining = Math.max(0, Math.ceil((otpExpiresAt - Date.now()) / 1000));
                 if (remaining <= 0) {
                     clearInterval(otpTimerInterval);
-                    document.getElementById('timer').textContent = 'Code expire. Veuillez en demander un nouveau.';
+                    document.getElementById('timer').textContent = t('login.otp_expired');
                     document.getElementById('resendBtn').style.display = 'inline';
                     return;
                 }
                 const min = Math.floor(remaining / 60);
                 const sec = remaining % 60;
-                document.getElementById('timer').textContent = `Code valide pendant ${min}:${sec.toString().padStart(2, '0')}`;
+                document.getElementById('timer').textContent = t('login.otp_valid_for', {min, sec: sec.toString().padStart(2, '0')});
             }
             updateTimer();
             otpTimerInterval = setInterval(updateTimer, 1000);
@@ -356,7 +377,7 @@
             const loginBtn = document.getElementById('loginBtn');
 
             loginBtn.disabled = true;
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verification...';
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + t('login.verifying');
 
             try {
                 // Verifier les identifiants (mot de passe)
@@ -366,13 +387,13 @@
                 });
 
                 if (authError) throw new Error(authError.message);
-                if (!authData.user) throw new Error('Erreur d\'authentification');
+                if (!authData.user) throw new Error(t('login.auth_error'));
 
                 // Verifier les permissions administrateur
                 const isAdmin = await checkAdminPermissions(authData.user.id);
                 if (!isAdmin) {
                     await supabaseClient.auth.signOut();
-                    throw new Error('Acces non autorise. Vous devez etre administrateur.');
+                    throw new Error(t('login.not_authorized'));
                 }
 
                 authenticatedUser = authData.user;
@@ -388,14 +409,14 @@
                 document.getElementById('loginForm').classList.add('hidden');
                 document.getElementById('mainBackLink').classList.add('hidden');
                 document.getElementById('otpStep').classList.remove('hidden');
-                showAlert(`Un code de verification a ete envoye a ${email}`, 'info');
+                showAlert(t('login.otp_sent_to', {email}), 'info');
                 startTimer(600);
                 document.getElementById('otpCode').focus();
 
             } catch (error) {
                 showAlert(error.message || 'Erreur lors de la connexion');
                 loginBtn.disabled = false;
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + t('login.submit');
             }
         });
 
@@ -407,16 +428,16 @@
             const verifyBtn = document.getElementById('verifyBtn');
 
             if (otpCode.length !== 6) {
-                showAlert('Veuillez saisir un code a 6 chiffres.');
+                showAlert(t('login.enter_6_digits'));
                 return;
             }
 
             verifyBtn.disabled = true;
-            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verification...';
+            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + t('login.verifying');
 
             try {
                 if (Date.now() > otpExpiresAt) {
-                    throw new Error('Le code a expire. Veuillez en demander un nouveau.');
+                    throw new Error(t('login.code_expired'));
                 }
 
                 // Verifier le code OTP via Supabase Auth
@@ -427,7 +448,7 @@
                 });
 
                 if (error) {
-                    throw new Error('Code incorrect. Veuillez reessayer.');
+                    throw new Error(t('login.code_incorrect'));
                 }
 
                 // Mettre a jour le profil admin
@@ -445,7 +466,7 @@
                 sessionStorage.setItem('adminUserId', authenticatedUser.id);
                 sessionStorage.setItem('otpVerified', 'true');
 
-                showAlert('Verification reussie ! Redirection...', 'success');
+                showAlert(t('login.verified'), 'success');
 
                 if (otpTimerInterval) clearInterval(otpTimerInterval);
 
@@ -456,7 +477,7 @@
             } catch (error) {
                 showAlert(error.message);
                 verifyBtn.disabled = false;
-                verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Verifier le code';
+                verifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> ' + t('login.otp_verify');
             }
         });
 
@@ -467,9 +488,9 @@
             try {
                 await sendOtp(currentEmail);
                 startTimer(600);
-                showAlert('Un nouveau code a ete envoye.', 'success');
+                showAlert(t('login.new_code_sent'), 'success');
             } catch (error) {
-                showAlert('Erreur lors du renvoi du code. Reessayez dans quelques instants.');
+                showAlert(t('login.resend_error'));
                 document.getElementById('resendBtn').style.display = 'inline';
             }
         }
@@ -484,7 +505,7 @@
             document.getElementById('alertContainer').innerHTML = '';
             document.getElementById('otpCode').value = '';
             document.getElementById('loginBtn').disabled = false;
-            document.getElementById('loginBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+            document.getElementById('loginBtn').innerHTML = '<i class="fas fa-sign-in-alt"></i> ' + t('login.submit');
         }
     </script>
 </body>
