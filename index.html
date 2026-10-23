@@ -1324,6 +1324,16 @@
                 userGeoInfo.country = data.country_code || null;
                 userGeoInfo.isAfrica = AFRICA_COUNTRIES.includes(data.country_code);
                 console.log('Geo-pricing:', userGeoInfo);
+
+                // Auto-switch country if user hasn't manually chosen one
+                if (!localStorage.getItem('monvillage_country')) {
+                    const countryMap = { UG: 'ug', CM: 'cm' };
+                    const detected = countryMap[data.country_code];
+                    if (detected && detected !== currentCountry) {
+                        switchCountry(detected);
+                    }
+                }
+
                 if (isOutsideAfrica()) {
                     refreshPriceDisplay();
                     scheduleSubscriptionPrompt();
