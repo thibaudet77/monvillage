@@ -214,7 +214,30 @@
                 departement: 'Département',
                 arrondissement: 'Arrondissement',
                 district: 'District',
+                village: 'Village',
                 export_title: 'Exportation de Carte',
+                progress_preparing: 'Préparation de votre carte...',
+                progress_adjusting: 'Ajustement de la vue...',
+                progress_labels: 'Ajout des labels...',
+                progress_tiles: 'Chargement des tuiles...',
+                progress_capture: 'Capture de la carte...',
+                progress_composing: 'Composition de la carte...',
+                progress_generating: 'Génération du fichier...',
+                progress_ready: 'Carte prête ! Passage au paiement...',
+                legend_title: 'Légende',
+                legend_regions: 'Régions',
+                legend_departements: 'Départements',
+                legend_districts: 'Districts',
+                legend_arrondissements: 'Arrondissements',
+                legend_villages: 'Villages',
+                footer_scale: 'Échelle',
+                stop_selection: 'Arrêter sélection',
+                validate_zone: 'Valider la zone',
+                format_too_large: 'format trop grand !',
+                very_detailed: 'très détaillé',
+                very_large_zone: 'très grande zone',
+                custom_label: 'Personnalisé',
+                geo_intl_rate: '<strong>🌍 Tarif international</strong> — Les prix sont multipliés par 3 hors Afrique. <a href="mailto:intello.corporation@gmail.com?subject=MonVillage Abonnement" style="color:#4a7c59;font-weight:bold;">Abonnez-vous à 10$/mois</a> pour des exports illimités.',
             },
 
             // Payment modal
@@ -235,6 +258,25 @@
                 pay: 'Payer',
                 pay_mobile: 'Payer par Mobile Money',
                 pay_card: 'Payer par Carte',
+            },
+
+            // Measurement
+            measure: {
+                total: 'Total',
+                surface: 'Surface',
+                points: 'points',
+                segments: 'segments',
+            },
+
+            // Subscription modal
+            subscription: {
+                title: 'Accès illimité depuis l\'étranger',
+                text: 'Nous avons détecté que vous naviguez depuis l\'extérieur de l\'Afrique. Les exports de carte sont disponibles au tarif international, ou vous pouvez souscrire un abonnement illimité :',
+                month: 'mois',
+                includes: 'Exports de cartes illimités dans tous les formats',
+                alt: 'Ou continuez avec le paiement à l\'export au tarif x3.',
+                close: 'Plus tard',
+                subscribe: 'S\'abonner',
             },
 
             // Loading
@@ -830,7 +872,30 @@
                 departement: 'Division',
                 arrondissement: 'Subdivision',
                 district: 'District',
+                village: 'Village',
                 export_title: 'Map Export',
+                progress_preparing: 'Preparing your map...',
+                progress_adjusting: 'Adjusting the view...',
+                progress_labels: 'Adding labels...',
+                progress_tiles: 'Loading tiles...',
+                progress_capture: 'Capturing the map...',
+                progress_composing: 'Composing the map...',
+                progress_generating: 'Generating file...',
+                progress_ready: 'Map ready! Proceeding to payment...',
+                legend_title: 'Legend',
+                legend_regions: 'Regions',
+                legend_departements: 'Divisions',
+                legend_districts: 'Districts',
+                legend_arrondissements: 'Subdivisions',
+                legend_villages: 'Villages',
+                footer_scale: 'Scale',
+                stop_selection: 'Stop selection',
+                validate_zone: 'Validate zone',
+                format_too_large: 'format too large!',
+                very_detailed: 'very detailed',
+                very_large_zone: 'very large zone',
+                custom_label: 'Custom',
+                geo_intl_rate: '<strong>🌍 International rate</strong> — Prices are 3× for users outside Africa. <a href="mailto:intello.corporation@gmail.com?subject=MonVillage Subscription" style="color:#4a7c59;font-weight:bold;">Subscribe for $10/month</a> for unlimited exports.',
             },
 
             // Payment modal
@@ -851,6 +916,25 @@
                 pay: 'Pay',
                 pay_mobile: 'Pay with Mobile Money',
                 pay_card: 'Pay with Card',
+            },
+
+            // Measurement
+            measure: {
+                total: 'Total',
+                surface: 'Area',
+                points: 'points',
+                segments: 'segments',
+            },
+
+            // Subscription modal
+            subscription: {
+                title: 'Unlimited access from abroad',
+                text: 'We noticed you\'re browsing from outside Africa. Map exports are available at international rates, or you can subscribe for unlimited access:',
+                month: 'month',
+                includes: 'Unlimited map exports in all formats',
+                alt: 'Or continue with pay-per-export at 3× the local rate.',
+                close: 'Later',
+                subscribe: 'Subscribe',
             },
 
             // Loading
