@@ -303,8 +303,14 @@
         .search-result-main {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            gap: 8px;
             margin-bottom: 5px;
+        }
+        .search-result-main strong {
+            flex: 1;
+            min-width: 0;
+            word-break: break-word;
         }
 
         .search-result-badge {
@@ -314,6 +320,8 @@
             border-radius: 12px;
             font-size: 10px;
             font-weight: bold;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .search-result-details {
@@ -642,24 +650,39 @@
         }
 
         @media (max-width: 480px) {
+            /* Header mobile : 2 lignes */
             .header { padding: 4px 8px; }
-            .header-content { height: 40px; gap: 5px; }
+            .header-content { flex-wrap: wrap; height: auto; gap: 4px; padding: 4px 8px; }
+            .logo-section { order: 1; }
             .logo { width: 24px; height: 24px; font-size: 10px; }
             .app-title { font-size: 13px; }
-            .search-container { margin: 0 6px; }
-            .search-input { height: 28px; font-size: 11px; padding: 4px 26px 4px 8px; }
-            .search-btn { width: 22px; height: 22px; font-size: 10px; }
-            .admin-access { padding: 4px 6px; height: 28px; }
+            .header-selectors { order: 2; }
+            .country-toggle, .lang-toggle { height: 28px; padding: 3px 5px; }
+            .country-flag { font-size: 14px; }
+            .lang-option { font-size: 10px; padding: 1px 5px; }
+            .admin-access { order: 3; padding: 4px 6px; height: 28px; }
 
-            /* Toolbar mobile petit écran */
+            /* Barre de recherche pleine largeur sur sa propre ligne */
+            .search-container { order: 4; flex-basis: 100%; margin: 2px 0 0 0; max-width: 100%; }
+            .search-input { height: 34px; font-size: 13px; padding: 6px 32px 6px 10px; border-radius: 8px; }
+            .search-btn { width: 26px; height: 26px; font-size: 12px; right: 4px; }
+
+            /* Résultats de recherche en plein écran */
+            .search-results-container { position: fixed; top: auto; left: 6px; right: 6px; max-height: 55vh; border-radius: 0 0 12px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+            .search-result-item { padding: 10px 12px; }
+            .search-result-main { font-size: 14px; }
+            .search-result-details { font-size: 12px; }
+
+            /* Toolbar mobile */
             .toolbar { bottom: 12px; right: 10px; left: 10px; padding: 6px; gap: 4px; border-radius: 10px; }
             .tool-btn { padding: 8px; min-width: 34px; min-height: 34px; font-size: 14px; }
             .toggle-sidebar { width: 40px; height: 40px; font-size: 15px; top: 12px; left: 10px; }
             .locate-btn { width: 32px; height: 32px; font-size: 14px; top: 12px; right: 10px; }
 
             /* Popup village - petit écran */
-            .leaflet-popup-content { max-width: calc(100vw - 60px); margin: 8px 10px; font-size: 13px; }
+            .leaflet-popup-content { max-width: calc(100vw - 40px); margin: 8px 10px; font-size: 13px; }
             .leaflet-popup-content-wrapper { border-radius: 8px; }
+            .leaflet-popup { margin-bottom: 15px; }
 
             /* Village modal mobile */
             .village-modal-content { width: 98%; max-height: 90vh; border-radius: 10px; }
@@ -673,7 +696,7 @@
             .village-info-label { font-size: 11px; }
             .village-description { padding: 15px; }
             .description-title { font-size: 15px; }
-            .village-tabs { overflow-x: auto; }
+            .village-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
             .village-tab { padding: 10px 14px; font-size: 13px; white-space: nowrap; }
 
             /* Print/Payment modals mobile */
@@ -681,7 +704,11 @@
             .print-modal-header { padding: 12px 15px; }
             .print-modal-title { font-size: 18px; }
             .print-modal-body { padding: 15px; }
-            .preview-container { width: 100%; height: 300px; }
+            .preview-container { width: 100%; height: 250px; }
+            .format-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .format-option { padding: 8px 4px; }
+            .format-size { font-size: 14px; }
+            .format-price { font-size: 11px; }
             .payment-content { padding: 20px 15px; }
             .payment-title { font-size: 18px; }
             .payment-amount { font-size: 22px; }
@@ -693,14 +720,23 @@
 
             /* Notification mobile */
             .notification { max-width: calc(100vw - 20px); right: 10px; top: 10px; padding: 10px 15px; font-size: 13px; }
+
+            /* Disclaimer mobile */
+            .disclaimer-box { width: 95%; max-height: 90vh; padding: 20px 15px; }
         }
 
         @media (max-width: 360px) {
             .app-title { font-size: 11px; }
-            .search-input { font-size: 10px; }
-            .leaflet-popup-content { max-width: calc(100vw - 40px); margin: 6px 8px; font-size: 12px; }
+            .header-selectors { gap: 3px; }
+            .country-toggle, .lang-toggle { padding: 2px 4px; height: 26px; gap: 2px; }
+            .country-flag { font-size: 13px; }
+            .lang-option { font-size: 9px; padding: 1px 4px; }
+            .admin-access { padding: 3px 5px; height: 26px; font-size: 10px; }
+            .search-input { height: 32px; font-size: 12px; }
+            .leaflet-popup-content { max-width: calc(100vw - 30px); margin: 6px 8px; font-size: 12px; }
             .toolbar { gap: 2px; padding: 4px; }
             .tool-btn { padding: 6px; min-width: 30px; min-height: 30px; font-size: 12px; }
+            .format-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
         }
     </style>
 </head>
@@ -1958,6 +1994,7 @@
             const searchResults = document.getElementById('searchResults');
             if (searchResults) {
                 searchResults.style.display = 'none';
+                searchResults.style.top = '';
             }
         }
 
@@ -1965,6 +2002,10 @@
             const searchResults = document.getElementById('searchResults');
             if (searchResults && currentSearchResults.length > 0) {
                 searchResults.style.display = 'block';
+                if (window.innerWidth <= 480) {
+                    const rect = document.querySelector('.search-container').getBoundingClientRect();
+                    searchResults.style.top = rect.bottom + 'px';
+                }
             }
         }
 
@@ -1979,7 +2020,15 @@
                 const lng = village.lng;
                 if (!lat || !lng) return;
 
-                map.setView([lat, lng], 15);
+                const isMobile = window.innerWidth <= 480;
+                if (isMobile) {
+                    const headerH = document.querySelector('.header').offsetHeight;
+                    const offsetY = headerH / 2;
+                    map.setView([lat, lng], 15, { animate: true });
+                    setTimeout(() => map.panBy([0, -offsetY], { animate: true }), 100);
+                } else {
+                    map.setView([lat, lng], 15);
+                }
 
                 const tryOpenPopup = (attempts) => {
                     const parentName = village[cc().vpParentCol] || village.arrondissement_name || village.district_name || t('village.not_determined');
@@ -2014,13 +2063,16 @@
 
             document.getElementById('searchInput').value = village.village_name || village.name || '';
 
-            // Zoomer sur le village
             if (village.centroid) {
                 const centroid = parseGeometry(village.centroid);
                 if (centroid && centroid.coordinates) {
+                    const isMobile2 = window.innerWidth <= 480;
                     map.setView([centroid.coordinates[1], centroid.coordinates[0]], 15);
+                    if (isMobile2) {
+                        const headerH2 = document.querySelector('.header').offsetHeight;
+                        setTimeout(() => map.panBy([0, -headerH2 / 2], { animate: true }), 100);
+                    }
 
-                    // Ouvrir le popup après un délai
                     setTimeout(() => {
                         if (mapLayers.villages) {
                             mapLayers.villages.eachLayer(layer => {
@@ -5431,9 +5483,9 @@ async function loadArrondissementsOptimized() {
                             <p id="subModalInclude" style="font-size:13px;color:#666;margin-top:6px;"></p>
                         </div>
                         <p id="subModalAlt" style="font-size:13px;color:#888;margin-bottom:18px;"></p>
-                        <div style="display:flex;gap:10px;justify-content:center;">
-                            <button id="subModalClose" style="padding:10px 24px;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;"></button>
-                            <button id="subModalContact" style="padding:10px 24px;border:none;border-radius:8px;background:#4a7c59;color:white;cursor:pointer;font-size:14px;font-weight:bold;"></button>
+                        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                            <button id="subModalClose" style="padding:10px 24px;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;min-width:100px;"></button>
+                            <button id="subModalContact" style="padding:10px 24px;border:none;border-radius:8px;background:#4a7c59;color:white;cursor:pointer;font-size:14px;font-weight:bold;min-width:100px;"></button>
                         </div>
                     </div>`;
                 document.body.appendChild(modal);
