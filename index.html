@@ -2184,6 +2184,7 @@
             }).addTo(map);
 
             printRect.on('mousedown', onRectMouseDown);
+            printRect.on('touchstart', onRectTouchStart);
             addCornerHandles();
             updatePrintAreaSummary();
         }
@@ -2219,6 +2220,46 @@
             map.off('mouseup', onRectDragEnd);
         }
 
+        function onRectTouchStart(e) {
+            if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length === 1) {
+                L.DomEvent.stopPropagation(e);
+                L.DomEvent.preventDefault(e);
+                rectDragStart = e.latlng;
+                rectOriginalBounds = printRect.getBounds();
+                map.dragging.disable();
+                map.on('touchmove', onRectTouchMove);
+                map.on('touchend', onRectTouchEnd);
+            }
+        }
+
+        function onRectTouchMove(e) {
+            if (!rectDragStart || !rectOriginalBounds) return;
+            if (e.originalEvent) L.DomEvent.preventDefault(e);
+            const touch = e.originalEvent.touches[0];
+            const latlng = map.containerPointToLatLng(L.point(
+                touch.clientX - map.getContainer().getBoundingClientRect().left,
+                touch.clientY - map.getContainer().getBoundingClientRect().top
+            ));
+            const latDiff = latlng.lat - rectDragStart.lat;
+            const lngDiff = latlng.lng - rectDragStart.lng;
+            const newBounds = L.latLngBounds(
+                [rectOriginalBounds.getSouth() + latDiff, rectOriginalBounds.getWest() + lngDiff],
+                [rectOriginalBounds.getNorth() + latDiff, rectOriginalBounds.getEast() + lngDiff]
+            );
+            printRect.setBounds(newBounds);
+            printBounds = newBounds;
+            updateCornerPositions();
+            updatePrintAreaSummary();
+        }
+
+        function onRectTouchEnd() {
+            rectDragStart = null;
+            rectOriginalBounds = null;
+            map.dragging.enable();
+            map.off('touchmove', onRectTouchMove);
+            map.off('touchend', onRectTouchEnd);
+        }
+
         function addCornerHandles() {
             removeCornerHandles();
             if (!printRect) return;
@@ -2231,8 +2272,9 @@
                 bounds.getSouthWest()
             ];
             corners.forEach((corner, index) => {
+                const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
                 const marker = L.circleMarker(corner, {
-                    radius: 10,
+                    radius: isTouchDevice ? 16 : 10,
                     color: '#ffffff',
                     fillColor: '#007bff',
                     fillOpacity: 1,
@@ -2243,6 +2285,7 @@
                     renderer: printSvgRenderer
                 }).addTo(map);
                 marker.on('mousedown', (e) => onCornerMouseDown(e, index));
+                marker.on('touchstart', (e) => onCornerTouchStart(e, index));
                 cornerMarkers.push(marker);
             });
         }
@@ -2298,6 +2341,56 @@
             map.dragging.enable();
             map.off('mousemove', onCornerDrag);
             map.off('mouseup', onCornerDragEnd);
+        }
+
+        function onCornerTouchStart(e, cornerIndex) {
+            if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length === 1) {
+                L.DomEvent.stopPropagation(e);
+                L.DomEvent.preventDefault(e);
+                isDraggingCorner = true;
+                draggedCornerIndex = cornerIndex;
+                map.dragging.disable();
+                map.on('touchmove', onCornerTouchMove);
+                map.on('touchend', onCornerTouchEnd);
+            }
+        }
+
+        function onCornerTouchMove(e) {
+            if (!isDraggingCorner) return;
+            if (e.originalEvent) L.DomEvent.preventDefault(e);
+            const touch = e.originalEvent.touches[0];
+            const latlng = map.containerPointToLatLng(L.point(
+                touch.clientX - map.getContainer().getBoundingClientRect().left,
+                touch.clientY - map.getContainer().getBoundingClientRect().top
+            ));
+            const bounds = printRect.getBounds();
+            let newBounds;
+            switch(draggedCornerIndex) {
+                case 0:
+                    newBounds = L.latLngBounds([bounds.getSouth(), latlng.lng], [latlng.lat, bounds.getEast()]);
+                    break;
+                case 1:
+                    newBounds = L.latLngBounds([bounds.getSouth(), bounds.getWest()], [latlng.lat, latlng.lng]);
+                    break;
+                case 2:
+                    newBounds = L.latLngBounds([latlng.lat, bounds.getWest()], [bounds.getNorth(), latlng.lng]);
+                    break;
+                case 3:
+                    newBounds = L.latLngBounds([latlng.lat, latlng.lng], [bounds.getNorth(), bounds.getEast()]);
+                    break;
+            }
+            printRect.setBounds(newBounds);
+            printBounds = newBounds;
+            updateCornerPositions();
+            updatePrintAreaSummary();
+        }
+
+        function onCornerTouchEnd() {
+            isDraggingCorner = false;
+            draggedCornerIndex = -1;
+            map.dragging.enable();
+            map.off('touchmove', onCornerTouchMove);
+            map.off('touchend', onCornerTouchEnd);
         }
 
         function updateCornerPositions() {
