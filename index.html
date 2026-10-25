@@ -2284,9 +2284,11 @@
                     zIndexOffset: 10000
                 }).addTo(map);
 
-                const el = marker.getElement();
-                if (el) {
+                function attachCornerEvents() {
+                    const el = marker.getElement();
+                    if (!el) return;
                     el.style.touchAction = 'none';
+                    el.style.cursor = 'pointer';
 
                     el.addEventListener('mousedown', (evt) => {
                         evt.stopPropagation();
@@ -2303,8 +2305,10 @@
                         startCornerDrag(index);
                         document.addEventListener('touchmove', onCornerPointerMove, { passive: false });
                         document.addEventListener('touchend', onCornerPointerEnd);
-                    });
+                    }, { passive: false });
                 }
+
+                setTimeout(() => attachCornerEvents(), 0);
 
                 cornerMarkers.push(marker);
             });
