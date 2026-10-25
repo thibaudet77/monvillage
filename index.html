@@ -2189,6 +2189,7 @@
             if (rectEl) {
                 rectEl.style.touchAction = 'none';
                 rectEl.addEventListener('touchstart', function(evt) {
+                    if (isDraggingCorner) return;
                     if (evt.touches.length !== 1) return;
                     evt.stopPropagation();
                     evt.preventDefault();
@@ -2204,6 +2205,7 @@
         }
 
         function onRectMouseDown(e) {
+            if (isDraggingCorner) return;
             L.DomEvent.stopPropagation(e);
             rectDragStart = e.latlng;
             rectOriginalBounds = printRect.getBounds();
@@ -2213,6 +2215,7 @@
         }
 
         function onRectDrag(e) {
+            if (isDraggingCorner) return;
             if (!rectDragStart || !rectOriginalBounds) return;
             const latDiff = e.latlng.lat - rectDragStart.lat;
             const lngDiff = e.latlng.lng - rectDragStart.lng;
@@ -2235,6 +2238,7 @@
         }
 
         function onRectNativeTouchMove(evt) {
+            if (isDraggingCorner) return;
             if (!rectDragStart || !rectOriginalBounds) return;
             evt.preventDefault();
             const latlng = getEventLatLng(evt);
@@ -2285,6 +2289,7 @@
                 }).addTo(map);
 
                 marker.on('dragstart', function() {
+                    isDraggingCorner = true;
                     map.dragging.disable();
                 });
 
@@ -2313,6 +2318,7 @@
                 });
 
                 marker.on('dragend', function() {
+                    isDraggingCorner = false;
                     map.dragging.enable();
                 });
 
