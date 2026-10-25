@@ -92,6 +92,7 @@
         /* Print Area Selection */
         .print-area-selector { border: 3px dashed #007bff; background: rgba(0, 123, 255, 0.1); cursor: move; }
         .print-area-handle { width: 12px; height: 12px; background: #007bff; border: 2px solid white; border-radius: 50%; position: absolute; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .print-corner-handle { background: #007bff; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.4); width: 100%; height: 100%; touch-action: none; }
         .print-area-handle.nw { top: -6px; left: -6px; cursor: nw-resize; }
         .print-area-handle.ne { top: -6px; right: -6px; cursor: ne-resize; }
         .print-area-handle.sw { bottom: -6px; left: -6px; cursor: sw-resize; }
@@ -2184,7 +2185,20 @@
             }).addTo(map);
 
             printRect.on('mousedown', onRectMouseDown);
-            printRect.on('touchstart', onRectTouchStart);
+            var rectEl = printRect.getElement ? printRect.getElement() : null;
+            if (rectEl) {
+                rectEl.style.touchAction = 'none';
+                rectEl.addEventListener('touchstart', function(evt) {
+                    if (evt.touches.length !== 1) return;
+                    evt.stopPropagation();
+                    evt.preventDefault();
+                    rectDragStart = getEventLatLng(evt);
+                    rectOriginalBounds = printRect.getBounds();
+                    map.dragging.disable();
+                    document.addEventListener('touchmove', onRectNativeTouchMove, { passive: false });
+                    document.addEventListener('touchend', onRectNativeTouchEnd);
+                });
+            }
             addCornerHandles();
             updatePrintAreaSummary();
         }
@@ -2220,26 +2234,10 @@
             map.off('mouseup', onRectDragEnd);
         }
 
-        function onRectTouchStart(e) {
-            if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length === 1) {
-                L.DomEvent.stopPropagation(e);
-                L.DomEvent.preventDefault(e);
-                rectDragStart = e.latlng;
-                rectOriginalBounds = printRect.getBounds();
-                map.dragging.disable();
-                map.on('touchmove', onRectTouchMove);
-                map.on('touchend', onRectTouchEnd);
-            }
-        }
-
-        function onRectTouchMove(e) {
+        function onRectNativeTouchMove(evt) {
             if (!rectDragStart || !rectOriginalBounds) return;
-            if (e.originalEvent) L.DomEvent.preventDefault(e);
-            const touch = e.originalEvent.touches[0];
-            const latlng = map.containerPointToLatLng(L.point(
-                touch.clientX - map.getContainer().getBoundingClientRect().left,
-                touch.clientY - map.getContainer().getBoundingClientRect().top
-            ));
+            evt.preventDefault();
+            const latlng = getEventLatLng(evt);
             const latDiff = latlng.lat - rectDragStart.lat;
             const lngDiff = latlng.lng - rectDragStart.lng;
             const newBounds = L.latLngBounds(
@@ -2252,18 +2250,17 @@
             updatePrintAreaSummary();
         }
 
-        function onRectTouchEnd() {
+        function onRectNativeTouchEnd() {
             rectDragStart = null;
             rectOriginalBounds = null;
             map.dragging.enable();
-            map.off('touchmove', onRectTouchMove);
-            map.off('touchend', onRectTouchEnd);
+            document.removeEventListener('touchmove', onRectNativeTouchMove);
+            document.removeEventListener('touchend', onRectNativeTouchEnd);
         }
 
         function addCornerHandles() {
             removeCornerHandles();
             if (!printRect) return;
-            ensurePrintPane();
             const bounds = printRect.getBounds();
             const corners = [
                 bounds.getNorthWest(),
@@ -2271,98 +2268,71 @@
                 bounds.getSouthEast(),
                 bounds.getSouthWest()
             ];
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const handleSize = isTouchDevice ? 32 : 20;
             corners.forEach((corner, index) => {
-                const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-                const marker = L.circleMarker(corner, {
-                    radius: isTouchDevice ? 16 : 10,
-                    color: '#ffffff',
-                    fillColor: '#007bff',
-                    fillOpacity: 1,
-                    weight: 3,
+                const marker = L.marker(corner, {
+                    icon: L.divIcon({
+                        className: '',
+                        html: '<div class="print-corner-handle"></div>',
+                        iconSize: [handleSize, handleSize],
+                        iconAnchor: [handleSize / 2, handleSize / 2]
+                    }),
+                    draggable: false,
                     interactive: true,
                     bubblingMouseEvents: false,
-                    pane: 'printPane',
-                    renderer: printSvgRenderer
+                    zIndexOffset: 10000
                 }).addTo(map);
-                marker.on('mousedown', (e) => onCornerMouseDown(e, index));
-                marker.on('touchstart', (e) => onCornerTouchStart(e, index));
+
+                const el = marker.getElement();
+                if (el) {
+                    el.style.touchAction = 'none';
+
+                    el.addEventListener('mousedown', (evt) => {
+                        evt.stopPropagation();
+                        evt.preventDefault();
+                        startCornerDrag(index);
+                        document.addEventListener('mousemove', onCornerPointerMove);
+                        document.addEventListener('mouseup', onCornerPointerEnd);
+                    });
+
+                    el.addEventListener('touchstart', (evt) => {
+                        if (evt.touches.length !== 1) return;
+                        evt.stopPropagation();
+                        evt.preventDefault();
+                        startCornerDrag(index);
+                        document.addEventListener('touchmove', onCornerPointerMove, { passive: false });
+                        document.addEventListener('touchend', onCornerPointerEnd);
+                    });
+                }
+
                 cornerMarkers.push(marker);
             });
         }
 
-        function onCornerMouseDown(e, cornerIndex) {
-            L.DomEvent.stopPropagation(e);
+        function startCornerDrag(cornerIndex) {
             isDraggingCorner = true;
             draggedCornerIndex = cornerIndex;
             map.dragging.disable();
-            map.on('mousemove', onCornerDrag);
-            map.on('mouseup', onCornerDragEnd);
         }
 
-        function onCornerDrag(e) {
-            if (!isDraggingCorner) return;
-            const bounds = printRect.getBounds();
-            let newBounds;
-            switch(draggedCornerIndex) {
-                case 0: // NW
-                    newBounds = L.latLngBounds(
-                        [bounds.getSouth(), e.latlng.lng],
-                        [e.latlng.lat, bounds.getEast()]
-                    );
-                    break;
-                case 1: // NE
-                    newBounds = L.latLngBounds(
-                        [bounds.getSouth(), bounds.getWest()],
-                        [e.latlng.lat, e.latlng.lng]
-                    );
-                    break;
-                case 2: // SE
-                    newBounds = L.latLngBounds(
-                        [e.latlng.lat, bounds.getWest()],
-                        [bounds.getNorth(), e.latlng.lng]
-                    );
-                    break;
-                case 3: // SW
-                    newBounds = L.latLngBounds(
-                        [e.latlng.lat, e.latlng.lng],
-                        [bounds.getNorth(), bounds.getEast()]
-                    );
-                    break;
+        function getEventLatLng(evt) {
+            let clientX, clientY;
+            if (evt.touches && evt.touches.length > 0) {
+                clientX = evt.touches[0].clientX;
+                clientY = evt.touches[0].clientY;
+            } else {
+                clientX = evt.clientX;
+                clientY = evt.clientY;
             }
-            printRect.setBounds(newBounds);
-            printBounds = newBounds;
-            updateCornerPositions();
-            updatePrintAreaSummary();
+            const rect = map.getContainer().getBoundingClientRect();
+            return map.containerPointToLatLng(L.point(clientX - rect.left, clientY - rect.top));
         }
 
-        function onCornerDragEnd() {
-            isDraggingCorner = false;
-            draggedCornerIndex = -1;
-            map.dragging.enable();
-            map.off('mousemove', onCornerDrag);
-            map.off('mouseup', onCornerDragEnd);
-        }
-
-        function onCornerTouchStart(e, cornerIndex) {
-            if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length === 1) {
-                L.DomEvent.stopPropagation(e);
-                L.DomEvent.preventDefault(e);
-                isDraggingCorner = true;
-                draggedCornerIndex = cornerIndex;
-                map.dragging.disable();
-                map.on('touchmove', onCornerTouchMove);
-                map.on('touchend', onCornerTouchEnd);
-            }
-        }
-
-        function onCornerTouchMove(e) {
+        function onCornerPointerMove(evt) {
             if (!isDraggingCorner) return;
-            if (e.originalEvent) L.DomEvent.preventDefault(e);
-            const touch = e.originalEvent.touches[0];
-            const latlng = map.containerPointToLatLng(L.point(
-                touch.clientX - map.getContainer().getBoundingClientRect().left,
-                touch.clientY - map.getContainer().getBoundingClientRect().top
-            ));
+            evt.preventDefault();
+            const latlng = getEventLatLng(evt);
             const bounds = printRect.getBounds();
             let newBounds;
             switch(draggedCornerIndex) {
@@ -2385,12 +2355,14 @@
             updatePrintAreaSummary();
         }
 
-        function onCornerTouchEnd() {
+        function onCornerPointerEnd() {
             isDraggingCorner = false;
             draggedCornerIndex = -1;
             map.dragging.enable();
-            map.off('touchmove', onCornerTouchMove);
-            map.off('touchend', onCornerTouchEnd);
+            document.removeEventListener('mousemove', onCornerPointerMove);
+            document.removeEventListener('mouseup', onCornerPointerEnd);
+            document.removeEventListener('touchmove', onCornerPointerMove);
+            document.removeEventListener('touchend', onCornerPointerEnd);
         }
 
         function updateCornerPositions() {
