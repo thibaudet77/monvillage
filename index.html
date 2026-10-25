@@ -89,15 +89,31 @@
         .locate-btn.locating { background: #007bff; color: white; animation: pulse-button 1s infinite; }
         .locate-btn.located { background: #007bff; color: white; }
 
-        /* Print Area Selection */
-        .print-area-selector { border: 3px dashed #007bff; background: rgba(0, 123, 255, 0.1); cursor: move; }
-        .print-area-handle { width: 12px; height: 12px; background: #007bff; border: 2px solid white; border-radius: 50%; position: absolute; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-        .print-corner-handle { background: #007bff; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.4); width: 100%; height: 100%; touch-action: none; }
-        .print-area-handle.nw { top: -6px; left: -6px; cursor: nw-resize; }
-        .print-area-handle.ne { top: -6px; right: -6px; cursor: ne-resize; }
-        .print-area-handle.sw { bottom: -6px; left: -6px; cursor: sw-resize; }
-        .print-area-handle.se { bottom: -6px; right: -6px; cursor: se-resize; }
-        .print-area-info { position: absolute; top: -30px; left: 0; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; }
+        /* Print Area Selection - HTML overlay */
+        .print-overlay { position: absolute; border: 3px dashed #007bff; background: rgba(0, 123, 255, 0.1); cursor: move; z-index: 800; touch-action: none; box-sizing: border-box; }
+        .print-overlay .ph { position: absolute; background: #007bff; border: 2px solid white; border-radius: 50%; z-index: 801; touch-action: none; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+        .print-overlay .ph.corner { width: 20px; height: 20px; }
+        .print-overlay .ph.edge { width: 16px; height: 16px; }
+        .print-overlay .ph.nw { top: -10px; left: -10px; cursor: nw-resize; }
+        .print-overlay .ph.ne { top: -10px; right: -10px; cursor: ne-resize; }
+        .print-overlay .ph.sw { bottom: -10px; left: -10px; cursor: sw-resize; }
+        .print-overlay .ph.se { bottom: -10px; right: -10px; cursor: se-resize; }
+        .print-overlay .ph.n { top: -8px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+        .print-overlay .ph.s { bottom: -8px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+        .print-overlay .ph.w { left: -8px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
+        .print-overlay .ph.e { right: -8px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+        @media (pointer: coarse) {
+            .print-overlay .ph.corner { width: 32px; height: 32px; }
+            .print-overlay .ph.edge { width: 26px; height: 26px; }
+            .print-overlay .ph.nw { top: -16px; left: -16px; }
+            .print-overlay .ph.ne { top: -16px; right: -16px; }
+            .print-overlay .ph.sw { bottom: -16px; left: -16px; }
+            .print-overlay .ph.se { bottom: -16px; right: -16px; }
+            .print-overlay .ph.n { top: -13px; }
+            .print-overlay .ph.s { bottom: -13px; }
+            .print-overlay .ph.w { left: -13px; }
+            .print-overlay .ph.e { right: -13px; }
+        }
 
         /* Notification System */
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; max-width: 350px; }
@@ -1385,10 +1401,9 @@
                 console.log('Geo detection failed, defaulting to Africa pricing');
             }
         }
-        let printRect = null;               // L.Rectangle
-        let isPrintSelectorOn = false;      // toggle state
-        let previewRect = null;             // rectangle on mini-map
-        
+        let isPrintSelectorOn = false;
+        let previewRect = null;
+
         let measurementLayer;
         let isDistanceMeasuring = false;
         let isAreaMeasuring = false;
@@ -1398,12 +1413,6 @@
         let polygonPoints = [];
         let tempPolygon = null;
 
-        let cornerMarkers = [];
-        let isDraggingCorner = false;
-        let draggedCornerIndex = -1;
-
-        // Variables pour la sélection de zone d'impression
-        
         let printBounds = null;
         let isSelectingPrintArea = false;
         let selectedPaymentMethod = 'mobilemoney';
@@ -1421,9 +1430,6 @@
             price: 2000,
             bounds: null
         };
-
-        let rectDragStart = null;
-        let rectOriginalBounds = null;
 
         // Variables pour la géolocalisation
         let userLocationMarker = null;
@@ -2099,9 +2105,6 @@
         // SYSTEME D'IMPRESSION - SELECTION DE ZONE
         // ================================================================
 
-        let isDragging = false;
-        let dragStartLatLng = null;
-
         function togglePrintSelector() {
             isPrintSelectorOn = !isPrintSelectorOn;
             const btn = document.getElementById('selectPrintArea');
@@ -2147,217 +2150,164 @@
             }
         }
 
-        let printSvgRenderer = null;
-
-        function ensurePrintPane() {
-            if (!map.getPane('printPane')) {
-                const pane = map.createPane('printPane');
-                pane.style.zIndex = 800;
-                pane.style.pointerEvents = 'auto';
-            }
-            if (!printSvgRenderer) {
-                printSvgRenderer = L.svg({ pane: 'printPane' });
-                printSvgRenderer.addTo(map);
-            }
-        }
+        let printOverlayEl = null;
+        let _poAction = null;
+        let _poStartX = 0, _poStartY = 0;
+        let _poStartRect = null;
 
         function createDraggableRectangle() {
             removeRectangle();
-            ensurePrintPane();
 
             const b = map.getBounds();
             const w = b.getWest(), e = b.getEast(), s = b.getSouth(), n = b.getNorth();
             const w2 = w + (e - w) * 0.25, e2 = e - (e - w) * 0.25;
             const s2 = s + (n - s) * 0.25, n2 = n - (n - s) * 0.25;
-
             printBounds = L.latLngBounds([s2, w2], [n2, e2]);
 
-            printRect = L.rectangle(printBounds, {
-                color: '#007bff',
-                weight: 3,
-                fillOpacity: 0.15,
-                fillColor: '#007bff',
-                dashArray: '8 6',
-                interactive: true,
-                bubblingMouseEvents: false,
-                pane: 'printPane',
-                renderer: printSvgRenderer
-            }).addTo(map);
+            printOverlayEl = document.createElement('div');
+            printOverlayEl.className = 'print-overlay';
+            printOverlayEl.innerHTML =
+                '<div class="ph corner nw" data-action="nw"></div>' +
+                '<div class="ph corner ne" data-action="ne"></div>' +
+                '<div class="ph corner sw" data-action="sw"></div>' +
+                '<div class="ph corner se" data-action="se"></div>' +
+                '<div class="ph edge n" data-action="n"></div>' +
+                '<div class="ph edge s" data-action="s"></div>' +
+                '<div class="ph edge w" data-action="w"></div>' +
+                '<div class="ph edge e" data-action="e"></div>';
 
-            printRect.on('mousedown', onRectMouseDown);
-            var rectEl = printRect.getElement ? printRect.getElement() : null;
-            if (rectEl) {
-                rectEl.style.touchAction = 'none';
-                rectEl.addEventListener('touchstart', function(evt) {
-                    if (isDraggingCorner) return;
-                    if (evt.touches.length !== 1) return;
-                    evt.stopPropagation();
-                    evt.preventDefault();
-                    rectDragStart = getEventLatLng(evt);
-                    rectOriginalBounds = printRect.getBounds();
-                    map.dragging.disable();
-                    document.addEventListener('touchmove', onRectNativeTouchMove, { passive: false });
-                    document.addEventListener('touchend', onRectNativeTouchEnd);
-                });
-            }
-            addCornerHandles();
+            map.getContainer().appendChild(printOverlayEl);
+            syncOverlayPosition();
+
+            printOverlayEl.addEventListener('mousedown', onOverlayPointerDown);
+            printOverlayEl.addEventListener('touchstart', onOverlayPointerDown, { passive: false });
+            map.on('move zoom moveend zoomend', syncOverlayPosition);
+
             updatePrintAreaSummary();
         }
 
-        function onRectMouseDown(e) {
-            if (isDraggingCorner) return;
-            L.DomEvent.stopPropagation(e);
-            rectDragStart = e.latlng;
-            rectOriginalBounds = printRect.getBounds();
-            map.dragging.disable();
-            map.on('mousemove', onRectDrag);
-            map.on('mouseup', onRectDragEnd);
+        function syncOverlayPosition() {
+            if (!printOverlayEl || !printBounds) return;
+            const nw = map.latLngToContainerPoint(printBounds.getNorthWest());
+            const se = map.latLngToContainerPoint(printBounds.getSouthEast());
+            printOverlayEl.style.left = nw.x + 'px';
+            printOverlayEl.style.top = nw.y + 'px';
+            printOverlayEl.style.width = (se.x - nw.x) + 'px';
+            printOverlayEl.style.height = (se.y - nw.y) + 'px';
         }
 
-        function onRectDrag(e) {
-            if (isDraggingCorner) return;
-            if (!rectDragStart || !rectOriginalBounds) return;
-            const latDiff = e.latlng.lat - rectDragStart.lat;
-            const lngDiff = e.latlng.lng - rectDragStart.lng;
-            const newBounds = L.latLngBounds(
-                [rectOriginalBounds.getSouth() + latDiff, rectOriginalBounds.getWest() + lngDiff],
-                [rectOriginalBounds.getNorth() + latDiff, rectOriginalBounds.getEast() + lngDiff]
-            );
-            printRect.setBounds(newBounds);
-            printBounds = newBounds;
-            updateCornerPositions();
-            updatePrintAreaSummary();
-        }
+        function onOverlayPointerDown(evt) {
+            var handle = evt.target.closest('[data-action]');
+            _poAction = handle ? handle.dataset.action : 'move';
 
-        function onRectDragEnd() {
-            rectDragStart = null;
-            rectOriginalBounds = null;
-            map.dragging.enable();
-            map.off('mousemove', onRectDrag);
-            map.off('mouseup', onRectDragEnd);
-        }
-
-        function onRectNativeTouchMove(evt) {
-            if (isDraggingCorner) return;
-            if (!rectDragStart || !rectOriginalBounds) return;
-            evt.preventDefault();
-            const latlng = getEventLatLng(evt);
-            const latDiff = latlng.lat - rectDragStart.lat;
-            const lngDiff = latlng.lng - rectDragStart.lng;
-            const newBounds = L.latLngBounds(
-                [rectOriginalBounds.getSouth() + latDiff, rectOriginalBounds.getWest() + lngDiff],
-                [rectOriginalBounds.getNorth() + latDiff, rectOriginalBounds.getEast() + lngDiff]
-            );
-            printRect.setBounds(newBounds);
-            printBounds = newBounds;
-            updateCornerPositions();
-            updatePrintAreaSummary();
-        }
-
-        function onRectNativeTouchEnd() {
-            rectDragStart = null;
-            rectOriginalBounds = null;
-            map.dragging.enable();
-            document.removeEventListener('touchmove', onRectNativeTouchMove);
-            document.removeEventListener('touchend', onRectNativeTouchEnd);
-        }
-
-        function addCornerHandles() {
-            removeCornerHandles();
-            if (!printRect) return;
-            const bounds = printRect.getBounds();
-            const corners = [
-                bounds.getNorthWest(),
-                bounds.getNorthEast(),
-                bounds.getSouthEast(),
-                bounds.getSouthWest()
-            ];
-            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            const handleSize = isTouchDevice ? 36 : 22;
-            corners.forEach((corner, index) => {
-                const marker = L.marker(corner, {
-                    icon: L.divIcon({
-                        className: '',
-                        html: '<div class="print-corner-handle"></div>',
-                        iconSize: [handleSize, handleSize],
-                        iconAnchor: [handleSize / 2, handleSize / 2]
-                    }),
-                    draggable: true,
-                    interactive: true,
-                    bubblingMouseEvents: false,
-                    zIndexOffset: 10000
-                }).addTo(map);
-
-                marker.on('dragstart', function() {
-                    isDraggingCorner = true;
-                    map.dragging.disable();
-                });
-
-                marker.on('drag', function() {
-                    const latlng = marker.getLatLng();
-                    const b = printRect.getBounds();
-                    let newBounds;
-                    switch(index) {
-                        case 0:
-                            newBounds = L.latLngBounds([b.getSouth(), latlng.lng], [latlng.lat, b.getEast()]);
-                            break;
-                        case 1:
-                            newBounds = L.latLngBounds([b.getSouth(), b.getWest()], [latlng.lat, latlng.lng]);
-                            break;
-                        case 2:
-                            newBounds = L.latLngBounds([latlng.lat, b.getWest()], [b.getNorth(), latlng.lng]);
-                            break;
-                        case 3:
-                            newBounds = L.latLngBounds([latlng.lat, latlng.lng], [b.getNorth(), b.getEast()]);
-                            break;
-                    }
-                    printRect.setBounds(newBounds);
-                    printBounds = newBounds;
-                    updateCornerPositions(index);
-                    updatePrintAreaSummary();
-                });
-
-                marker.on('dragend', function() {
-                    isDraggingCorner = false;
-                    map.dragging.enable();
-                });
-
-                cornerMarkers.push(marker);
-            });
-        }
-
-        function getEventLatLng(evt) {
-            let clientX, clientY;
-            if (evt.touches && evt.touches.length > 0) {
+            var clientX, clientY;
+            if (evt.touches) {
+                if (evt.touches.length !== 1) return;
                 clientX = evt.touches[0].clientX;
                 clientY = evt.touches[0].clientY;
             } else {
                 clientX = evt.clientX;
                 clientY = evt.clientY;
             }
-            const rect = map.getContainer().getBoundingClientRect();
-            return map.containerPointToLatLng(L.point(clientX - rect.left, clientY - rect.top));
+
+            evt.stopPropagation();
+            evt.preventDefault();
+
+            _poStartX = clientX;
+            _poStartY = clientY;
+            _poStartRect = {
+                left: parseInt(printOverlayEl.style.left),
+                top: parseInt(printOverlayEl.style.top),
+                width: parseInt(printOverlayEl.style.width),
+                height: parseInt(printOverlayEl.style.height)
+            };
+
+            map.dragging.disable();
+
+            document.addEventListener('mousemove', onOverlayPointerMove);
+            document.addEventListener('mouseup', onOverlayPointerEnd);
+            document.addEventListener('touchmove', onOverlayPointerMove, { passive: false });
+            document.addEventListener('touchend', onOverlayPointerEnd);
         }
 
-        function updateCornerPositions(skipIndex) {
-            if (cornerMarkers.length === 0) return;
-            const bounds = printRect.getBounds();
-            const corners = [
-                bounds.getNorthWest(),
-                bounds.getNorthEast(),
-                bounds.getSouthEast(),
-                bounds.getSouthWest()
-            ];
-            cornerMarkers.forEach((marker, index) => {
-                if (index !== skipIndex) {
-                    marker.setLatLng(corners[index]);
-                }
-            });
+        function onOverlayPointerMove(evt) {
+            if (!_poAction || !_poStartRect) return;
+            evt.preventDefault();
+
+            var clientX, clientY;
+            if (evt.touches) {
+                clientX = evt.touches[0].clientX;
+                clientY = evt.touches[0].clientY;
+            } else {
+                clientX = evt.clientX;
+                clientY = evt.clientY;
+            }
+
+            var dx = clientX - _poStartX;
+            var dy = clientY - _poStartY;
+            var r = _poStartRect;
+            var nl = r.left, nt = r.top, nw = r.width, nh = r.height;
+            var minSize = 30;
+
+            switch(_poAction) {
+                case 'move':
+                    nl = r.left + dx;
+                    nt = r.top + dy;
+                    break;
+                case 'nw':
+                    nl = r.left + dx; nt = r.top + dy;
+                    nw = r.width - dx; nh = r.height - dy;
+                    break;
+                case 'ne':
+                    nt = r.top + dy;
+                    nw = r.width + dx; nh = r.height - dy;
+                    break;
+                case 'sw':
+                    nl = r.left + dx;
+                    nw = r.width - dx; nh = r.height + dy;
+                    break;
+                case 'se':
+                    nw = r.width + dx; nh = r.height + dy;
+                    break;
+                case 'n':
+                    nt = r.top + dy; nh = r.height - dy;
+                    break;
+                case 's':
+                    nh = r.height + dy;
+                    break;
+                case 'w':
+                    nl = r.left + dx; nw = r.width - dx;
+                    break;
+                case 'e':
+                    nw = r.width + dx;
+                    break;
+            }
+
+            if (nw < minSize) { nw = minSize; if (_poAction.includes('w')) nl = r.left + r.width - minSize; }
+            if (nh < minSize) { nh = minSize; if (_poAction.includes('n')) nt = r.top + r.height - minSize; }
+
+            printOverlayEl.style.left = nl + 'px';
+            printOverlayEl.style.top = nt + 'px';
+            printOverlayEl.style.width = nw + 'px';
+            printOverlayEl.style.height = nh + 'px';
+
+            var nwLatLng = map.containerPointToLatLng(L.point(nl, nt));
+            var seLatLng = map.containerPointToLatLng(L.point(nl + nw, nt + nh));
+            printBounds = L.latLngBounds(
+                [seLatLng.lat, nwLatLng.lng],
+                [nwLatLng.lat, seLatLng.lng]
+            );
+            updatePrintAreaSummary();
         }
 
-        function removeCornerHandles() {
-            cornerMarkers.forEach(marker => map.removeLayer(marker));
-            cornerMarkers = [];
+        function onOverlayPointerEnd() {
+            _poAction = null;
+            _poStartRect = null;
+            map.dragging.enable();
+            document.removeEventListener('mousemove', onOverlayPointerMove);
+            document.removeEventListener('mouseup', onOverlayPointerEnd);
+            document.removeEventListener('touchmove', onOverlayPointerMove);
+            document.removeEventListener('touchend', onOverlayPointerEnd);
         }
 
         function updatePreviewFromBounds() {
@@ -2378,19 +2328,18 @@
         }
 
         function updateRectFromMap() {
-            if (!printRect) return;
-            const mapB = map.getBounds();
-            const rectB = printRect.getBounds();
-            if (!mapB.overlaps(rectB)) createDraggableRectangle();
+            if (!printOverlayEl) return;
+            syncOverlayPosition();
         }
 
         function removeRectangle() {
-            if (printRect) {
-                printRect.off('mousedown', onRectMouseDown);
-                map.removeLayer(printRect);
-                printRect = null;
+            if (printOverlayEl) {
+                printOverlayEl.removeEventListener('mousedown', onOverlayPointerDown);
+                printOverlayEl.removeEventListener('touchstart', onOverlayPointerDown);
+                printOverlayEl.remove();
+                printOverlayEl = null;
             }
-            removeCornerHandles();
+            map.off('move zoom moveend zoomend', syncOverlayPosition);
             printBounds = null;
             clearPreviewRect();
             const el = document.getElementById('summaryArea');
@@ -2422,25 +2371,12 @@
         function useCurrentMapView() {
             const b = map.getBounds();
             printBounds = b;
-            if (printRect) {
-                printRect.setBounds(b);
-                updateCornerPositions();
+            if (printOverlayEl) {
+                syncOverlayPosition();
             } else {
-                // Show rect on map without minimizing modal
-                ensurePrintPane();
-                printRect = L.rectangle(b, {
-                    color: '#007bff',
-                    weight: 3,
-                    fillOpacity: 0.15,
-                    fillColor: '#007bff',
-                    dashArray: '8 6',
-                    interactive: true,
-                    bubblingMouseEvents: false,
-                    pane: 'printPane',
-                    renderer: printSvgRenderer
-                }).addTo(map);
-                printRect.on('mousedown', onRectMouseDown);
-                addCornerHandles();
+                createDraggableRectangle();
+                printBounds = b;
+                syncOverlayPosition();
             }
             updatePreviewFromBounds();
             updatePrintAreaSummary();
@@ -2671,24 +2607,11 @@
                 updatePrintAreaSummary();
                 calculateAndDisplayScale();
                 // Show rectangle on main map
-                if (printRect) {
-                    map.removeLayer(printRect);
-                    removeCornerHandles();
-                }
-                ensurePrintPane();
-                printRect = L.rectangle(bounds, {
-                    color: '#007bff',
-                    weight: 3,
-                    fillOpacity: 0.15,
-                    fillColor: '#007bff',
-                    dashArray: '8 6',
-                    interactive: true,
-                    bubblingMouseEvents: false,
-                    pane: 'printPane',
-                    renderer: printSvgRenderer
-                }).addTo(map);
-                printRect.on('mousedown', onRectMouseDown);
-                addCornerHandles();
+                removeRectangle();
+                printBounds = bounds;
+                createDraggableRectangle();
+                printBounds = bounds;
+                syncOverlayPosition();
                 map.fitBounds(bounds);
                 showNotification(t('notif.entity_zone_selected'), 'success');
             } else {
@@ -4181,8 +4104,8 @@ async function loadArrondissementsOptimized() {
                 progressEl.textContent = t('print.progress_adjusting');
                 progressBar.style.width = '10%';
 
-                // Remove print rectangle temporarily
-                if (printRect) { map.removeLayer(printRect); removeCornerHandles(); }
+                // Hide print overlay temporarily
+                if (printOverlayEl) { printOverlayEl.style.display = 'none'; }
 
                 // Add labels to map temporarily
                 progressEl.textContent = t('print.progress_labels');
@@ -4208,8 +4131,9 @@ async function loadArrondissementsOptimized() {
                     backgroundColor: '#ffffff'
                 });
 
-                // Remove temporary labels
+                // Remove temporary labels, restore overlay
                 tempLabels.forEach(l => map.removeLayer(l));
+                if (printOverlayEl) { printOverlayEl.style.display = ''; }
 
                 progressEl.textContent = t('print.progress_composing');
                 progressBar.style.width = '75%';
@@ -4652,9 +4576,9 @@ async function loadArrondissementsOptimized() {
                 progressEl.textContent = t('print.progress_adjusting');
                 progressBar.style.width = '10%';
 
-                // Remove print rectangle temporarily
-                const hadRect = !!printRect;
-                if (printRect) { map.removeLayer(printRect); removeCornerHandles(); }
+                // Hide print overlay temporarily
+                const hadOverlay = !!printOverlayEl;
+                if (printOverlayEl) { printOverlayEl.style.display = 'none'; }
 
                 map.fitBounds(bounds, { animate: false, padding: [10, 10] });
 
@@ -4735,6 +4659,7 @@ async function loadArrondissementsOptimized() {
             } catch (error) {
                 console.error('Erreur export:', error);
                 loadingOverlay.classList.remove('active');
+                if (printOverlayEl) { printOverlayEl.style.display = ''; }
                 showNotification(t('notif.export_cross_origin_error'), 'error', 8000);
             }
         }
