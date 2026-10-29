@@ -1784,7 +1784,7 @@
             if (vpAllData) return vpAllData;
             if (vpAllDataPromise) return vpAllDataPromise;
             vpAllDataPromise = (async () => {
-                const PAGE = 5000;
+                const PAGE = 1000;
                 const config = cc();
                 const vpTable = config.vpTable;
                 const isUg = currentCountry === 'ug';
@@ -1799,31 +1799,22 @@
                     return q.range(from, to);
                 }
 
-                // First page to estimate total
-                const first = await buildQuery(0, PAGE - 1);
-                if (first.error || !first.data || first.data.length === 0) {
-                    vpAllData = [];
-                    return vpAllData;
-                }
-                let all = first.data;
-                if (first.data.length === PAGE) {
-                    // Fetch remaining pages in parallel batches
+                let all = [];
+                let offset = 0;
+                let done = false;
+                while (!done) {
                     const PARALLEL = 6;
-                    let offset = PAGE;
-                    let done = false;
-                    while (!done) {
-                        const promises = [];
-                        for (let i = 0; i < PARALLEL; i++) {
-                            promises.push(buildQuery(offset + i * PAGE, offset + (i + 1) * PAGE - 1));
-                        }
-                        const results = await Promise.all(promises);
-                        for (const res of results) {
-                            if (res.error || !res.data || res.data.length === 0) { done = true; break; }
-                            all = all.concat(res.data);
-                            if (res.data.length < PAGE) { done = true; break; }
-                        }
-                        offset += PARALLEL * PAGE;
+                    const promises = [];
+                    for (let i = 0; i < PARALLEL; i++) {
+                        promises.push(buildQuery(offset + i * PAGE, offset + (i + 1) * PAGE - 1));
                     }
+                    const results = await Promise.all(promises);
+                    for (const res of results) {
+                        if (res.error || !res.data || res.data.length === 0) { done = true; break; }
+                        all = all.concat(res.data);
+                        if (res.data.length < PAGE) { done = true; break; }
+                    }
+                    offset += PARALLEL * PAGE;
                 }
                 vpAllData = all;
                 console.log(`Loaded ${vpAllData.length} VP from ${vpTable}`);
