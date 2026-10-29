@@ -1748,7 +1748,7 @@
         }
 
         function normalizeSearch(str) {
-            return removeAccents(str.toLowerCase()).replace(/[''`\-\s]/g, '');
+            return removeAccents(str.toLowerCase()).replace(/[''`'ʼʻ‘’\-\s]/g, '');
         }
 
         function searchScore(nameNorm, arrNorm, queryNorm) {
@@ -1871,31 +1871,46 @@
                 const config = cc();
                 const nameCol = config.villageNameCol || 'name';
 
-                let polygonQuery;
+                const queryClean = removeAccents(query);
+
+                let polygonQueries;
                 if (currentCountry === 'cm') {
-                    polygonQuery = supabase
-                        .from(config.villageSearchTable)
-                        .select('*')
-                        .or(`village_name.ilike.%${query}%,chief_name.ilike.%${query}%`)
-                        .eq('is_active', true)
-                        .limit(8);
+                    polygonQueries = [
+                        supabase.from(config.villageSearchTable).select('*')
+                            .or(`village_name.ilike.%${query}%,chief_name.ilike.%${query}%`)
+                            .eq('is_active', true).limit(8),
+                        supabase.from(config.villageSearchTable).select('*')
+                            .or(`village_name.ilike.%${queryClean}%,chief_name.ilike.%${queryClean}%`)
+                            .limit(10)
+                    ];
                 } else {
-                    polygonQuery = supabase
-                        .from(config.villageSearchTable)
-                        .select('*')
-                        .ilike('name', `%${query}%`)
-                        .eq('is_active', true)
-                        .limit(8);
+                    polygonQueries = [
+                        supabase.from(config.villageSearchTable).select('*')
+                            .ilike('name', `%${query}%`)
+                            .eq('is_active', true).limit(8),
+                        supabase.from(config.villageSearchTable).select('*')
+                            .ilike('name', `%${queryClean}%`)
+                            .limit(10)
+                    ];
                 }
 
-                const [polygonRes, vpCache] = await Promise.all([
-                    polygonQuery,
+                const [polygonRes1, polygonRes2, vpCache] = await Promise.all([
+                    ...polygonQueries,
                     getVpSearchCache()
                 ]);
 
-                if (polygonRes.error) throw polygonRes.error;
-
-                const polygonResults = (polygonRes.data || []).map(v => ({ ...v, _type: 'polygon' }));
+                const seen = new Set();
+                const polygonResults = [];
+                for (const res of [polygonRes1, polygonRes2]) {
+                    if (res.error || !res.data) continue;
+                    for (const v of res.data) {
+                        const key = v.id || (v.village_name || v.name);
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            polygonResults.push({ ...v, _type: 'polygon' });
+                        }
+                    }
+                }
 
                 const scored = vpCache
                     .map(vp => ({ vp, score: searchScore(vp._nameNorm, vp._arrNorm, queryNorm) }))
