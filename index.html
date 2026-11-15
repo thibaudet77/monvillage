@@ -1192,29 +1192,29 @@
                             <div class="form-group">
                                 <label class="form-label" data-i18n="print.paper_size">Taille du papier</label>
                                 <div class="format-grid">
-                                    <div class="format-option" data-format="A4" data-price="500" data-w="0.21" data-h="0.297">
+                                    <div class="format-option" data-format="A4" data-price="5000" data-w="0.21" data-h="0.297">
                                         <div class="format-size">A4</div>
-                                        <div class="format-price">500 XAF</div>
+                                        <div class="format-price">5 000 XAF</div>
                                     </div>
-                                    <div class="format-option" data-format="A3" data-price="1000" data-w="0.297" data-h="0.42">
+                                    <div class="format-option" data-format="A3" data-price="10000" data-w="0.297" data-h="0.42">
                                         <div class="format-size">A3</div>
-                                        <div class="format-price">1 000 XAF</div>
+                                        <div class="format-price">10 000 XAF</div>
                                     </div>
-                                    <div class="format-option selected" data-format="A2" data-price="2000" data-w="0.42" data-h="0.594">
+                                    <div class="format-option selected" data-format="A2" data-price="20000" data-w="0.42" data-h="0.594">
                                         <div class="format-size">A2</div>
-                                        <div class="format-price">2 000 XAF</div>
+                                        <div class="format-price">20 000 XAF</div>
                                     </div>
-                                    <div class="format-option" data-format="A1" data-price="4000" data-w="0.594" data-h="0.841">
+                                    <div class="format-option" data-format="A1" data-price="40000" data-w="0.594" data-h="0.841">
                                         <div class="format-size">A1</div>
-                                        <div class="format-price">4 000 XAF</div>
+                                        <div class="format-price">40 000 XAF</div>
                                     </div>
-                                    <div class="format-option" data-format="A0" data-price="6000" data-w="0.841" data-h="1.189">
+                                    <div class="format-option" data-format="A0" data-price="60000" data-w="0.841" data-h="1.189">
                                         <div class="format-size">A0</div>
-                                        <div class="format-price">6 000 XAF</div>
+                                        <div class="format-price">60 000 XAF</div>
                                     </div>
                                     <div class="format-option" data-format="custom" data-price="0" data-w="1" data-h="1">
                                         <div class="format-size" data-i18n="print.custom">Perso.</div>
-                                        <div class="format-price" data-i18n="print.custom_price">10k/m²</div>
+                                        <div class="format-price" data-i18n="print.custom_price">100k/m²</div>
                                     </div>
                                 </div>
                             </div>
@@ -1227,7 +1227,7 @@
                                     <input type="number" class="form-input" id="customHeight" value="1.5" min="1" max="2" step="0.1" style="width:80px;">
                                     <span>m</span>
                                 </div>
-                                <small style="color:#666; margin-top:5px; display:block;" data-i18n="print.custom_hint">Min 1m, Max 2m. Prix: 10 000 XAF/m2</small>
+                                <small style="color:#666; margin-top:5px; display:block;" data-i18n="print.custom_hint">Min 1m, Max 2m. Prix: 100 000 XAF/m2</small>
                             </div>
 
                             <div class="form-group">
@@ -1292,7 +1292,7 @@
                         </div>
                         <div class="summary-row">
                             <span class="summary-label total-price" data-i18n="print.summary_price">Prix total:</span>
-                            <span class="summary-value total-price" id="summaryPrice">2 000 XAF</span>
+                            <span class="summary-value total-price" id="summaryPrice">20 000 XAF</span>
                         </div>
                     </div>
 
@@ -1308,7 +1308,7 @@
         <div id="paymentModal" class="payment-modal">
             <div class="payment-content">
                 <h3 class="payment-title"><i class="fas fa-lock"></i> <span data-i18n="payment.title">Paiement securise</span></h3>
-                <div class="payment-amount" id="paymentAmount">2 000 XAF</div>
+                <div class="payment-amount" id="paymentAmount">20 000 XAF</div>
                 <div class="payment-info">
                     <strong data-i18n="payment.details">Details:</strong><br>
                     <span id="paymentDetails">Format A2 - PNG</span>
@@ -1391,11 +1391,11 @@
             get map() { return cc().map; },
             print: {
                 formats: {
-                    A4: { price: 500, width: 210, height: 297 },
-                    A3: { price: 1000, width: 297, height: 420 },
-                    A2: { price: 2000, width: 420, height: 594 },
-                    A1: { price: 4000, width: 594, height: 841 },
-                    A0: { price: 6000, width: 841, height: 1189 }
+                    A4: { price: 5000, width: 210, height: 297 },
+                    A3: { price: 10000, width: 297, height: 420 },
+                    A2: { price: 20000, width: 420, height: 594 },
+                    A1: { price: 40000, width: 594, height: 841 },
+                    A0: { price: 60000, width: 841, height: 1189 }
                 }
             }
         };
@@ -1493,7 +1493,7 @@
             showScale: true,
             showLegend: true,
             showCoordinates: true,
-            price: 2000,
+            price: 20000,
             bounds: null
         };
 
@@ -2565,7 +2565,7 @@
 
                 // Calculate price
                 const area = Math.max(1, requiredWidthM) * Math.max(1, requiredHeightM);
-                printConfig.price = getEffectivePrice(Math.round(area * 10000));
+                printConfig.price = getEffectivePrice(Math.round(area * 100000));
                 const priceEl = document.getElementById('summaryPrice');
                 if (priceEl) priceEl.textContent = `${printConfig.price.toLocaleString()} ${cc().currency}`;
 
@@ -4049,7 +4049,7 @@ async function loadArrondissementsOptimized() {
                 customGroup.style.display = 'block';
                 const w = parseFloat(document.getElementById('customWidth').value) || 1;
                 const h = parseFloat(document.getElementById('customHeight').value) || 1.5;
-                printConfig.price = getEffectivePrice(Math.round(w * h * 10000));
+                printConfig.price = getEffectivePrice(Math.round(w * h * 100000));
             } else {
                 customGroup.style.display = 'none';
                 printConfig.price = getEffectivePrice(price);
@@ -4064,7 +4064,7 @@ async function loadArrondissementsOptimized() {
             const h = parseFloat(document.getElementById('customHeight').value) || 1.5;
             const cw = Math.max(1, Math.min(2, w));
             const ch = Math.max(1, Math.min(2, h));
-            printConfig.price = getEffectivePrice(Math.round(cw * ch * 10000));
+            printConfig.price = getEffectivePrice(Math.round(cw * ch * 100000));
             updateSummaryFields();
             calculateAndDisplayScale();
         }
