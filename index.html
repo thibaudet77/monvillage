@@ -202,8 +202,16 @@
         .village-photos { margin-bottom: 20px; }
         .village-photos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
         .village-photo { border-radius: 8px; overflow: hidden; aspect-ratio: 1; position: relative; }
-        .village-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .village-photo img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s; }
+        .village-photo img:hover { transform: scale(1.05); }
         .village-photo-caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; padding: 10px; font-size: 12px; }
+
+        .photo-lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; }
+        .photo-lightbox.active { display: flex; }
+        .photo-lightbox img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
+        .photo-lightbox-caption { color: #fff; margin-top: 12px; font-size: 15px; text-align: center; max-width: 90vw; }
+        .photo-lightbox-close { position: absolute; top: 15px; right: 20px; color: #fff; font-size: 32px; cursor: pointer; background: none; border: none; z-index: 100001; opacity: 0.8; transition: opacity 0.2s; }
+        .photo-lightbox-close:hover { opacity: 1; }
 
         .village-description { padding: 30px; }
         .description-section { margin-bottom: 30px; }
@@ -3146,8 +3154,9 @@ function createVillagePopup(village) {
                 photosSection.style.display = 'block';
                 photosGrid.innerHTML = photos.map(photo => `
                     <div class="village-photo">
-                        <img src="${photo.url}" alt="${photo.caption}" loading="lazy" 
-                             onerror="this.style.display='none'">
+                        <img src="${photo.url}" alt="${photo.caption}" loading="lazy"
+                             onerror="this.style.display='none'"
+                             onclick="openPhotoLightbox('${photo.url}', '${photo.caption.replace(/'/g, "\\'")}')">
                         <div class="village-photo-caption">${photo.caption}</div>
                     </div>
                 `).join('');
@@ -5803,6 +5812,34 @@ async function loadArrondissementsOptimized() {
 
     
 
+    </script>
+
+    <div class="photo-lightbox" id="photoLightbox" onclick="closePhotoLightbox()">
+        <button class="photo-lightbox-close" onclick="closePhotoLightbox()">&times;</button>
+        <img id="lightboxImage" src="" alt="">
+        <div class="photo-lightbox-caption" id="lightboxCaption"></div>
+    </div>
+
+    <script>
+        function openPhotoLightbox(src, caption) {
+            const lb = document.getElementById('photoLightbox');
+            document.getElementById('lightboxImage').src = src;
+            document.getElementById('lightboxCaption').textContent = caption || '';
+            lb.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closePhotoLightbox() {
+            const lb = document.getElementById('photoLightbox');
+            lb.classList.remove('active');
+            if (!document.getElementById('villageModal').classList.contains('active')) {
+                document.body.style.overflow = '';
+            }
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('photoLightbox').classList.contains('active')) {
+                closePhotoLightbox();
+            }
+        });
     </script>
 </body>
 </html>
