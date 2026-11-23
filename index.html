@@ -465,8 +465,7 @@
             font-weight: 600;
             font-size: 10px;
             padding: 0 !important;
-            white-space: pre-line;
-            line-height: 1.2;
+            white-space: nowrap;
             text-shadow:
                 -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
                 -2px 0 0 #fff, 2px 0 0 #fff, 0 -2px 0 #fff, 0 2px 0 #fff,
@@ -2831,23 +2830,6 @@ async function loadVillagesPonctuels() {
         mapLayers.villagesPonctuels = L.layerGroup();
         map.addLayer(mapLayers.villagesPonctuels);
 
-        function wrapLabel(text, maxLen) {
-            if (!text || text.length <= maxLen) return text;
-            const words = text.split(/\s+/);
-            const lines = [];
-            let line = '';
-            for (const w of words) {
-                if (line && (line + ' ' + w).length > maxLen) {
-                    lines.push(line);
-                    line = w;
-                } else {
-                    line = line ? line + ' ' + w : w;
-                }
-            }
-            if (line) lines.push(line);
-            return lines.join('\n');
-        }
-
         const CHUNK = 500;
         let i = 0;
         const zoom = map.getZoom();
@@ -2896,7 +2878,7 @@ async function loadVillagesPonctuels() {
 
                 if (showLabels && vp.name) {
                     const labelClass = 'vp-label' + (vpType !== 'village' ? ' vp-label-' + vpType : '');
-                    marker.bindTooltip(wrapLabel(vp.name, 14), { permanent: true, direction: 'right', offset: [6, 0], className: labelClass });
+                    marker.bindTooltip(vp.name, { permanent: true, direction: 'right', offset: [6, 0], className: labelClass });
                 }
             }
             if (i < data.length) {
@@ -3449,7 +3431,7 @@ async function loadArrondissementsOptimized() {
                             const vt = marker.vpData.type || 'village';
                             const labelClass = 'vp-label' + (vt !== 'village' ? ' vp-label-' + vt : '');
                             if (!marker.getTooltip()) {
-                                marker.bindTooltip(wrapLabel(marker.vpData.name, 14), {
+                                marker.bindTooltip(marker.vpData.name, {
                                     permanent: true,
                                     direction: 'right',
                                     offset: [6, 0],
@@ -5304,7 +5286,7 @@ async function loadArrondissementsOptimized() {
                         if (ctx.marker.getTooltip()) ctx.marker.unbindTooltip();
                         const zoom = map.getZoom();
                         if (zoom >= 12 && name) {
-                            ctx.marker.bindTooltip(wrapLabel(name, 14), { permanent: true, direction: 'right', offset: [6, 0], className: 'vp-label' });
+                            ctx.marker.bindTooltip(name, { permanent: true, direction: 'right', offset: [6, 0], className: 'vp-label' });
                         }
                         const parentName = data[cc().vpParentCol] || t('village.not_determined');
                         ctx.marker.setPopupContent(createVillagePonctuelPopup(ctx.vp, parentName));
@@ -5444,7 +5426,7 @@ async function loadArrondissementsOptimized() {
             const zoom = map.getZoom();
             if (zoom >= 12 && vp.name) {
                 const labelClass = 'vp-label' + (vpType !== 'village' ? ' vp-label-' + vpType : '');
-                marker.bindTooltip(wrapLabel(vp.name, 14), { permanent: true, direction: 'right', offset: [6, 0], className: labelClass });
+                marker.bindTooltip(vp.name, { permanent: true, direction: 'right', offset: [6, 0], className: labelClass });
             }
         }
 
